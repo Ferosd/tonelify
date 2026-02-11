@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, getPlanByPriceId } from "@/lib/stripe";
-import { setUserSubscription } from "@/lib/subscription";
+import { stripe } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
-    let event;
+    let event: any;
 
     try {
         if (process.env.STRIPE_WEBHOOK_SECRET) {
@@ -22,112 +21,122 @@ export async function POST(req: NextRequest) {
                 process.env.STRIPE_WEBHOOK_SECRET
             );
         } else {
-            // In development without webhook secret, parse directly
             event = JSON.parse(body);
         }
-    } catch (err) {
-        console.error("Webhook signature verification failed:", err);
+    } catch (err: any) {
+        console.error("Webhook signature verification failed:", err.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
+    const eventType = event.type;
+    const obj = event.data?.object;
+
+    console.log(`[Stripe Webhook] Event: ${eventType}`);
+
     try {
-        switch (event.type) {
-            case "checkout.session.completed": {
-                const session = event.data.object;
-                const userId = session.metadata?.userId;
-                const planId = session.metadata?.planId;
+        if (eventType === "checkout.session.completed") {
+            const userId = obj?.metadata?.userId;
+            const planId = obj?.metadata?.planId;
+            const subscriptionId = obj?.subscription;
+            const customerId = obj?.customer;
 
-                if (userId && planId && session.subscription) {
-                    // Get subscription details from Stripe
-                    const subscription = await stripe.subscriptions.retrieve(
-                        session.subscription as string
-                    ) as any;
+            console.log(`[Webhook] userId: ${userId}, planId: ${planId}, subId: ${subscriptionId}`);
 
-                    await setUserSubscription(
-                        userId,
-                        planId as any,
-                        session.customer as string,
-                        subscription.id,
-                        new Date(subscription.current_period_end * 1000)
-                    );
-
-                    console.log(`✅ Subscription activated: ${userId} → ${planId}`);
-                }
-                break;
+            if (!userId || !planId) {
+                console.log("[Webhook] Missing userId or planId in metadata");
+                return NextResponse.json({ received: true, skipped: "missing metadata" });
             }
 
-            case "invoice.payment_succeeded": {
-                const invoice = event.data.object;
-                if (invoice.subscription) {
-                    const subscription = await stripe.subscriptions.retrieve(
-                        invoice.subscription as string
-                    ) as any;
-                    const userId = subscription.metadata?.userId;
-                    const planId = subscription.metadata?.planId;
+            let periodEnd = new Date();
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-                    if (userId && planId) {
-                        await setUserSubscription(
-                            userId,
-                            planId as any,
-                            invoice.customer as string,
-                            subscription.id,
-                            new Date(subscription.current_period_end * 1000)
-                        );
-
-                        console.log(`✅ Subscription renewed: ${userId} → ${planId}`);
+            if (subscriptionId) {
+                try {
+                    const sub: any = await stripe.subscriptions.retrieve(subscriptionId);
+                    if (sub.current_period_end) {
+                        periodEnd = new Date(sub.current_period_end * 1000);
                     }
+                } catch (subErr: any) {
+                    console.error("[Webhook] Failed to retrieve subscription:", subErr.message);
                 }
-                break;
             }
 
-            case "customer.subscription.updated": {
-                const subscription = event.data.object;
-                const userId = subscription.metadata?.userId;
+            const { error: dbError } = await supabase
+                .from("user_subscriptions")
+                .upsert({
+                    user_id: userId,
+                    stripe_customer_id: customerId || null,
+                    stripe_subscription_id: subscriptionId || null,
+                    plan: planId,
+                    status: "active",
+                    current_period_end: periodEnd.toISOString(),
+                    cancel_at_period_end: false,
+                    updated_at: new Date().toISOString(),
+                }, { onConflict: "user_id" });
 
-                if (userId) {
-                    // Check if subscription was canceled
-                    if (subscription.cancel_at_period_end) {
-                        await supabase
-                            .from("user_subscriptions")
-                            .update({
-                                cancel_at_period_end: true,
-                                updated_at: new Date().toISOString(),
-                            })
-                            .eq("stripe_subscription_id", subscription.id);
-
-                        console.log(`⚠️ Subscription will cancel at period end: ${userId}`);
-                    }
-                }
-                break;
+            if (dbError) {
+                console.error("[Webhook] DB error:", dbError);
+                return NextResponse.json({ error: "Database error" }, { status: 500 });
             }
 
-            case "customer.subscription.deleted": {
-                const subscription = event.data.object;
-                const userId = subscription.metadata?.userId;
+            console.log(`[Webhook] ✅ Activated: ${userId} → ${planId}`);
+        }
 
-                if (userId) {
-                    // Downgrade to hobby
+        else if (eventType === "invoice.payment_succeeded") {
+            const subscriptionId = obj?.subscription;
+            if (!subscriptionId) {
+                return NextResponse.json({ received: true });
+            }
+
+            try {
+                const sub: any = await stripe.subscriptions.retrieve(subscriptionId);
+                const userId = sub.metadata?.userId;
+                const planId = sub.metadata?.planId;
+
+                if (userId && planId) {
+                    const periodEnd = sub.current_period_end
+                        ? new Date(sub.current_period_end * 1000)
+                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
                     await supabase
                         .from("user_subscriptions")
-                        .update({
-                            plan: "hobby",
-                            status: "canceled",
+                        .upsert({
+                            user_id: userId,
+                            stripe_customer_id: obj.customer || null,
+                            stripe_subscription_id: subscriptionId,
+                            plan: planId,
+                            status: "active",
+                            current_period_end: periodEnd.toISOString(),
                             cancel_at_period_end: false,
                             updated_at: new Date().toISOString(),
-                        })
-                        .eq("stripe_subscription_id", subscription.id);
+                        }, { onConflict: "user_id" });
 
-                    console.log(`❌ Subscription canceled: ${userId} → hobby`);
+                    console.log(`[Webhook] ✅ Renewed: ${userId} → ${planId}`);
                 }
-                break;
+            } catch (err: any) {
+                console.error("[Webhook] invoice error:", err.message);
             }
-
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
         }
-    } catch (error) {
-        console.error("Webhook handler error:", error);
-        return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+
+        else if (eventType === "customer.subscription.updated") {
+            if (obj?.cancel_at_period_end) {
+                await supabase
+                    .from("user_subscriptions")
+                    .update({ cancel_at_period_end: true, updated_at: new Date().toISOString() })
+                    .eq("stripe_subscription_id", obj.id);
+            }
+        }
+
+        else if (eventType === "customer.subscription.deleted") {
+            await supabase
+                .from("user_subscriptions")
+                .update({ plan: "hobby", status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+                .eq("stripe_subscription_id", obj.id);
+        }
+
+    } catch (error: any) {
+        console.error("[Webhook] Error:", error.message);
+        return NextResponse.json({ received: true, error: error.message });
     }
 
     return NextResponse.json({ received: true });
