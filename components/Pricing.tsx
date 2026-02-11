@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Sparkles, Guitar, Crown, Zap } from "lucide-react"
+import { Check, Sparkles, Crown, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useUser } from "@clerk/nextjs"
 
 const plans = [
     {
@@ -25,7 +26,6 @@ const plans = [
         ],
         featured: false,
         cta: "Get Started Free",
-        ctaLink: "/sign-up",
         cardStyle: "ring-slate-200 shadow-sm",
         buttonStyle: "bg-slate-900 hover:bg-slate-800 text-white shadow-sm",
     },
@@ -48,7 +48,6 @@ const plans = [
         ],
         featured: false,
         cta: "Start Free Trial →",
-        ctaLink: "/sign-up",
         cardStyle: "ring-slate-200 shadow-sm",
         buttonStyle: "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200",
     },
@@ -72,7 +71,6 @@ const plans = [
         ],
         featured: true,
         cta: "Start Free Trial →",
-        ctaLink: "/sign-up",
         cardStyle: "ring-2 ring-blue-500 shadow-xl shadow-blue-100",
         buttonStyle: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-200 hover:shadow-blue-300",
     },
@@ -80,6 +78,42 @@ const plans = [
 
 export function Pricing() {
     const [annual, setAnnual] = useState(true)
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+    const { user, isSignedIn } = useUser()
+
+    const handleCheckout = async (planId: string) => {
+        if (planId === "hobby") {
+            // Free plan, just redirect to sign up
+            window.location.href = "/sign-up"
+            return
+        }
+
+        if (!isSignedIn) {
+            window.location.href = "/sign-up"
+            return
+        }
+
+        setLoadingPlan(planId)
+        try {
+            const response = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ planId, annual }),
+            })
+
+            const data = await response.json()
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                alert("Something went wrong. Please try again.")
+            }
+        } catch (error) {
+            console.error("Checkout error:", error)
+            alert("Something went wrong. Please try again.")
+        } finally {
+            setLoadingPlan(null)
+        }
+    }
 
     return (
         <div className="bg-slate-50 py-12 sm:py-24" id="pricing">
@@ -189,13 +223,17 @@ export function Pricing() {
 
                             {/* CTA */}
                             <div className="mt-8">
-                                <Link href={plan.ctaLink}>
-                                    <Button
-                                        className={`w-full h-12 sm:h-14 rounded-xl text-base sm:text-lg font-bold transition-all duration-200 ${plan.buttonStyle}`}
-                                    >
-                                        {plan.cta}
-                                    </Button>
-                                </Link>
+                                <Button
+                                    onClick={() => handleCheckout(plan.id)}
+                                    disabled={loadingPlan === plan.id}
+                                    className={`w-full h-12 sm:h-14 rounded-xl text-base sm:text-lg font-bold transition-all duration-200 ${plan.buttonStyle}`}
+                                >
+                                    {loadingPlan === plan.id ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : (
+                                        plan.cta
+                                    )}
+                                </Button>
                                 {plan.id !== "hobby" && (
                                     <p className="mt-3 text-xs text-center text-slate-400 font-medium">
                                         7-day free trial • Cancel anytime

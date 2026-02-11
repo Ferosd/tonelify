@@ -3,6 +3,7 @@ import { openai } from "@/lib/openai";
 import { redis } from "@/lib/redis";
 import { createClient } from "@supabase/supabase-js";
 import { auth } from "@clerk/nextjs/server";
+import { canUserMatch, incrementMatchUsage } from "@/lib/subscription";
 
 // We use supabase client to read from DB (seed data)
 // Note: We use the SERVICE_KEY here for simplicity to read system data, or we could use the auth context if RLS was strict.
@@ -18,6 +19,19 @@ export async function POST(req: NextRequest) {
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Check match limit
+        const { allowed, subscription } = await canUserMatch(userId);
+        if (!allowed) {
+            return NextResponse.json(
+                {
+                    error: "Match limit reached",
+                    subscription,
+                    message: `You've used all ${subscription.matchLimit} matches this month. Upgrade your plan for more.`,
+                },
+                { status: 403 }
+            );
         }
 
         const { songTitle, artist, userGear } = await req.json();
@@ -141,6 +155,9 @@ export async function POST(req: NextRequest) {
 
         // 4. Cache the result for 7 days
         await redis.set(cacheKey, aiResponse, { ex: 60 * 60 * 24 * 7 });
+
+        // 5. Increment match usage
+        await incrementMatchUsage(userId);
 
         return NextResponse.json(aiResponse);
 
