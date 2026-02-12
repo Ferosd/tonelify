@@ -9,6 +9,7 @@ import { EquipmentList } from "@/components/EquipmentList";
 
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { getUserSubscription } from "@/lib/subscription";
 
 export const metadata: Metadata = {
     title: "Collection — Your Saved Tones & Equipment",
@@ -44,6 +45,8 @@ export default async function Dashboard() {
         ...match,
         songs: Array.isArray(match.songs) ? match.songs[0] : match.songs
     })) || [];
+
+    const subscription = await getUserSubscription(userId);
 
     return (
         <div className="min-h-screen bg-background">
@@ -103,13 +106,24 @@ export default async function Dashboard() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span>Plan</span>
-                                    <span className="font-semibold text-primary">Free</span>
+                                    <span className="font-semibold text-primary capitalize">{subscription.plan}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Matches Used</span>
-                                    <span>0 / 3</span>
+                                    <span>
+                                        {subscription.matchesUsed} / {subscription.matchLimit === -1 ? "∞" : subscription.matchLimit}
+                                    </span>
                                 </div>
-                                <Button variant="outline" className="w-full mt-4">Upgrade to Pro</Button>
+                                {subscription.plan === "hobby" && (
+                                    <Link href="/plans" className="w-full mt-4 block">
+                                        <Button variant="outline" className="w-full">Upgrade to Pro</Button>
+                                    </Link>
+                                )}
+                                {subscription.plan !== "hobby" && (
+                                    <div className="text-xs text-muted-foreground mt-4 text-center">
+                                        {subscription.cancelAtPeriodEnd ? "Cancels at end of period" : "Auto-renews"}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
