@@ -7,8 +7,8 @@ let _supabaseAdmin: SupabaseClient | null = null
 export function getSupabase(): SupabaseClient {
     if (!_supabase) {
         _supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
         )
     }
     return _supabase
@@ -18,8 +18,8 @@ export function getSupabase(): SupabaseClient {
 export function getSupabaseAdmin(): SupabaseClient {
     if (!_supabaseAdmin) {
         _supabaseAdmin = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_KEY!
+            process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+            process.env.SUPABASE_SERVICE_KEY || "placeholder-key"
         )
     }
     return _supabaseAdmin
