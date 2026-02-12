@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
-import { NextRequest } from "next/server"; // Ensure NextRequest is imported
+import { NextRequest } from "next/server";
+
 
 export async function GET() {
     try {
-        const { data: reviews, error } = await supabase
+        const { data: reviews, error } = await getSupabaseAdmin()
             .from("reviews")
             .select("*")
             .order("created_at", { ascending: false })
@@ -43,7 +40,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from("reviews")
             .insert({
                 user_id: userId,

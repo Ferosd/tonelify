@@ -1,10 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { PLANS, PlanId } from "./stripe";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-);
 
 export interface UserSubscription {
     plan: PlanId;
@@ -25,7 +20,7 @@ function getCurrentMonth(): string {
 // Get user's subscription info
 export async function getUserSubscription(userId: string): Promise<UserSubscription> {
     // Get subscription
-    const { data: sub } = await supabase
+    const { data: sub } = await getSupabaseAdmin()
         .from("user_subscriptions")
         .select("*")
         .eq("user_id", userId)
@@ -39,7 +34,7 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
         const endDate = new Date(sub.current_period_end);
         if (endDate < new Date() && sub.status !== "active") {
             // Subscription expired, downgrade to hobby
-            await supabase
+            await getSupabaseAdmin()
                 .from("user_subscriptions")
                 .update({ plan: "hobby", status: "expired" })
                 .eq("user_id", userId);
@@ -58,7 +53,7 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
 
     // Get current month usage
     const month = getCurrentMonth();
-    const { data: usage } = await supabase
+    const { data: usage } = await getSupabaseAdmin()
         .from("match_usage")
         .select("match_count")
         .eq("user_id", userId)
@@ -98,7 +93,7 @@ export async function canUserMatch(userId: string): Promise<{ allowed: boolean; 
 export async function incrementMatchUsage(userId: string): Promise<void> {
     const month = getCurrentMonth();
 
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabaseAdmin()
         .from("match_usage")
         .select("id, match_count")
         .eq("user_id", userId)
@@ -106,12 +101,12 @@ export async function incrementMatchUsage(userId: string): Promise<void> {
         .single();
 
     if (existing) {
-        await supabase
+        await getSupabaseAdmin()
             .from("match_usage")
             .update({ match_count: existing.match_count + 1, updated_at: new Date().toISOString() })
             .eq("id", existing.id);
     } else {
-        await supabase
+        await getSupabaseAdmin()
             .from("match_usage")
             .insert({ user_id: userId, month, match_count: 1 });
     }
@@ -125,14 +120,14 @@ export async function setUserSubscription(
     stripeSubscriptionId: string,
     currentPeriodEnd: Date
 ): Promise<void> {
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabaseAdmin()
         .from("user_subscriptions")
         .select("id")
         .eq("user_id", userId)
         .single();
 
     if (existing) {
-        await supabase
+        await getSupabaseAdmin()
             .from("user_subscriptions")
             .update({
                 plan,
@@ -145,7 +140,7 @@ export async function setUserSubscription(
             })
             .eq("user_id", userId);
     } else {
-        await supabase
+        await getSupabaseAdmin()
             .from("user_subscriptions")
             .insert({
                 user_id: userId,

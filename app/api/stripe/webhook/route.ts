@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-);
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
     const body = await req.text();
@@ -61,7 +56,7 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            const { error: dbError } = await supabase
+            const { error: dbError } = await getSupabaseAdmin()
                 .from("user_subscriptions")
                 .upsert({
                     user_id: userId,
@@ -98,7 +93,7 @@ export async function POST(req: NextRequest) {
                         ? new Date(sub.current_period_end * 1000)
                         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-                    await supabase
+                    await getSupabaseAdmin()
                         .from("user_subscriptions")
                         .upsert({
                             user_id: userId,
@@ -120,7 +115,7 @@ export async function POST(req: NextRequest) {
 
         else if (eventType === "customer.subscription.updated") {
             if (obj?.cancel_at_period_end) {
-                await supabase
+                await getSupabaseAdmin()
                     .from("user_subscriptions")
                     .update({ cancel_at_period_end: true, updated_at: new Date().toISOString() })
                     .eq("stripe_subscription_id", obj.id);
@@ -128,7 +123,7 @@ export async function POST(req: NextRequest) {
         }
 
         else if (eventType === "customer.subscription.deleted") {
-            await supabase
+            await getSupabaseAdmin()
                 .from("user_subscriptions")
                 .update({ plan: "hobby", status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
                 .eq("stripe_subscription_id", obj.id);

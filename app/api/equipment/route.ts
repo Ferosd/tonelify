@@ -1,11 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-);
 
 export async function GET() {
     try {
@@ -14,7 +9,7 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from('user_equipment')
             .select('*')
             .eq('user_id', userId)
@@ -43,7 +38,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Name is required" }, { status: 400 });
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from('user_equipment')
             .insert({
                 user_id: userId,

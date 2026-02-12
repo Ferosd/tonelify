@@ -8,12 +8,7 @@ import { MatchList } from "@/components/MatchList";
 import { EquipmentList } from "@/components/EquipmentList";
 
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-);
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export const metadata: Metadata = {
     title: "Collection — Your Saved Tones & Equipment",
@@ -25,7 +20,7 @@ export default async function Dashboard() {
 
     if (!userId) return null;
 
-    const { data: recentMatches } = await supabase
+    const { data: recentMatches } = await getSupabaseAdmin()
         .from('tone_matches')
         .select(`
             id,
@@ -38,7 +33,7 @@ export default async function Dashboard() {
 
         .limit(5);
 
-    const { data: userEquipment } = await supabase
+    const { data: userEquipment } = await getSupabaseAdmin()
         .from('user_equipment')
         .select('*')
         .eq('user_id', userId)

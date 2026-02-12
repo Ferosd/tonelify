@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Insert into Supabase
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from('gear_requests')
             .insert({
                 user_id: userId || null,
@@ -90,7 +90,7 @@ export async function GET() {
         }
 
         // Get user's gear requests
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from('gear_requests')
             .select('*')
             .eq('user_id', userId)

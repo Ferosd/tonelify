@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
-// Using service key to ensure we can write to tables regardless of RLS policies for now
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
     try {
@@ -24,7 +20,7 @@ export async function POST(req: NextRequest) {
 
         // 1. Ensure User Profile Exists
         // Since we use Clerk, we need to sync user to our profiles table if not exists
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await getSupabaseAdmin()
             .from("profiles")
             .select("id")
             .eq("id", userId)
@@ -32,7 +28,7 @@ export async function POST(req: NextRequest) {
 
         if (!profile) {
             // Create profile
-            const { error: createProfileError } = await supabase
+            const { error: createProfileError } = await getSupabaseAdmin()
                 .from("profiles")
                 .insert({
                     id: userId,
@@ -50,7 +46,7 @@ export async function POST(req: NextRequest) {
         // If 'song_id' is required, we need to find or create the song.
         // Let's check if song exists
         let songId = null;
-        const { data: songData } = await supabase
+        const { data: songData } = await getSupabaseAdmin()
             .from("songs")
             .select("id")
             .ilike("title", songTitle)
@@ -61,7 +57,7 @@ export async function POST(req: NextRequest) {
             songId = songData.id;
         } else {
             // Create new song entry
-            const { data: newSong, error: newSongError } = await supabase
+            const { data: newSong, error: newSongError } = await getSupabaseAdmin()
                 .from("songs")
                 .insert({
                     title: songTitle,
@@ -76,7 +72,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Save the Tone Match
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseAdmin()
             .from("tone_matches")
             .insert({
                 user_id: userId,

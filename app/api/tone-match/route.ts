@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/openai";
 import { redis } from "@/lib/redis";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { canUserMatch, incrementMatchUsage } from "@/lib/subscription";
 
-// We use supabase client to read from DB (seed data)
-// Note: We use the SERVICE_KEY here for simplicity to read system data, or we could use the auth context if RLS was strict.
-// But for reading public song data, anon key is fine if RLS allows public read.
-// Let's assume we use the service role for now to ensure we can read all data.
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
     try {
@@ -61,7 +53,7 @@ export async function POST(req: NextRequest) {
         // We try to find if we have specific gear data for this song.
         let songGearData = null;
 
-        const { data: songs, error: songError } = await supabase
+        const { data: songs, error: songError } = await getSupabaseAdmin()
             .from("songs")
             .select("id, title, artist, song_gear(*)")
             .ilike("title", songTitle)

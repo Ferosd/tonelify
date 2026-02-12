@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function DELETE(
     req: NextRequest,
@@ -22,10 +18,10 @@ export async function DELETE(
             return NextResponse.json({ error: "Missing ID" }, { status: 400 });
         }
 
-        const { error } = await supabase
+        const { error } = await getSupabaseAdmin()
             .from("tone_matches")
             .delete()
-            .eq("id", id)
+            .eq("id", params.id)
             .eq("user_id", userId); // Ensure user owns the match
 
         if (error) {

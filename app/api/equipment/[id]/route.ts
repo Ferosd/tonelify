@@ -1,11 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-);
 
 export async function DELETE(
     req: Request,
@@ -19,11 +14,11 @@ export async function DELETE(
 
         const { id } = await params;
 
-        const { error } = await supabase
+        const { error } = await getSupabaseAdmin()
             .from('user_equipment')
             .delete()
             .eq('id', id)
-            .eq('user_id', userId); // Ensure user owns the item
+            .eq('user_id', userId);
 
         if (error) throw error;
 
