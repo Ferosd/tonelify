@@ -136,11 +136,32 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                                                 <p className="font-semibold text-slate-900 capitalize">{subscription.status}</p>
                                             </div>
                                         </div>
-                                        <Link href="/plans">
-                                            <Button className="bg-blue-300 hover:bg-blue-400 text-blue-900 font-bold border border-blue-300 shadow-sm">
-                                                Manage Subscription ›
+                                        {subscription.plan === 'hobby' ? (
+                                            <Link href="/plans">
+                                                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm">
+                                                    Upgrade Plan 🚀
+                                                </Button>
+                                            </Link>
+                                        ) : (
+                                            <Button
+                                                onClick={async () => {
+                                                    try {
+                                                        const response = await fetch("/api/stripe/portal", {
+                                                            method: "POST",
+                                                        });
+                                                        const data = await response.json();
+                                                        if (data.url) window.location.href = data.url;
+                                                        else alert("Failed to load portal");
+                                                    } catch (error) {
+                                                        console.error("Error:", error);
+                                                        alert("Something went wrong");
+                                                    }
+                                                }}
+                                                className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm"
+                                            >
+                                                Manage Billing & Subscription
                                             </Button>
-                                        </Link>
+                                        )}
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
