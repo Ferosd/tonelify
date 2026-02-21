@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         const { planId, annual } = await req.json();
 
         // Validate plan
-        if (!planId || !["guitarist", "pro"].includes(planId)) {
+        if (!planId || !["beginner", "expert"].includes(planId)) {
             return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
         }
 

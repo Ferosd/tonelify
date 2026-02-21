@@ -4,19 +4,19 @@ import { ArrowRight, Star, Users, CheckCircle2 } from "lucide-react"
 
 export function Hero() {
     return (
-        <section className="relative overflow-hidden bg-white text-slate-900 pt-20 pb-20 md:pt-32 md:pb-32 min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center">
+        <section className="relative overflow-hidden bg-white dark:bg-[#0a0a0a] text-slate-900 dark:text-white pt-20 pb-20 md:pt-32 md:pb-32 min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
 
             {/* Background Gradients (Subtle Light) */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 rounded-full blur-[120px]" />
-                <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-[120px]" />
+                <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-[100px]" />
             </div>
 
             <div className="container relative z-10 px-4 md:px-6 mx-auto flex flex-col items-center">
 
                 {/* Top Social Floating Buttons */}
                 <div className="flex flex-wrap justify-center gap-3 mb-10">
-                    <a href="#" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-orange-500 text-white rounded-full text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
+                    <a href="#" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
                         <span>📸</span> Follow us on Instagram
                     </a>
                     <a href="#" className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-full text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
@@ -26,29 +26,47 @@ export function Hero() {
 
                 {/* Main Content */}
                 <div className="text-center space-y-6 max-w-4xl mx-auto">
-                    <h1 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tight text-slate-900 leading-[1.05]">
-                        Match Any <br />
-                        <span className="text-slate-900">Guitar Tone</span>
+                    <h1 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.05]">
+                        Stop Guessing <br />
+                        <span className="text-slate-900 dark:text-white">Amp Settings</span>
                     </h1>
-                    <p className="mx-auto max-w-[700px] text-slate-500 text-base md:text-xl font-medium leading-relaxed px-2">
-                        Transform any guitar tone to match your exact gear — <br className="hidden md:block" />
-                        amp, guitar, and pickups included.
+                    <p className="mx-auto max-w-[800px] text-slate-500 dark:text-slate-400 text-base md:text-xl font-medium leading-relaxed px-2">
+                        AI matches legendary guitar tones to YOUR exact gear in seconds. <br className="hidden md:block" />
+                        Works with any guitar, amp, and pickups.
                     </p>
                 </div>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center pt-10">
-                    <Link href="/tone-match">
-                        <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 h-14 rounded-xl font-bold transition-all shadow-xl shadow-blue-200">
-                            Start Matching Tones
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <Link href="#how-it-works">
-                        <Button variant="outline" size="lg" className="bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 text-lg px-8 h-14 rounded-xl font-bold">
-                            Learn More
-                        </Button>
-                    </Link>
+                <div className="flex flex-col items-center gap-6 w-full pt-10">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                        <Link href="/tone-match">
+                            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 h-14 rounded-xl font-bold transition-all shadow-xl shadow-blue-200">
+                                Start Matching Tones
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                            </Button>
+                        </Link>
+                        <Link href="/#features">
+                            <Button variant="outline" size="lg" className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-lg px-8 h-14 rounded-xl font-bold">
+                                Learn More
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {/* Trust Indicators */}
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-400 font-medium">
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-emerald-500 font-bold">✓</span> 1000+ songs
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-emerald-500 font-bold">✓</span> Any gear
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-emerald-500 font-bold">✓</span> Instant results
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-emerald-500 font-bold">✓</span> Free to start
+                        </span>
+                    </div>
                 </div>
 
                 {/* Bottom Stats / Social Proof */}
@@ -73,10 +91,10 @@ export function Hero() {
                 </div>
 
                 {/* Floating Reviews Badge (Absolute) */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden xl:flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-lg rotate-[-5deg]">
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-bold text-slate-800">Reviews</span>
-                </div>
+                <Link href="/#reviews" className="absolute right-4 top-1/2 -translate-y-1/2 hidden xl:flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-full shadow-lg rotate-[-5deg] hover:rotate-0 transition-all hover:scale-105 cursor-pointer">
+                    <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
+                    <span className="text-sm font-bold text-slate-800 dark:text-white">Reviews</span>
+                </Link>
 
             </div>
         </section>

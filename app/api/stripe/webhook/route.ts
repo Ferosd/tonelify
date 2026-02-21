@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         else if (eventType === "customer.subscription.deleted") {
             await getSupabaseAdmin()
                 .from("user_subscriptions")
-                .update({ plan: "hobby", status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+                .update({ plan: "free", status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
                 .eq("stripe_subscription_id", obj.id);
         }
 

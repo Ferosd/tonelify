@@ -3,6 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 // Define routes that should be protected
 const isProtectedRoute = createRouteMatcher([
     '/dashboard(.*)',
+    '/collection(.*)',
     '/settings(.*)',
     '/api/tone-match(.*)', // Protect API endpoints
     '/api/subscription(.*)',

@@ -9,9 +9,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Eye, Loader2 } from "lucide-react";
+import { Trash2, Eye, Loader2, Guitar } from "lucide-react";
 import { Stompbox } from "@/components/Stompbox";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Match {
     id: string;
@@ -60,8 +61,24 @@ export function MatchList({ initialMatches }: MatchListProps) {
 
     if (!matches || matches.length === 0) {
         return (
-            <div className="text-sm text-muted-foreground text-center py-8">
-                No matches yet. Start a new match!
+            <div className="flex flex-col items-center justify-center text-center py-16 px-4 space-y-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl bg-slate-50/50 dark:bg-white/5 transition-all hover:bg-slate-50 dark:hover:bg-white/10">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse"></div>
+                    <div className="relative h-20 w-20 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-lg transform transition-transform hover:scale-110 duration-500">
+                        <Guitar className="h-10 w-10" />
+                    </div>
+                </div>
+                <div className="max-w-sm space-y-2">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Your Tone Journey Starts Here</h3>
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Match your first song to discover the perfect amp settings for your gear.
+                    </p>
+                </div>
+                <Link href="/tone-match">
+                    <Button className="h-12 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:shadow-xl transition-all hover:-translate-y-1">
+                        Start Matching Tones
+                    </Button>
+                </Link>
             </div>
         );
     }

@@ -49,7 +49,7 @@ export default async function Dashboard() {
     const subscription = await getUserSubscription(userId);
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] transition-colors duration-300">
             {/* Dashboard Header */}
             {/* Dashboard Header Removed - using global SiteHeader */}
 
@@ -114,12 +114,12 @@ export default async function Dashboard() {
                                         {subscription.matchesUsed} / {subscription.matchLimit === -1 ? "∞" : subscription.matchLimit}
                                     </span>
                                 </div>
-                                {subscription.plan === "hobby" && (
+                                {subscription.plan === "free" && (
                                     <Link href="/plans" className="w-full mt-4 block">
-                                        <Button variant="outline" className="w-full">Upgrade to Pro</Button>
+                                        <Button variant="outline" className="w-full">Upgrade Plan</Button>
                                     </Link>
                                 )}
-                                {subscription.plan !== "hobby" && (
+                                {subscription.plan !== "free" && (
                                     <div className="text-xs text-muted-foreground mt-4 text-center">
                                         {subscription.cancelAtPeriodEnd ? "Cancels at end of period" : "Auto-renews"}
                                     </div>
