@@ -44,7 +44,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                             <h1 className="text-xl md:text-2xl font-bold">{user.username || user.fullName}</h1>
                             <p className="text-blue-100 text-sm mb-2">{user.primaryEmailAddress?.emailAddress}</p>
                             <Badge className="w-fit bg-blue-500 hover:bg-blue-500 text-white border-0 capitalize">
-                                {subscription.plan === 'hobby' ? 'Free Account' : `${subscription.plan} Plan`}
+                                {subscription.plan === 'free' ? 'Free Account' : `${subscription.plan} Plan`}
                             </Badge>
                         </div>
                     </div>
@@ -136,7 +136,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                                                 <p className="font-semibold text-slate-900 capitalize">{subscription.status}</p>
                                             </div>
                                         </div>
-                                        {subscription.plan === 'hobby' ? (
+                                        {subscription.plan === 'free' ? (
                                             <Link href="/plans">
                                                 <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm">
                                                     Upgrade Plan 🚀

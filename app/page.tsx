@@ -1,10 +1,13 @@
 "use client" // Needed for framer-motion in Hero
 
 import { Hero } from "@/components/Hero"
+import { HowItWorks } from "@/components/HowItWorks"
 import { Features } from "@/components/Features"
 import { Pricing } from "@/components/Pricing"
 import { CTA } from "@/components/CTA"
 import { Reviews } from "@/components/Reviews"
+import { TrustBadges } from "@/components/TrustBadges"
+import { Testimonials } from "@/components/Testimonials"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -15,10 +18,13 @@ export default function Home() {
       {/* Navbar handled by RootLayout */}
 
       <Hero />
+      <HowItWorks />
       <Features />
       <Pricing />
+      <Testimonials />
       <CTA />
       <Reviews />
+      <TrustBadges />
 
       <footer className="py-12 bg-slate-50 border-t border-slate-100">
         <div className="container px-4 md:px-6 mx-auto grid md:grid-cols-4 gap-8">

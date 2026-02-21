@@ -5,15 +5,17 @@ import { usePathname } from "next/navigation";
 import { UserButton, SignedIn, SignedOut, SignInButton, SignUpButton, useUser, SignOutButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, User } from "lucide-react";
+import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, User, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTheme } from "next-themes";
 
 export function SiteHeader() {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
     const { user, isLoaded } = useUser();
+    const { setTheme, theme } = useTheme();
 
     const routes = [
         {
@@ -23,10 +25,10 @@ export function SiteHeader() {
             active: pathname === "/tone-match",
         },
         {
-            href: "/dashboard",
+            href: "/collection",
             label: "Collection",
             icon: Bookmark,
-            active: pathname === "/dashboard",
+            active: pathname === "/collection",
         },
         {
             href: "/settings",
@@ -65,97 +67,67 @@ export function SiteHeader() {
                         {/* Sidebar Header */}
                         <SheetHeader className="p-6 text-left border-b">
                             <SheetTitle className="flex items-center gap-2 font-bold text-xl">
-                                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                                    <span className="text-lg">T</span>
-                                </div>
+                                <img src="/logo-new.svg" alt="Tonelify" className="h-8 w-8 object-contain" />
                                 <span>Tonelify</span>
                             </SheetTitle>
                         </SheetHeader>
 
-                        {/* Account Section */}
-                        <div className="px-6 py-6">
-                            <SignedIn>
-                                {isLoaded && user && (
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-10 w-10 border">
-                                            <AvatarImage src={user.imageUrl} />
-                                            <AvatarFallback>{user.firstName?.charAt(0) || "U"}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex flex-col overflow-hidden">
-                                            <span className="text-sm font-semibold truncate">
-                                                {user.fullName || "Account"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground truncate">
-                                                {user.primaryEmailAddress?.emailAddress}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                            </SignedIn>
-                            <SignedOut>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium mb-2">My Account</p>
-                                    <SignInButton mode="modal">
-                                        <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">Sign In</Button>
-                                    </SignInButton>
-                                    <span className="text-xs text-muted-foreground text-center block mt-2">
-                                        or <SignUpButton mode="modal"><span className="underline cursor-pointer hover:text-primary">Sign Up</span></SignUpButton>
-                                    </span>
-                                </div>
-                            </SignedOut>
-                        </div>
-
-                        {/* Navigation Links */}
-                        <div className="flex-1 px-4 overflow-y-auto">
-                            <nav className="space-y-1">
-                                {routes.map((route, index) => (
-                                    <Link
-                                        key={index}
-                                        href={route.href}
-                                        onClick={() => setOpen(false)}
-                                        className={cn(
-                                            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                                            route.active
-                                                ? "bg-accent text-accent-foreground"
-                                                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                                        )}
-                                    >
-                                        <route.icon className="h-4 w-4" />
-                                        {route.label}
-                                    </Link>
-                                ))}
-                            </nav>
+                        {/* Sidebar Links */}
+                        <div className="flex flex-col gap-1 p-4">
+                            {routes.map((route) => (
+                                <Link
+                                    key={route.href}
+                                    href={route.href}
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                        "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all",
+                                        route.active
+                                            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1f1f1f] hover:text-slate-900 dark:hover:text-slate-200"
+                                    )}
+                                >
+                                    <route.icon className={cn("h-5 w-5", route.active ? "text-blue-600 dark:text-blue-400" : "text-slate-400")} />
+                                    {route.label}
+                                </Link>
+                            ))}
                         </div>
 
                         {/* Footer / Logout */}
                         <div className="p-6 border-t mt-auto">
                             <SignedIn>
                                 <SignOutButton>
-                                    <button className="flex items-center gap-3 text-sm font-medium text-red-500 hover:text-red-600 transition-colors w-full px-2 py-2 rounded-lg hover:bg-red-50">
+                                    <button className="flex items-center gap-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors w-full px-2 py-2 rounded-lg hover:bg-blue-50">
                                         <LogOut className="h-4 w-4" />
                                         Logout
                                     </button>
                                 </SignOutButton>
                             </SignedIn>
                         </div>
-
                     </SheetContent>
                 </Sheet>
 
-                {/* Mobile/Desktop Header Title (Centered or Right) if needed, keeping simple logo here too for context when menu is closed */}
+                {/* Mobile/Desktop Header Title */}
                 <div className="flex items-center gap-2 mr-4">
                     <Link href="/" className="flex items-center space-x-2">
-                        <span className="text-primary text-xl font-bold">Tonelify</span>
+                        <img src="/logo-new.svg" alt="Tonelify Logo" className="h-10 w-auto object-contain" />
                     </Link>
                 </div>
 
+
+
                 <div className="ml-auto flex items-center gap-2">
-                    {/* Keep UserButton here too? Or hide it since it's in sidebar? 
-                         User asked for "sol tarafta" (left side) menu. 
-                         Usually headers still have a profile icon. 
-                         I'll keep the standard UserButton on the right for convenience, or hide it if strict adherence to "sidebar has everything" is needed.
-                         I'll keep it for now as it's standard UX.
-                     */}
+                    {/* Theme Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        className="h-10 w-10 rounded-full transition-transform hover:scale-105 active:scale-95"
+                    >
+                        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
+                        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-500" />
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
+
                     <SignedIn>
                         <UserButton />
                     </SignedIn>

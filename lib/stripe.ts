@@ -1,28 +1,24 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_dummy", {
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     typescript: true,
 });
 
-// Plan definitions matching our Pricing component
+// Plan definitions – Beginner & Expert
 export const PLANS = {
-    hobby: {
-        name: "Hobby",
-        matchLimit: 5,
-        stripePriceIdMonthly: null,
-        stripePriceIdAnnual: null,
+    beginner: {
+        name: "Beginner",
+        matchLimit: 20,
+        savedToneLimit: 15,
+        stripePriceIdMonthly: "price_1T2sAAIpH3A3WvtIWJrE1aDx",
+        stripePriceIdAnnual: "price_1T2sAAIpH3A3WvtIsPzBpXlW",
     },
-    guitarist: {
-        name: "Guitarist",
-        matchLimit: 100,
-        stripePriceIdMonthly: "price_1SzcteIpH3A3WvtIKkzRvxLe",
-        stripePriceIdAnnual: "price_1SzctfIpH3A3WvtIrKKXIUcO",
-    },
-    pro: {
-        name: "Pro",
+    expert: {
+        name: "Expert",
         matchLimit: Infinity,
-        stripePriceIdMonthly: "price_1SzctfIpH3A3WvtIyFH3iK0u",
-        stripePriceIdAnnual: "price_1SzctgIpH3A3WvtIIeF2VIdZ",
+        savedToneLimit: Infinity,
+        stripePriceIdMonthly: "price_1T2sABIpH3A3WvtIkOiuEl2x",
+        stripePriceIdAnnual: "price_1T2sABIpH3A3WvtIMF0rd4MA",
     },
 } as const;
 

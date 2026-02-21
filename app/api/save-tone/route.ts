@@ -2,6 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
+export async function GET() {
+    try {
+        const { userId } = await auth();
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { data, error } = await getSupabaseAdmin()
+            .from("tone_matches")
+            .select("*, songs(title, artist)")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Error fetching saved tones:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data || []);
+    } catch (error: any) {
+        console.error("Error in GET saved tones:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {

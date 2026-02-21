@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { songTitle, artist, userGear } = await req.json();
+        const { songTitle, artist, userGear, partType, toneType, instrument } = await req.json();
 
         if (!songTitle || !artist || !userGear) {
             return NextResponse.json(
@@ -98,9 +98,16 @@ export async function POST(req: NextRequest) {
     - Amp: ${userGear.ampModel}
     - Effects: ${userGear.effects ? userGear.effects.join(", ") : "None/Unknown"}
     
+    Part Type: ${partType || "riff"} (${partType === "solo" ? "Lead/Solo part" : "Rhythm/Riff part"})
+    Tone Type: ${toneType || "auto"} (${toneType === "clean" ? "Clean tone" : toneType === "distorted" ? "Distorted/overdriven tone" : "Auto-detect from song"})
+    Instrument: ${instrument || "guitar"}
+    
     Task:
     Provide the exact settings to replicate the "${songTitle}" tone using the USER'S equipment.
+    Focus specifically on the ${partType === "solo" ? "lead/solo" : "rhythm/riff"} part of the song.
+    ${toneType === "clean" ? "The user wants a CLEAN tone adaptation." : toneType === "distorted" ? "The user wants a DISTORTED/overdriven tone adaptation." : "Auto-detect the appropriate tone type from the song."}
     Do NOT suggest buying new gear unless absolutely necessary (emphasize tweaking current gear).
+    
     
     Response Format (JSON only):
     {
@@ -114,10 +121,11 @@ export async function POST(req: NextRequest) {
         "amp": {
           "gain": "0-10",
           "bass": "0-10",
-          "middle": "0-10",
+          "mid": "0-10",
           "treble": "0-10",
           "reverb": "0-10",
-          "presence": "0-10 (if applicable)"
+          "presence": "0-10 (if applicable)",
+          "master": "0-10"
         },
         "pedals": [
           {
@@ -126,6 +134,7 @@ export async function POST(req: NextRequest) {
           }
         ]
       },
+      "playingTips": ["Specific playing technique tip 1", "Specific playing technique tip 2", "Specific playing technique tip 3"],
       "confidenceScore": 0-100
     }
     `;

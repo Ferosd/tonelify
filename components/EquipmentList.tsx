@@ -46,14 +46,19 @@ export function EquipmentList({ initialEquipment }: EquipmentListProps) {
 
     if (equipment.length === 0) {
         return (
-            <div className="text-center py-6 space-y-3">
-                <div className="flex justify-center">
-                    <Guitar className="h-10 w-10 text-muted-foreground/30" />
+            <div className="flex flex-col items-center justify-center text-center py-12 px-4 space-y-4 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/5 transition-all hover:bg-slate-50 dark:hover:bg-white/10">
+                <div className="h-16 w-16 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 text-slate-500 rounded-full flex items-center justify-center shadow-sm">
+                    <Guitar className="h-7 w-7" />
                 </div>
-                <div className="text-sm text-muted-foreground">
-                    No equipment saved yet.
+                <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Your Gear Locker is Empty</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto mt-1 leading-relaxed">
+                        Add your guitar and amp to get personalized tone recommendations.
+                    </p>
                 </div>
-                <AddEquipmentForm />
+                <div className="pt-2">
+                    <AddEquipmentForm />
+                </div>
             </div>
         );
     }
@@ -64,7 +69,7 @@ export function EquipmentList({ initialEquipment }: EquipmentListProps) {
                 <h3 className="text-sm font-medium text-muted-foreground">Your Gear ({equipment.length})</h3>
                 <AddEquipmentForm />
             </div>
-            
+
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {equipment.map((item) => (
                     <div

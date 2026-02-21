@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="borderGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9b59ff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="letterGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7dd3fc;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9b59ff;stop-opacity:1" />
+    </linearGradient>
+    <clipPath id="tClip">
+      <path d="M 100 120 L 412 120 L 412 185 L 290 185 L 290 400 L 222 400 L 222 185 L 100 185 Z"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Background rounded rectangle -->
+  <rect x="16" y="16" width="480" height="480" rx="80" ry="80" fill="#0a0a0a"/>
+  
+  <!-- Gradient border -->
+  <rect x="16" y="16" width="480" height="480" rx="80" ry="80" fill="none" stroke="url(#borderGrad)" stroke-width="8"/>
+  
+  <!-- T letter shape -->
+  <path d="M 100 120 L 412 120 L 412 185 L 290 185 L 290 400 L 222 400 L 222 185 L 100 185 Z" fill="url(#letterGrad)"/>
+  
+  <!-- Sound wave cutting through the T -->
+  <g clip-path="url(#tClip)">
+    <path d="M 80 260 L 150 260 L 175 220 L 200 300 L 225 200 L 250 310 L 275 230 L 300 280 L 325 250 L 350 260 L 430 260" 
+          fill="none" stroke="#0a0a0a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Sound wave visible part (on the gap) -->
+  <path d="M 80 260 L 150 260 L 175 220 L 200 300 L 225 200 L 250 310 L 275 230 L 300 280 L 325 250 L 350 260 L 430 260" 
+        fill="none" stroke="url(#letterGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+        clip-path="url(#waveClip)"/>
+  
+  <defs>
+    <clipPath id="waveClip">
+      <!-- Only show wave outside the T -->
+      <rect x="80" y="100" width="142" height="320"/>
+      <rect x="290" y="100" width="150" height="320"/>
+    </clipPath>
+  </defs>
+</svg>

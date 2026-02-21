@@ -2,7 +2,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { PLANS, PlanId } from "./stripe";
 
 export interface UserSubscription {
-    plan: PlanId;
+    plan: PlanId | "free";
     status: string;
     matchLimit: number;
     matchesUsed: number;
@@ -10,6 +10,9 @@ export interface UserSubscription {
     currentPeriodEnd: string | null;
     cancelAtPeriodEnd: boolean;
 }
+
+// Free tier defaults (no subscription)
+const FREE_MATCH_LIMIT = 3;
 
 // Get current month string (e.g. "2026-02")
 function getCurrentMonth(): string {
@@ -26,30 +29,55 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
         .eq("user_id", userId)
         .single();
 
-    const plan: PlanId = (sub?.plan as PlanId) || "hobby";
-    const planConfig = PLANS[plan];
+    const plan = (sub?.plan as PlanId) || null;
 
     // Check if subscription is expired
     if (sub && sub.current_period_end) {
         const endDate = new Date(sub.current_period_end);
         if (endDate < new Date() && sub.status !== "active") {
-            // Subscription expired, downgrade to hobby
+            // Subscription expired, downgrade to free
             await getSupabaseAdmin()
                 .from("user_subscriptions")
-                .update({ plan: "hobby", status: "expired" })
+                .update({ plan: "free", status: "expired" })
                 .eq("user_id", userId);
 
             return {
-                plan: "hobby",
+                plan: "free",
                 status: "expired",
-                matchLimit: PLANS.hobby.matchLimit,
+                matchLimit: FREE_MATCH_LIMIT,
                 matchesUsed: 0,
-                matchesRemaining: PLANS.hobby.matchLimit,
+                matchesRemaining: FREE_MATCH_LIMIT,
                 currentPeriodEnd: null,
                 cancelAtPeriodEnd: false,
             };
         }
     }
+
+    // If no valid plan, return free tier
+    if (!plan || !(plan in PLANS)) {
+        // Get current month usage
+        const month = getCurrentMonth();
+        const { data: usage } = await getSupabaseAdmin()
+            .from("match_usage")
+            .select("match_count")
+            .eq("user_id", userId)
+            .eq("month", month)
+            .single();
+
+        const matchesUsed = usage?.match_count || 0;
+
+        return {
+            plan: "free",
+            status: sub?.status || "active",
+            matchLimit: FREE_MATCH_LIMIT,
+            matchesUsed,
+            matchesRemaining: Math.max(0, FREE_MATCH_LIMIT - matchesUsed),
+            currentPeriodEnd: null,
+            cancelAtPeriodEnd: false,
+        };
+    }
+
+    const planConfig = PLANS[plan];
 
     // Get current month usage
     const month = getCurrentMonth();

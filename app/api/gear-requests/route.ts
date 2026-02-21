@@ -1,45 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { auth } from '@clerk/nextjs/server';
+import { gearRequestSchema } from '@/lib/validations/gear';
 
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();
         const body = await request.json();
 
-        const { equipment_type, equipment_name, additional_info, email } = body;
+        // Validation with Zod
+        const result = gearRequestSchema.safeParse(body);
 
-        // Validation
-        if (!equipment_type) {
+        if (!result.success) {
             return NextResponse.json(
-                { error: 'Equipment type is required' },
+                { error: result.error.issues[0].message },
                 { status: 400 }
             );
         }
 
-        if (!email) {
-            return NextResponse.json(
-                { error: 'Email is required' },
-                { status: 400 }
-            );
-        }
-
-        // Email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return NextResponse.json(
-                { error: 'Invalid email format' },
-                { status: 400 }
-            );
-        }
-
-        // Additional info character limit
-        if (additional_info && additional_info.length > 300) {
-            return NextResponse.json(
-                { error: 'Additional info must be 300 characters or less' },
-                { status: 400 }
-            );
-        }
+        const { equipment_type, equipment_name, additional_info, email } = result.data;
 
         // Insert into Supabase
         const { data, error } = await getSupabaseAdmin()
