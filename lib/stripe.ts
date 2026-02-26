@@ -10,15 +10,15 @@ export const PLANS = {
         name: "Beginner",
         matchLimit: 20,
         savedToneLimit: 15,
-        stripePriceIdMonthly: "price_1T2sAAIpH3A3WvtIWJrE1aDx",
-        stripePriceIdAnnual: "price_1T2sAAIpH3A3WvtIsPzBpXlW",
+        stripePriceIdMonthly: "price_1T4z7kEan7dFAO9mEdv0qWLZ",
+        stripePriceIdAnnual: "price_1T4zBSEan7dFAO9m8VXRXFNY",
     },
     expert: {
         name: "Expert",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
-        stripePriceIdMonthly: "price_1T2sABIpH3A3WvtIkOiuEl2x",
-        stripePriceIdAnnual: "price_1T2sABIpH3A3WvtIMF0rd4MA",
+        stripePriceIdMonthly: "price_1T4z9mEan7dFAO9mx9qcogHg",
+        stripePriceIdAnnual: "price_1T4zCGEan7dFAO9mOKPzMlJy",
     },
 } as const;
 
