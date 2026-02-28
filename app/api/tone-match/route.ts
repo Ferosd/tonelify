@@ -107,11 +107,55 @@ export async function POST(req: NextRequest) {
     Focus specifically on the ${partType === "solo" ? "lead/solo" : "rhythm/riff"} part of the song.
     ${toneType === "clean" ? "The user wants a CLEAN tone adaptation." : toneType === "distorted" ? "The user wants a DISTORTED/overdriven tone adaptation." : "Auto-detect the appropriate tone type from the song."}
     Do NOT suggest buying new gear unless absolutely necessary (emphasize tweaking current gear).
+
+    Critically important: You MUST provide BOTH original_tone and adapted_tone in your response.
     
+    original_tone: Research and provide the ACTUAL gear the artist used for this song. Include specific guitar model, amp model, pickup type, the amp settings they likely used, and any effects pedals they actually used.
+    
+    adapted_tone: Based on the user's gear, provide ADJUSTED settings. For each setting that differs from original, explain WHY in the adjustments object. Consider pickup output differences, amp type differences, wood/hardware differences.
+    
+    gear_differences: List 2-4 key differences between original and user gear that required adjustment.
     
     Response Format (JSON only):
     {
       "explanation": "Brief explanation of how to approach this tone with user's gear.",
+      "original_tone": {
+        "guitar": "Specific guitar model the artist used",
+        "amp": "Specific amp model the artist used",
+        "pickups": "Pickup type (humbucker, single coil, P90, etc.)",
+        "settings": {
+          "gain": 0-10,
+          "bass": 0-10,
+          "mid": 0-10,
+          "treble": 0-10,
+          "master": 0-10,
+          "presence": 0-10
+        },
+        "effects": [
+          {
+            "name": "Effect/Pedal Name",
+            "settings": "Knob positions"
+          }
+        ]
+      },
+      "adapted_tone": {
+        "settings": {
+          "gain": 0-10,
+          "bass": 0-10,
+          "mid": 0-10,
+          "treble": 0-10,
+          "master": 0-10,
+          "presence": 0-10
+        },
+        "adjustments": {
+          "gain": "+/-N reason for adjustment",
+          "bass": "+/-N reason for adjustment",
+          "mid": "+/-N reason for adjustment",
+          "treble": "+/-N reason for adjustment",
+          "master": "+/-N reason for adjustment"
+        }
+      },
+      "gear_differences": ["Key difference 1", "Key difference 2", "Key difference 3"],
       "suggestedSettings": {
         "guitar": {
           "pickupSelector": "Position (1-5 or description)",

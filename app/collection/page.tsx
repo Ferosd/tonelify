@@ -1,11 +1,14 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Settings, Music, Cpu, SlidersHorizontal, Plus, Sparkles, Trash2, Loader2, Guitar, Speaker, ChevronDown, ChevronUp } from "lucide-react"
+import { Settings, Music, Cpu, SlidersHorizontal, Plus, Sparkles, Trash2, Loader2, Guitar, Speaker, ChevronDown, ChevronUp, Volume2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { AddMultiFxDialog } from "@/components/AddMultiFxDialog"
+import { AddPedalDialog } from "@/components/AddPedalDialog"
+import { type MultiFxUnit, type Pedal, MULTI_FX_TYPE_LABELS, MULTI_FX_TYPE_COLORS, PEDAL_CATEGORY_LABELS } from "@/lib/gear-catalog"
 
 // ───────────── Tab definitions ─────────────
 
@@ -256,11 +259,52 @@ export default function CollectionPage() {
     const [equipment, setEquipment] = useState<Equipment[]>([])
     const [loading, setLoading] = useState(true)
 
+    // Multi FX & Pedals state (localStorage persisted)
+    const [userMultiFx, setUserMultiFx] = useState<MultiFxUnit[]>([])
+    const [userPedals, setUserPedals] = useState<Pedal[]>([])
+    const [showAddMultiFx, setShowAddMultiFx] = useState(false)
+    const [showAddPedal, setShowAddPedal] = useState(false)
+
+    // Load from localStorage on mount
+    useEffect(() => {
+        try {
+            const savedFx = localStorage.getItem("tonelify_multifx")
+            const savedPedals = localStorage.getItem("tonelify_pedals")
+            if (savedFx) setUserMultiFx(JSON.parse(savedFx))
+            if (savedPedals) setUserPedals(JSON.parse(savedPedals))
+        } catch (e) { console.error(e) }
+    }, [])
+
+    // Save to localStorage on change
+    useEffect(() => {
+        localStorage.setItem("tonelify_multifx", JSON.stringify(userMultiFx))
+    }, [userMultiFx])
+    useEffect(() => {
+        localStorage.setItem("tonelify_pedals", JSON.stringify(userPedals))
+    }, [userPedals])
+
+    const handleAddMultiFx = (unit: MultiFxUnit) => {
+        if (!userMultiFx.find(u => u.id === unit.id)) {
+            setUserMultiFx(prev => [...prev, unit])
+        }
+    }
+    const handleRemoveMultiFx = (id: string) => {
+        setUserMultiFx(prev => prev.filter(u => u.id !== id))
+    }
+    const handleAddPedal = (pedal: Pedal) => {
+        if (!userPedals.find(p => p.id === pedal.id)) {
+            setUserPedals(prev => [...prev, pedal])
+        }
+    }
+    const handleRemovePedal = (id: string) => {
+        setUserPedals(prev => prev.filter(p => p.id !== id))
+    }
+
     const tabs: Tab[] = [
         { id: "presets", label: "Presets", icon: <Settings className="h-[18px] w-[18px]" />, badge: equipment.length },
         { id: "tones", label: "Tones", icon: <Music className="h-[18px] w-[18px]" />, badge: tones.length },
-        { id: "multifx", label: "Multi FX", icon: <Cpu className="h-[18px] w-[18px]" /> },
-        { id: "pedals", label: "Pedals", icon: <SlidersHorizontal className="h-[18px] w-[18px]" /> },
+        { id: "multifx", label: "Multi FX", icon: <Cpu className="h-[18px] w-[18px]" />, badge: userMultiFx.length },
+        { id: "pedals", label: "Pedals", icon: <SlidersHorizontal className="h-[18px] w-[18px]" />, badge: userPedals.length },
     ]
 
     // Fetch data on mount
@@ -300,7 +344,9 @@ export default function CollectionPage() {
 
     // Determine if we have data for the current tab
     const hasData = (activeTab === "tones" && tones.length > 0) ||
-        (activeTab === "presets" && equipment.length > 0)
+        (activeTab === "presets" && equipment.length > 0) ||
+        (activeTab === "multifx" && userMultiFx.length > 0) ||
+        (activeTab === "pedals" && userPedals.length > 0)
 
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
@@ -348,17 +394,18 @@ export default function CollectionPage() {
                 </div>
 
                 {/* ── Section Header + Add Button (for Multi FX / Pedals) ── */}
-                {showAddButton && currentEmpty.sectionTitle && (
+                {showAddButton && (
                     <div className="flex items-start justify-between mb-6">
                         <div>
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                                {currentEmpty.sectionTitle}
+                                {activeTab === "multifx" ? "My Multi FX Units" : "My Pedals"}
                             </h2>
                             <p className="text-sm text-slate-400 mt-0.5">
-                                {currentEmpty.sectionSubtitle}
+                                {activeTab === "multifx" ? "Manage your multi FX processors for tone matching" : "Manage your pedal collection for tone matching"}
                             </p>
                         </div>
                         <Button
+                            onClick={() => activeTab === "multifx" ? setShowAddMultiFx(true) : setShowAddPedal(true)}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm text-sm"
                         >
                             <Plus className="h-4 w-4 mr-1.5" />
@@ -402,6 +449,75 @@ export default function CollectionPage() {
                                         <span className="text-xs text-slate-400">{new Date(eq.created_at).toLocaleDateString()}</span>
                                     </div>
                                 ))}
+
+                                {/* Multi FX Items */}
+                                {activeTab === "multifx" && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {userMultiFx.map(unit => {
+                                            const typeColor = MULTI_FX_TYPE_COLORS[unit.type]
+                                            return (
+                                                <div key={unit.id} className="bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
+                                                    <button
+                                                        onClick={() => handleRemoveMultiFx(unit.id)}
+                                                        className="absolute top-3 right-3 h-7 w-7 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/40"
+                                                    >
+                                                        <X className="h-3.5 w-3.5 text-red-500" />
+                                                    </button>
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                                            <Cpu className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{unit.name}</h3>
+                                                            <p className="text-sm text-slate-500 dark:text-slate-400">{unit.brand}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                                        <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1", typeColor.bg, typeColor.text)}>
+                                                            {unit.type !== "effects_only" && <Volume2 className="h-3 w-3" />}
+                                                            {MULTI_FX_TYPE_LABELS[unit.type]}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-3">{unit.priceRange}</p>
+                                                    {unit.amps && (
+                                                        <p className="text-xs text-slate-400 mt-1 truncate">Amps: {unit.amps}</p>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Pedals Items */}
+                                {activeTab === "pedals" && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {userPedals.map(pedal => (
+                                            <div key={pedal.id} className="bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
+                                                <button
+                                                    onClick={() => handleRemovePedal(pedal.id)}
+                                                    className="absolute top-3 right-3 h-7 w-7 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/40"
+                                                >
+                                                    <X className="h-3.5 w-3.5 text-red-500" />
+                                                </button>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="h-11 w-11 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
+                                                        <SlidersHorizontal className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-bold text-slate-900 dark:text-white leading-tight">{pedal.name}</h3>
+                                                        <p className="text-sm text-slate-500 dark:text-slate-400">{pedal.brand}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5 mt-3">
+                                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+                                                        {PEDAL_CATEGORY_LABELS[pedal.category]}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-3">{pedal.priceRange}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             /* ── Empty State Card ── */
@@ -458,6 +574,20 @@ export default function CollectionPage() {
                 </AnimatePresence>
 
             </div>
+
+            {/* Dialogs */}
+            <AddMultiFxDialog
+                open={showAddMultiFx}
+                onClose={() => setShowAddMultiFx(false)}
+                onAdd={handleAddMultiFx}
+                addedIds={userMultiFx.map(u => u.id)}
+            />
+            <AddPedalDialog
+                open={showAddPedal}
+                onClose={() => setShowAddPedal(false)}
+                onAdd={handleAddPedal}
+                addedIds={userPedals.map(p => p.id)}
+            />
         </div>
     )
 }

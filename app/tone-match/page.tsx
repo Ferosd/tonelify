@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, SlidersHorizontal } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, SlidersHorizontal, X } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -39,6 +39,10 @@ export default function ToneMatchPage() {
     const [error, setError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+
+    // Subscription / Paywall State
+    const [hasSubscription, setHasSubscription] = useState<boolean | null>(null)
+    const [showPaywall, setShowPaywall] = useState(false)
 
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([])
@@ -86,6 +90,24 @@ export default function ToneMatchPage() {
         localStorage.setItem("toneMatchState", JSON.stringify(stateToSave));
     }, [songTitle, artist, instrument, preset, userGuitar, userAmp, goingDirect, userEffects, effectsType, partType, toneType]);
 
+    // Check subscription status on mount
+    useEffect(() => {
+        async function checkSub() {
+            try {
+                const res = await fetch("/api/subscription")
+                if (res.ok) {
+                    const data = await res.json()
+                    setHasSubscription(data?.plan_id ? true : false)
+                } else {
+                    setHasSubscription(false)
+                }
+            } catch {
+                setHasSubscription(false)
+            }
+        }
+        if (user) checkSub()
+    }, [user])
+
     useEffect(() => {
         async function search() {
             if (debouncedSongTitle.length > 2 && isSearching) {
@@ -130,6 +152,17 @@ export default function ToneMatchPage() {
 
     // Actual API Call
     const runResearch = async () => {
+        // Paywall check: if not logged in, redirect to sign-up
+        if (!user) {
+            window.location.href = "/sign-up"
+            return
+        }
+        // If no subscription, show paywall modal
+        if (hasSubscription === false) {
+            setShowPaywall(true)
+            return
+        }
+
         setIsLoading(true)
         setError(null)
         setResult(null)
@@ -200,6 +233,55 @@ export default function ToneMatchPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] pb-20 font-sans transition-colors duration-300">
+
+            {/* ── PAYWALL MODAL ── */}
+            {showPaywall && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPaywall(false)} />
+                    <div className="relative z-10 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 animate-in fade-in zoom-in-95 duration-200">
+                        {/* Close */}
+                        <button onClick={() => setShowPaywall(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                            <X className="h-5 w-5" />
+                        </button>
+
+                        {/* Logo + Heading */}
+                        <div className="flex items-start gap-4 mb-6">
+                            <img src="/logo-new.svg" alt="Tonelify" className="h-14 w-14 rounded-xl shadow-md" />
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
+                                    Recreate this exact guitar tone on your gear
+                                </h2>
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="mb-8">
+                            <p className="text-base text-slate-600 dark:text-slate-400">
+                                <span className="text-blue-600 font-bold">Try it free</span> — we&apos;ll match this tone to your exact guitar and amp in seconds.
+                            </p>
+                            <p className="text-sm text-slate-400 mt-2">Cancel anytime. No commitment.</p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowPaywall(false)}
+                                className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-[#222]"
+                            >
+                                Keep my current tone
+                            </Button>
+                            <Link href="/plans" className="flex-1">
+                                <Button className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-200 dark:shadow-blue-900/30">
+                                    Get this tone
+                                </Button>
+                            </Link>
+                        </div>
+                        <p className="text-center text-xs text-slate-400 mt-3">Start free trial · Cancel anytime</p>
+                    </div>
+                </div>
+            )}
+
             {/* Header Section */}
             <div className="text-center pt-8 md:pt-12 pb-6 md:pb-8 space-y-4 md:space-y-6 bg-white dark:bg-[#111] border-b border-slate-100 dark:border-white/5 px-4 transition-colors duration-300">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold">
@@ -841,6 +923,215 @@ export default function ToneMatchPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* ── Original vs Adapted Tone Comparison ── */}
+                                {result.original_tone && result.adapted_tone && (
+                                    <div className="space-y-6">
+                                        <h3 className="font-bold text-2xl flex items-center gap-3 text-slate-800 dark:text-white">
+                                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-2 rounded-lg"><Sparkles className="h-6 w-6" /></span>
+                                            Tone Comparison
+                                        </h3>
+
+                                        {/* Desktop: Side-by-side */}
+                                        <div className="hidden md:grid md:grid-cols-2 gap-6">
+                                            {/* LEFT: Original Tone */}
+                                            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 border border-slate-700">
+                                                <div className="flex items-center gap-3 mb-5">
+                                                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                                        <Music className="w-5 h-5 text-purple-400" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-bold text-white">Original Setup</h4>
+                                                        <p className="text-sm text-slate-400">What the artist used</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Guitar</p>
+                                                        <p className="text-white font-medium">{result.original_tone.guitar}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Amplifier</p>
+                                                        <p className="text-white font-medium">{result.original_tone.amp}</p>
+                                                    </div>
+                                                    {result.original_tone.pickups && (
+                                                        <div>
+                                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Pickups</p>
+                                                            <p className="text-white font-medium">{result.original_tone.pickups}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Original Amp Settings */}
+                                                    <div className="pt-4 border-t border-slate-700">
+                                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3">Amp Settings</p>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            {result.original_tone.settings && Object.entries(result.original_tone.settings).map(([key, value]: [string, any]) => (
+                                                                <div key={key} className="bg-slate-800/60 rounded-xl p-3 text-center">
+                                                                    <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">{key}</p>
+                                                                    <p className="text-2xl font-bold text-slate-300 font-mono">{value}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Original Effects */}
+                                                    {result.original_tone.effects && result.original_tone.effects.length > 0 && (
+                                                        <div className="pt-4 border-t border-slate-700">
+                                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3">Effects</p>
+                                                            <div className="space-y-2">
+                                                                {result.original_tone.effects.map((effect: any, idx: number) => (
+                                                                    <div key={idx} className="bg-slate-800/60 rounded-lg p-3">
+                                                                        <p className="text-sm text-white font-medium">{effect.name}</p>
+                                                                        <p className="text-xs text-slate-400 mt-0.5">{effect.settings}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* RIGHT: Adapted Tone */}
+                                            <div className="bg-gradient-to-br from-blue-950 to-blue-900 rounded-2xl p-6 border border-blue-700 relative">
+                                                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
+                                                    ✨ For Your Gear
+                                                </div>
+
+                                                <div className="flex items-center gap-3 mb-5">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                                        <Target className="w-5 h-5 text-blue-400" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-bold text-white">Your Adapted Settings</h4>
+                                                        <p className="text-sm text-blue-300">AI-adjusted for your gear</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mb-1">Your Guitar</p>
+                                                        <p className="text-white font-medium">{userGuitar || "Not specified"}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mb-1">Your Amp</p>
+                                                        <p className="text-white font-medium">{userAmp || "Not specified"}</p>
+                                                    </div>
+
+                                                    {/* Adapted Settings with Diff */}
+                                                    <div className="pt-4 border-t border-blue-800">
+                                                        <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mb-3">AI-Adjusted Settings</p>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            {result.adapted_tone.settings && Object.entries(result.adapted_tone.settings).map(([key, value]: [string, any]) => {
+                                                                const original = result.original_tone?.settings?.[key]
+                                                                const diff = typeof value === "number" && typeof original === "number" ? value - original : 0
+                                                                const adjustment = result.adapted_tone?.adjustments?.[key]
+                                                                return (
+                                                                    <div key={key} className="bg-blue-900/50 rounded-xl p-3 text-center relative group cursor-help">
+                                                                        <p className="text-[10px] text-blue-300 uppercase font-bold mb-1">{key}</p>
+                                                                        <div className="flex items-baseline justify-center gap-1">
+                                                                            <p className="text-2xl font-bold text-white font-mono">{value}</p>
+                                                                            {diff !== 0 && (
+                                                                                <span className={`text-xs font-bold ${diff > 0 ? "text-green-400" : "text-orange-400"}`}>
+                                                                                    {diff > 0 ? "+" : ""}{diff}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {/* Tooltip */}
+                                                                        {adjustment && (
+                                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-52 text-center z-20 leading-relaxed">
+                                                                                {adjustment}
+                                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Mobile: Stacked */}
+                                        <div className="md:hidden space-y-4">
+                                            {/* Adapted (default visible) */}
+                                            <div className="bg-gradient-to-br from-blue-950 to-blue-900 rounded-2xl p-5 border border-blue-700 relative">
+                                                <div className="absolute -top-2.5 right-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-lg">
+                                                    ✨ For Your Gear
+                                                </div>
+                                                <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                                                    <Target className="w-4 h-4 text-blue-400" /> Your Adapted Settings
+                                                </h4>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {result.adapted_tone.settings && Object.entries(result.adapted_tone.settings).map(([key, value]: [string, any]) => {
+                                                        const original = result.original_tone?.settings?.[key]
+                                                        const diff = typeof value === "number" && typeof original === "number" ? value - original : 0
+                                                        return (
+                                                            <div key={key} className="bg-blue-900/50 rounded-xl p-2.5 text-center">
+                                                                <p className="text-[9px] text-blue-300 uppercase font-bold mb-0.5">{key}</p>
+                                                                <div className="flex items-baseline justify-center gap-0.5">
+                                                                    <p className="text-xl font-bold text-white font-mono">{value}</p>
+                                                                    {diff !== 0 && (
+                                                                        <span className={`text-[10px] font-bold ${diff > 0 ? "text-green-400" : "text-orange-400"}`}>
+                                                                            {diff > 0 ? "+" : ""}{diff}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            {/* Original (expandable) */}
+                                            <details className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                                                <summary className="p-4 cursor-pointer flex items-center justify-between hover:bg-slate-800/50 transition">
+                                                    <div className="flex items-center gap-2">
+                                                        <Music className="w-4 h-4 text-purple-400" />
+                                                        <span className="font-bold text-white text-sm">Show Original Setup</span>
+                                                    </div>
+                                                </summary>
+                                                <div className="px-4 pb-4 space-y-3">
+                                                    <div>
+                                                        <p className="text-[10px] text-slate-500 uppercase font-bold">Guitar</p>
+                                                        <p className="text-white text-sm">{result.original_tone.guitar}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] text-slate-500 uppercase font-bold">Amp</p>
+                                                        <p className="text-white text-sm">{result.original_tone.amp}</p>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-2 pt-2">
+                                                        {result.original_tone.settings && Object.entries(result.original_tone.settings).map(([key, value]: [string, any]) => (
+                                                            <div key={key} className="bg-slate-800/60 rounded-lg p-2 text-center">
+                                                                <p className="text-[9px] text-slate-500 uppercase font-bold">{key}</p>
+                                                                <p className="text-lg font-bold text-slate-300 font-mono">{value}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+
+                                        {/* Gear Differences */}
+                                        {result.gear_differences && result.gear_differences.length > 0 && (
+                                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-5">
+                                                <h4 className="font-bold text-amber-900 dark:text-amber-300 text-sm mb-3 flex items-center gap-2">
+                                                    <Lightbulb className="h-4 w-4" />
+                                                    Key Gear Adjustments
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {result.gear_differences.map((diff: string, idx: number) => (
+                                                        <div key={idx} className="flex gap-2 text-sm">
+                                                            <span className="text-amber-500 shrink-0 mt-0.5">•</span>
+                                                            <span className="text-amber-800 dark:text-amber-200 leading-relaxed">{diff}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                                     <div className="space-y-5">
