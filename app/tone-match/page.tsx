@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, SlidersHorizontal, X } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, SlidersHorizontal, X, Cpu, Check } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useEffect } from "react"
+import { type MultiFxUnit, type Pedal, PEDAL_CATEGORY_LABELS, MULTI_FX_TYPE_LABELS } from "@/lib/gear-catalog"
 
 export default function ToneMatchPage() {
     const { user } = useUser()
@@ -28,6 +29,12 @@ export default function ToneMatchPage() {
     const [goingDirect, setGoingDirect] = useState(false)
     const [userEffects, setUserEffects] = useState("")
     const [effectsType, setEffectsType] = useState<"pedals" | "multi">("pedals")
+
+    // Collection gear from localStorage
+    const [collectionPedals, setCollectionPedals] = useState<Pedal[]>([])
+    const [collectionMultiFx, setCollectionMultiFx] = useState<MultiFxUnit[]>([])
+    const [activePedalIds, setActivePedalIds] = useState<Set<string>>(new Set())
+    const [activeMultiFxId, setActiveMultiFxId] = useState<string | null>(null)
 
     // Step 2: Song Details State
     const [partType, setPartType] = useState<"riff" | "solo">("riff")
@@ -70,6 +77,14 @@ export default function ToneMatchPage() {
                 console.error("Failed to parse saved state", e);
             }
         }
+
+        // Load collection gear from localStorage
+        try {
+            const savedPedals = localStorage.getItem("tonelify_pedals")
+            const savedMultiFx = localStorage.getItem("tonelify_multifx")
+            if (savedPedals) setCollectionPedals(JSON.parse(savedPedals))
+            if (savedMultiFx) setCollectionMultiFx(JSON.parse(savedMultiFx))
+        } catch (e) { console.error(e) }
     }, []);
 
     // Save state to localStorage on change
@@ -432,58 +447,181 @@ export default function ToneMatchPage() {
                                     </div>
                                 </div>
 
-                                {/* Effects Section */}
+                                {/* Effects Section - Collection Integrated */}
                                 <div className="space-y-5 pt-2">
                                     <Label className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        Signal Chain / Effects
+                                        Select Your Effects
                                         <span className="text-xs font-normal text-slate-400 dark:text-slate-500 ml-auto bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">Optional</span>
                                     </Label>
 
-                                    <div className={`p-1 rounded-xl border flex transition-colors ${userAmp || goingDirect ? 'bg-slate-50 dark:bg-[#222] border-slate-200 dark:border-white/10' : 'bg-slate-50/50 dark:bg-[#111]/50 border-slate-100 dark:border-white/5 opacity-60'}`}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setEffectsType("pedals")}
-                                            disabled={!userAmp && !goingDirect}
-                                            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${effectsType === 'pedals' ? 'bg-white dark:bg-[#333] shadow-sm text-blue-600 dark:text-blue-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Pedals & Stompboxes
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setEffectsType("multi")}
-                                            disabled={!userAmp && !goingDirect}
-                                            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${effectsType === 'multi' ? 'bg-white dark:bg-[#333] shadow-sm text-blue-600 dark:text-blue-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Multi FX Unit
-                                        </button>
-                                    </div>
-
-                                    {effectsType === 'pedals' && (
-                                        <div className="relative">
-                                            <Textarea
-                                                placeholder="List your pedals in order (e.g. Tuner > Tube Screamer > Chorus > Delay)"
-                                                value={userEffects}
-                                                onChange={(e) => setUserEffects(e.target.value)}
-                                                className="resize-none min-h-[120px] bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 dark:focus:ring-blue-900/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-all text-slate-900 dark:text-white"
-                                                disabled={!userAmp && !goingDirect}
-                                            />
-                                            <div className="absolute bottom-3 right-3 text-slate-300">
-                                                <Target className="h-4 w-4" />
-                                            </div>
-                                        </div>
+                                    {!userAmp && !goingDirect && (
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-100 dark:border-white/5 rounded-xl px-4 py-3">Select an amp first to enable effects selection</p>
                                     )}
-                                    {effectsType === 'multi' && (
-                                        <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl flex items-start gap-4 shadow-inner">
-                                            <div className="bg-white p-2 rounded-lg shadow-sm text-blue-600">
-                                                <Sparkles className="h-5 w-5" />
+
+                                    {(userAmp || goingDirect) && (
+                                        <>
+                                            {/* Pedals / Multi FX Tabs */}
+                                            <div className="p-1 rounded-xl border flex bg-slate-50 dark:bg-[#222] border-slate-200 dark:border-white/10">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEffectsType("pedals")}
+                                                    className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${effectsType === 'pedals' ? 'bg-white dark:bg-[#333] shadow-sm text-blue-600 dark:text-blue-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                >
+                                                    <SlidersHorizontal className="h-4 w-4" />
+                                                    Pedals
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEffectsType("multi")}
+                                                    className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${effectsType === 'multi' ? 'bg-white dark:bg-[#333] shadow-sm text-blue-600 dark:text-blue-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                >
+                                                    <Cpu className="h-4 w-4" />
+                                                    Multi FX
+                                                </button>
                                             </div>
-                                            <div className="space-y-1">
-                                                <h4 className="font-bold text-blue-900 text-sm">Using a Multi-FX Unit?</h4>
-                                                <p className="text-sm text-blue-700/80 leading-relaxed">
-                                                    For best results with Helix, Kemper, or Axe-FX, we recommend adding your specific unit in <Link href="/settings" className="font-bold underline decoration-blue-400 underline-offset-2 hover:text-blue-800">Account Settings</Link>.
+
+                                            {/* Hint for Multi FX */}
+                                            {effectsType === 'multi' && collectionMultiFx.length > 0 && (
+                                                <p className="text-xs text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                                                    <Sparkles className="h-3 w-3" />
+                                                    Want to use Multi FX? Add your multi-effects unit in <Link href="/collection" className="font-bold underline underline-offset-2">Account → Multi FX</Link> to get complete presets instead of individual pedals.
                                                 </p>
-                                            </div>
-                                        </div>
+                                            )}
+
+                                            {/* PEDALS TAB */}
+                                            {effectsType === 'pedals' && (
+                                                <div className="space-y-4">
+                                                    {collectionPedals.length > 0 ? (
+                                                        <>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Your Pedals</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (activePedalIds.size === collectionPedals.length) {
+                                                                            setActivePedalIds(new Set())
+                                                                            setUserEffects("")
+                                                                        } else {
+                                                                            const allIds = new Set(collectionPedals.map(p => p.id))
+                                                                            setActivePedalIds(allIds)
+                                                                            setUserEffects(collectionPedals.map(p => p.name).join(", "))
+                                                                        }
+                                                                    }}
+                                                                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                                                                >
+                                                                    {activePedalIds.size === collectionPedals.length ? 'Deselect All' : 'Select All Active'}
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {collectionPedals.map((pedal) => {
+                                                                    const isActive = activePedalIds.has(pedal.id)
+                                                                    return (
+                                                                        <button
+                                                                            key={pedal.id}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                const next = new Set(activePedalIds)
+                                                                                if (isActive) { next.delete(pedal.id) } else { next.add(pedal.id) }
+                                                                                setActivePedalIds(next)
+                                                                                setUserEffects(
+                                                                                    collectionPedals.filter(p => next.has(p.id)).map(p => p.name).join(", ")
+                                                                                )
+                                                                            }}
+                                                                            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${isActive
+                                                                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 shadow-sm'
+                                                                                    : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-700'
+                                                                                }`}
+                                                                        >
+                                                                            {isActive && <Check className="h-3 w-3" />}
+                                                                            {pedal.name}
+                                                                            <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${isActive ? 'bg-green-100 dark:bg-green-800/30 text-green-600 dark:text-green-400' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}`}>
+                                                                                {PEDAL_CATEGORY_LABELS[pedal.category]?.substring(0, 2) || pedal.category.substring(0, 2).toUpperCase()}
+                                                                            </span>
+                                                                        </button>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#1a1a1a] dark:to-[#222] border border-slate-200 dark:border-white/10 rounded-2xl text-center space-y-3">
+                                                            <div className="bg-white dark:bg-[#333] h-12 w-12 rounded-xl flex items-center justify-center mx-auto shadow-sm">
+                                                                <SlidersHorizontal className="h-6 w-6 text-slate-300" />
+                                                            </div>
+                                                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No pedals in your collection</p>
+                                                            <p className="text-xs text-slate-400">Add your pedals in the Collection page to select them here</p>
+                                                            <Link href="/collection">
+                                                                <Button variant="outline" className="text-xs font-bold h-9 mt-1 rounded-lg border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                                    Go to Collection
+                                                                </Button>
+                                                            </Link>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* MULTI FX TAB */}
+                                            {effectsType === 'multi' && (
+                                                <div className="space-y-4">
+                                                    {collectionMultiFx.length > 0 ? (
+                                                        <>
+                                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Your Multi FX Units</span>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                {collectionMultiFx.map((unit) => {
+                                                                    const isActive = activeMultiFxId === unit.id
+                                                                    return (
+                                                                        <button
+                                                                            key={unit.id}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                if (isActive) {
+                                                                                    setActiveMultiFxId(null)
+                                                                                    setUserEffects("")
+                                                                                } else {
+                                                                                    setActiveMultiFxId(unit.id)
+                                                                                    setUserEffects(unit.name + " (" + unit.brand + ")")
+                                                                                }
+                                                                            }}
+                                                                            className={`p-4 rounded-xl border text-left transition-all ${isActive
+                                                                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 ring-2 ring-blue-200 dark:ring-blue-800/30 shadow-md'
+                                                                                    : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm'
+                                                                                }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-between mb-1">
+                                                                                <span className="font-bold text-sm text-slate-900 dark:text-white">{unit.brand} {unit.name}</span>
+                                                                                {isActive && (
+                                                                                    <div className="bg-blue-600 text-white h-5 w-5 rounded-full flex items-center justify-center">
+                                                                                        <Check className="h-3 w-3" />
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">
+                                                                                {MULTI_FX_TYPE_LABELS[unit.type]}
+                                                                            </span>
+                                                                            {unit.ampsCount && (
+                                                                                <span className="text-[10px] text-slate-400 ml-2">{unit.ampsCount} amps</span>
+                                                                            )}
+                                                                        </button>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#1a1a1a] dark:to-[#222] border border-slate-200 dark:border-white/10 rounded-2xl text-center space-y-3">
+                                                            <div className="bg-white dark:bg-[#333] h-12 w-12 rounded-xl flex items-center justify-center mx-auto shadow-sm">
+                                                                <Cpu className="h-6 w-6 text-slate-300" />
+                                                            </div>
+                                                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No Multi FX units in your collection</p>
+                                                            <p className="text-xs text-slate-400">Add your multi-effects unit in the Collection page</p>
+                                                            <Link href="/collection">
+                                                                <Button variant="outline" className="text-xs font-bold h-9 mt-1 rounded-lg border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                                    Go to Collection
+                                                                </Button>
+                                                            </Link>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
