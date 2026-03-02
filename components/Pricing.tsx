@@ -85,15 +85,18 @@ export function Pricing() {
 
                 {/* Section Header */}
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-4">
-                        <Sparkles className="h-3 w-3" />
-                        Simple, transparent pricing
+                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-300 text-sm font-bold mb-6">
+                        <Calendar className="h-4 w-4" />
+                        FREE TRIAL: 7 days &nbsp;·&nbsp; Cancel anytime for FREE
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
-                        Choose your plan
+                    <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-4">
+                        Unlock Your Perfect Tone
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-lg max-w-xl mx-auto">
-                        All plans include a 7-day free trial. Cancel anytime.
+                    <p className="text-slate-600 dark:text-slate-300 text-lg max-w-xl mx-auto mb-2">
+                        Get the exact amp settings from your favorite songs, adapted to your gear
+                    </p>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm">
+                        Join thousands of guitarists finding their signature sound
                     </p>
                 </div>
 
@@ -122,7 +125,7 @@ export function Pricing() {
                         >
                             Annual
                         </button>
-                        <span className="ml-2 bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm whitespace-nowrap">
+                        <span className="ml-2 bg-rose-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm whitespace-nowrap">
                             Insane Deal!
                         </span>
                     </div>
