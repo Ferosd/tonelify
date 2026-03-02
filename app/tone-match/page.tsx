@@ -112,7 +112,7 @@ export default function ToneMatchPage() {
                 const res = await fetch("/api/subscription")
                 if (res.ok) {
                     const data = await res.json()
-                    setHasSubscription(data?.plan_id ? true : false)
+                    setHasSubscription(data?.plan && data.plan !== "free" ? true : false)
                 } else {
                     setHasSubscription(false)
                 }
@@ -528,8 +528,8 @@ export default function ToneMatchPage() {
                                                                                 )
                                                                             }}
                                                                             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${isActive
-                                                                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 shadow-sm'
-                                                                                    : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-700'
+                                                                                ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 shadow-sm'
+                                                                                : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-700'
                                                                                 }`}
                                                                         >
                                                                             {isActive && <Check className="h-3 w-3" />}
@@ -582,8 +582,8 @@ export default function ToneMatchPage() {
                                                                                 }
                                                                             }}
                                                                             className={`p-4 rounded-xl border text-left transition-all ${isActive
-                                                                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 ring-2 ring-blue-200 dark:ring-blue-800/30 shadow-md'
-                                                                                    : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm'
+                                                                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 ring-2 ring-blue-200 dark:ring-blue-800/30 shadow-md'
+                                                                                : 'bg-white dark:bg-[#1a1a1a] border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm'
                                                                                 }`}
                                                                         >
                                                                             <div className="flex items-center justify-between mb-1">
