@@ -421,11 +421,6 @@ export default function Home() {
         @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@600;700&family=Inter+Tight:wght@400;600&display=swap');
 
-        @font-face {
-          font-family: 'General Sans';
-          src: url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap');
-        }
-
         :root {
           --tn-void:           #08080A;
           --tn-primary:        #0D0D10;
@@ -603,7 +598,7 @@ export default function Home() {
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
           {/* Canvas */}
-          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#08080A" }} />
 
           {/* Hidden video — AI ENGINE scroll-sync */}
           <video ref={videoRef} src="/video.mp4" muted playsInline preload="auto" style={{ display: "none" }} />
@@ -839,7 +834,7 @@ export default function Home() {
               display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px",
               maxWidth: "860px", pointerEvents: "auto",
             }}>
-              {ampSettings.map(({ label: lbl }, i) => (
+              {ampSettings.map(({ label: lbl, value }, i) => (
                 <div
                   key={lbl}
                   ref={(el) => { ampCardRefs.current[i] = el }}
@@ -870,7 +865,7 @@ export default function Home() {
                     fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
                     color: "#FFD700", marginBottom: "6px", lineHeight: 1,
                   }}>
-                    <span ref={(el) => { ampValueRefs.current[i] = el }}>0.0</span>
+                    <span ref={(el) => { ampValueRefs.current[i] = el }}>{value.toFixed(1)}</span>
                   </div>
                   <div style={{
                     fontFamily: "'General Sans', sans-serif", fontWeight: 500,

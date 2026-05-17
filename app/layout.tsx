@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
-import { SiteHeader } from "@/components/SiteHeader";
+import { ConditionalSiteHeader } from "@/components/ConditionalSiteHeader";
 
 export const metadata: Metadata = {
   title: {
@@ -93,7 +93,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <SiteHeader />
+            <ConditionalSiteHeader />
             {children}
           </ThemeProvider>
         </body>
