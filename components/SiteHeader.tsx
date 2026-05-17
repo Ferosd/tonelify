@@ -116,10 +116,14 @@ export function SiteHeader() {
         {/* Logo */}
         <Link
           href="/"
-          style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}
+          style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", flexShrink: 0 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tonelify" height={32} />
+          <img src="/logo.png" alt="Tonelify" style={{ width: 120, height: "auto" }} />
+          <span style={{
+            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
+            fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
+          }}>Tonelify</span>
         </Link>
 
         {/* Desktop nav */}

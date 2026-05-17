@@ -580,9 +580,13 @@ export default function Home() {
         borderBottom: "1px solid rgba(255,255,255,0.04)",
         transition: "padding 0.3s ease",
       }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tonelify" height={32} />
+          <img src="/logo.png" alt="Tonelify" style={{ width: 120, height: "auto" }} />
+          <span style={{
+            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
+            fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
+          }}>Tonelify</span>
         </Link>
         <div className="tn-nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
           <Link href="/tone-match" className="tn-nav-link">Match Tones</Link>
@@ -741,6 +745,7 @@ export default function Home() {
 
               {/* Spotify embed */}
               <iframe
+                key={activeTrack}
                 src={activeTrack ? `https://open.spotify.com/embed/track/${activeTrack}?theme=0` : "about:blank"}
                 width="100%"
                 height="80"
