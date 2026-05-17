@@ -30,11 +30,10 @@ export function SiteHeader() {
   return (
     <header style={{
       position: "sticky", top: 0, zIndex: 50,
-      backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
-      background: "rgba(8,8,10,0.8)",
-      borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "1px solid transparent",
-      transition: "border-color 0.3s",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      background: "rgba(8,8,12,0.85)",
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
     }}>
       <div style={{
         maxWidth: "1400px", margin: "0 auto",
@@ -117,14 +116,10 @@ export function SiteHeader() {
         {/* Logo */}
         <Link
           href="/"
-          style={{
-            fontFamily: "var(--font-heading)", fontWeight: 700,
-            fontSize: "1.375rem", color: "var(--tn-accent)",
-            textDecoration: "none", letterSpacing: "-0.01em",
-            flexShrink: 0,
-          }}
+          style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}
         >
-          Tonelify
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Tonelify" height={32} />
         </Link>
 
         {/* Desktop nav */}
@@ -146,12 +141,12 @@ export function SiteHeader() {
               }}
               onMouseEnter={e => {
                 if (pathname !== route.href) {
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--tn-text-primary)"
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#E8712A"
                 }
               }}
               onMouseLeave={e => {
                 if (pathname !== route.href) {
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--tn-text-secondary)"
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#8A8494"
                 }
               }}
             >
@@ -164,14 +159,24 @@ export function SiteHeader() {
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="ghost-btn" style={{ padding: "8px 20px", fontSize: "0.9375rem" }}>
+              <button
+                className="ghost-btn"
+                style={{ padding: "8px 20px", fontSize: "0.9375rem", border: "1px solid rgba(255,255,255,0.12)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#E8712A" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)" }}
+              >
                 Sign In
               </button>
             </SignInButton>
           </SignedOut>
           <SignedIn>
             <SignOutButton>
-              <button className="ghost-btn" style={{ padding: "8px 20px", fontSize: "0.9375rem" }}>
+              <button
+                className="ghost-btn"
+                style={{ padding: "8px 20px", fontSize: "0.9375rem", border: "1px solid rgba(255,255,255,0.12)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#E8712A" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)" }}
+              >
                 Sign Out
               </button>
             </SignOutButton>

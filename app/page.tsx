@@ -240,11 +240,16 @@ export default function Home() {
     }
     window.addEventListener("scroll", handleNavScroll)
 
-    for (let i = 0; i < TOTAL; i++) {
-      const img = new Image()
-      img.src = `/frames/frame_${String(i + 1).padStart(4, "0")}.jpg`
-      heroFramesRef.current[i] = img
+    const BATCH = 20
+    const loadBatch = (start: number) => {
+      for (let i = start; i < Math.min(start + BATCH, TOTAL); i++) {
+        const img = new Image()
+        img.src = `/frames/frame_${String(i + 1).padStart(4, "0")}.jpg`
+        heroFramesRef.current[i] = img
+      }
+      if (start + BATCH < TOTAL) setTimeout(() => loadBatch(start + BATCH), 16)
     }
+    loadBatch(0)
     const firstFrame = heroFramesRef.current[0]
     if (firstFrame.complete) drawCoverFrame(firstFrame)
     else firstFrame.onload = () => drawCoverFrame(firstFrame)
@@ -389,38 +394,6 @@ export default function Home() {
         opacity: 0, ease: "none",
         scrollTrigger: { trigger: wrapperRef.current, start: "86% top", end: "88% top", scrub: true },
       })
-
-      // ── S7 PRICING ───────────────────────────────────────────
-      gsap.fromTo(s7Ref.current, { opacity: 0 }, {
-        opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "88% top", end: "91% top", scrub: true },
-      })
-      gsap.to(s7Ref.current, {
-        opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "92% top", end: "94% top", scrub: true },
-      })
-      gsap.fromTo(
-        s7Ref.current?.querySelectorAll(".js-pricing-card") ?? [],
-        { opacity: 0, y: 48 },
-        { opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.15,
-          scrollTrigger: { trigger: wrapperRef.current, start: "89% top", once: true } }
-      )
-
-      // ── S8 TESTIMONIALS ──────────────────────────────────────
-      gsap.fromTo(s8Ref.current, { opacity: 0 }, {
-        opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "91% top", end: "93% top", scrub: true },
-      })
-      gsap.to(s8Ref.current, {
-        opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "94% top", end: "96% top", scrub: true },
-      })
-      gsap.fromTo(
-        s8Ref.current?.querySelectorAll(".js-testimonial") ?? [],
-        { opacity: 0, y: 28 },
-        { opacity: 1, y: 0, stagger: 0.13, duration: 0.7, ease: "power2.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "92% top", once: true } }
-      )
 
     })
 
@@ -607,12 +580,9 @@ export default function Home() {
         borderBottom: "1px solid rgba(255,255,255,0.04)",
         transition: "padding 0.3s ease",
       }}>
-        <Link href="/" style={{
-          fontFamily: "'Clash Display', sans-serif", fontWeight: 700,
-          fontSize: "1.25rem", color: "#F5A623",
-          textDecoration: "none", letterSpacing: "-0.02em",
-        }}>
-          Tonelify
+        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Tonelify" height={32} />
         </Link>
         <div className="tn-nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
           <Link href="/tone-match" className="tn-nav-link">Match Tones</Link>
@@ -631,7 +601,7 @@ export default function Home() {
       }} />
 
       {/* ── 1400VH SCROLL WRAPPER ── */}
-      <div ref={wrapperRef} style={{ height: "1400vh", position: "relative" }}>
+      <div ref={wrapperRef} style={{ height: "1200vh", position: "relative" }}>
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
           {/* Canvas */}
@@ -735,12 +705,15 @@ export default function Home() {
                       animationTimingFunction: "ease-in-out",
                       animationIterationCount: "infinite",
                       outline: activeTrack === tone.spotifyId ? "1px solid rgba(155,93,229,0.5)" : "none",
+                      cursor: "pointer",
+                      willChange: "transform",
                     }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={tone.img}
                       alt={tone.song}
+                      loading="lazy"
                       width={60}
                       height={60}
                       style={{ borderRadius: "8px", objectFit: "cover", flexShrink: 0, width: "60px", height: "60px" }}
@@ -995,220 +968,226 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ── S7 PRICING — glass-gradient breaker ── */}
-          <div ref={s7Ref} style={{
-            position: "absolute", inset: 0, zIndex: 30, opacity: 0, pointerEvents: "none",
-            isolation: "isolate",
-            display: "flex", flexDirection: "column",
-            justifyContent: "center", alignItems: "center",
-            padding: "0 clamp(24px, 5vw, 80px)", overflowY: "auto",
-          }}>
-            {/* Bottom gradient layer */}
-            <div aria-hidden="true" style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
-            }} />
-            {/* Frosted glass overlay */}
-            <div aria-hidden="true" style={{
-              position: "absolute", inset: 0,
-              background: "rgba(8,8,12,0.7)",
-              backdropFilter: "blur(40px)",
-              WebkitBackdropFilter: "blur(40px)",
-            }} />
-            {/* Grain */}
-            <div aria-hidden="true" style={{
-              position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.03,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "repeat", backgroundSize: "200px 200px",
-            }} />
-            {/* Top border line */}
-            <div aria-hidden="true" style={{
-              position: "absolute", top: 0, left: "20%", right: "20%", height: "1px",
-              background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
-              opacity: 0.3,
-            }} />
-            {/* Bottom border line */}
-            <div aria-hidden="true" style={{
-              position: "absolute", bottom: 0, left: "20%", right: "20%", height: "1px",
-              background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
-              opacity: 0.3,
-            }} />
-
-            <div style={{ width: "100%", maxWidth: "860px", pointerEvents: "auto", position: "relative", zIndex: 1 }}>
-              <div style={{ marginBottom: "32px", textAlign: "center" }}>
-                <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Pricing</span>
-                <h2 style={{ ...h2Style, margin: 0 }}>Simple, honest pricing</h2>
-              </div>
-
-              {/* Monthly / Annual toggle */}
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "14px", marginBottom: "40px" }}>
-                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#8E8E93" }}>Monthly</span>
-                <button
-                  onClick={() => setBillingCycle(c => c === "monthly" ? "annual" : "monthly")}
-                  aria-label="Toggle billing cycle"
-                  style={{
-                    position: "relative", width: "48px", height: "26px", borderRadius: "999px", border: "none",
-                    background: billingCycle === "annual" ? "#E8712A" : "rgba(255,255,255,0.12)",
-                    cursor: "pointer", transition: "background 0.25s", flexShrink: 0,
-                  }}
-                >
-                  <span style={{
-                    position: "absolute", top: "3px",
-                    left: billingCycle === "annual" ? "25px" : "3px",
-                    width: "20px", height: "20px", borderRadius: "50%",
-                    background: "#FFFFFF",
-                    transition: "left 0.25s",
-                    display: "block",
-                  }} />
-                </button>
-                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#8E8E93" }}>Annual</span>
-                <span style={{
-                  fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
-                  background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
-                  opacity: billingCycle === "annual" ? 1 : 0,
-                  transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
-                  transition: "opacity 0.25s, transform 0.25s",
-                  display: "inline-block",
-                }}>Save 20%</span>
-              </div>
-
-              <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
-
-                {/* BEGINNER */}
-                <div className="js-pricing-card" style={{
-                  background: "rgba(18,18,26,0.85)",
-                  backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-                  border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "36px",
-                }}>
-                  <div style={{
-                    fontFamily: "'General Sans', sans-serif", fontWeight: 500,
-                    fontSize: "0.75rem", textTransform: "uppercase",
-                    letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
-                  }}>Beginner</div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                      fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
-                    }}>{billingCycle === "monthly" ? "$5.99" : "$4.99"}</span>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
-                  </div>
-                  <div style={{
-                    fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
-                    fontSize: "0.875rem", marginBottom: "28px",
-                  }}>7-day free trial</div>
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
-                    {beginnerFeatures.map((f) => (
-                      <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                        <CheckIcon />
-                        <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start Free Trial</Link>
-                </div>
-
-                {/* EXPERT */}
-                <div className="js-pricing-card" style={{
-                  background: "rgba(18,18,26,0.85)",
-                  backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-                  border: "1px solid #E8712A",
-                  boxShadow: "0 0 40px rgba(155,93,229,0.2)",
-                  borderRadius: "16px", padding: "36px",
-                  transform: "translateY(-20px)",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                    <div style={{
-                      fontFamily: "'General Sans', sans-serif", fontWeight: 500,
-                      fontSize: "0.75rem", textTransform: "uppercase",
-                      letterSpacing: "0.1em", color: "#E8712A",
-                    }}>Expert</div>
-                    <span style={{
-                      fontFamily: "'General Sans', sans-serif", fontWeight: 600,
-                      fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
-                      background: "#E8712A",
-                      color: "#08080C", borderRadius: "999px", padding: "4px 10px",
-                    }}>MOST POPULAR</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                      fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
-                    }}>{billingCycle === "monthly" ? "$9.99" : "$7.99"}</span>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
-                  </div>
-                  <div style={{
-                    fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
-                    fontSize: "0.875rem", marginBottom: "28px",
-                  }}>7-day free trial</div>
-                  <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
-                    {expertFeatures.map((f) => (
-                      <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                        <CheckIcon />
-                        <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link href="/plans" style={{
-                    display: "block", textAlign: "center",
-                    padding: "14px 32px",
-                    background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
-                    color: "#08080C",
-                    fontFamily: "'General Sans', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
-                    borderRadius: "12px", textDecoration: "none",
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                  }}>Start Free Trial</Link>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          {/* ── S8 TESTIMONIALS ── */}
-          <div ref={s8Ref} style={{
-            position: "absolute", inset: 0, zIndex: 2, opacity: 0, pointerEvents: "none",
-            display: "flex", alignItems: "center",
-            paddingLeft: "clamp(24px, 7vw, 96px)", paddingRight: "24px",
-          }}>
-            <div style={{ ...glass, maxWidth: "600px", width: "100%", pointerEvents: "auto" }}>
-              <span style={sectionLabel}>What Guitarists Say</span>
-              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                {testimonials.map((t) => (
-                  <div key={t.name} className="js-testimonial" style={{ borderLeft: "3px solid #F5A623", paddingLeft: "20px" }}>
-                    <p style={{
-                      fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem",
-                      lineHeight: 1.65, color: "#8E8E93", margin: "0 0 10px", fontStyle: "italic",
-                    }}>
-                      &ldquo;{t.quote}&rdquo;
-                    </p>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div style={{
-                        width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
-                        background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
-                        fontSize: "14px", color: "#FFFFFF",
-                      }}>
-                        {getInitials(t.name)}
-                      </div>
-                      <div>
-                        <span style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.8125rem", color: "#F2F2F7" }}>
-                          {t.name}
-                        </span>
-                        <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", marginLeft: "8px" }}>
-                          — {t.role}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
 
-      {/* Divider: after sticky scroll, before Gear strip */}
+      {/* Divider: after sticky scroll */}
+      <div style={{
+        height: "1px", width: "60%", margin: "0 auto",
+        background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+        opacity: 0.3,
+      }} />
+
+      {/* ── S7 PRICING — static section ── */}
+      <section ref={s7Ref} style={{
+        position: "relative", isolation: "isolate",
+        display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "center",
+        padding: "80px clamp(24px, 5vw, 80px)",
+        minHeight: "100vh",
+      }}>
+        {/* Bottom gradient layer */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+        }} />
+        {/* Frosted glass overlay */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0,
+          background: "rgba(8,8,12,0.7)",
+          backdropFilter: "blur(40px)",
+          WebkitBackdropFilter: "blur(40px)",
+        }} />
+        {/* Grain */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.03,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat", backgroundSize: "200px 200px",
+        }} />
+        {/* Top border line */}
+        <div aria-hidden="true" style={{
+          position: "absolute", top: 0, left: "20%", right: "20%", height: "1px",
+          background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+          opacity: 0.3,
+        }} />
+        {/* Bottom border line */}
+        <div aria-hidden="true" style={{
+          position: "absolute", bottom: 0, left: "20%", right: "20%", height: "1px",
+          background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+          opacity: 0.3,
+        }} />
+
+        <div style={{ width: "100%", maxWidth: "860px", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: "32px", textAlign: "center" }}>
+            <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Pricing</span>
+            <h2 style={{ ...h2Style, margin: 0 }}>Simple, honest pricing</h2>
+          </div>
+
+          {/* Monthly / Annual toggle */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "14px", marginBottom: "40px" }}>
+            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#8E8E93" }}>Monthly</span>
+            <button
+              onClick={() => setBillingCycle(c => c === "monthly" ? "annual" : "monthly")}
+              aria-label="Toggle billing cycle"
+              style={{
+                position: "relative", width: "48px", height: "26px", borderRadius: "999px", border: "none",
+                background: billingCycle === "annual" ? "#E8712A" : "rgba(255,255,255,0.12)",
+                cursor: "pointer", transition: "background 0.25s", flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: "absolute", top: "3px",
+                left: billingCycle === "annual" ? "25px" : "3px",
+                width: "20px", height: "20px", borderRadius: "50%",
+                background: "#FFFFFF",
+                transition: "left 0.25s",
+                display: "block",
+              }} />
+            </button>
+            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#8E8E93" }}>Annual</span>
+            <span style={{
+              fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
+              background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
+              opacity: billingCycle === "annual" ? 1 : 0,
+              transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
+              transition: "opacity 0.25s, transform 0.25s",
+              display: "inline-block",
+            }}>Save 20%</span>
+          </div>
+
+          <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
+
+            {/* BEGINNER */}
+            <div className="js-pricing-card" style={{
+              background: "rgba(18,18,26,0.85)",
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "36px",
+            }}>
+              <div style={{
+                fontFamily: "'General Sans', sans-serif", fontWeight: 500,
+                fontSize: "0.75rem", textTransform: "uppercase",
+                letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
+              }}>Beginner</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
+                  fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
+                }}>{billingCycle === "monthly" ? "$5.99" : "$4.99"}</span>
+                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
+              </div>
+              <div style={{
+                fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
+                fontSize: "0.875rem", marginBottom: "28px",
+              }}>7-day free trial</div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
+                {beginnerFeatures.map((f) => (
+                  <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
+                    <CheckIcon />
+                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start Free Trial</Link>
+            </div>
+
+            {/* EXPERT */}
+            <div className="js-pricing-card" style={{
+              background: "rgba(18,18,26,0.85)",
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid #E8712A",
+              boxShadow: "0 0 40px rgba(155,93,229,0.2)",
+              borderRadius: "16px", padding: "36px",
+              transform: "translateY(-20px)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                <div style={{
+                  fontFamily: "'General Sans', sans-serif", fontWeight: 500,
+                  fontSize: "0.75rem", textTransform: "uppercase",
+                  letterSpacing: "0.1em", color: "#E8712A",
+                }}>Expert</div>
+                <span style={{
+                  fontFamily: "'General Sans', sans-serif", fontWeight: 600,
+                  fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
+                  background: "#E8712A",
+                  color: "#08080C", borderRadius: "999px", padding: "4px 10px",
+                }}>MOST POPULAR</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
+                  fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
+                }}>{billingCycle === "monthly" ? "$9.99" : "$7.99"}</span>
+                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
+              </div>
+              <div style={{
+                fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
+                fontSize: "0.875rem", marginBottom: "28px",
+              }}>7-day free trial</div>
+              <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
+                {expertFeatures.map((f) => (
+                  <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
+                    <CheckIcon />
+                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/plans" style={{
+                display: "block", textAlign: "center",
+                padding: "14px 32px",
+                background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                color: "#08080C",
+                fontFamily: "'General Sans', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
+                borderRadius: "12px", textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+              }}>Start Free Trial</Link>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── S8 TESTIMONIALS — static section ── */}
+      <section ref={s8Ref} style={{
+        padding: "80px clamp(24px, 7vw, 96px)",
+        background: "#0D0D10",
+      }}>
+        <div style={{ ...glass, maxWidth: "600px", width: "100%" }}>
+          <span style={sectionLabel}>What Guitarists Say</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {testimonials.map((t) => (
+              <div key={t.name} className="js-testimonial" style={{ borderLeft: "3px solid #F5A623", paddingLeft: "20px" }}>
+                <p style={{
+                  fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem",
+                  lineHeight: 1.65, color: "#8E8E93", margin: "0 0 10px", fontStyle: "italic",
+                }}>
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{
+                    width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
+                    background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
+                    fontSize: "14px", color: "#FFFFFF",
+                  }}>
+                    {getInitials(t.name)}
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.8125rem", color: "#F2F2F7" }}>
+                      {t.name}
+                    </span>
+                    <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", marginLeft: "8px" }}>
+                      — {t.role}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Divider: before Gear strip */}
       <div style={{
         height: "1px", width: "60%", margin: "0 auto",
         background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
