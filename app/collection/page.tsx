@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+
 import { Settings, Music, Cpu, SlidersHorizontal, Plus, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -103,10 +104,12 @@ export default function CollectionPage() {
                 </div>
 
                 {/* ── Tab Navigation ── */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8" role="tablist" aria-label="Collection categories">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
+                            role="tab"
+                            aria-selected={activeTab === tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
                                 "inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-[14px] sm:text-[15px] font-medium transition-colors duration-200 border",

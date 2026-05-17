@@ -196,8 +196,9 @@ export default function Home() {
   const ampCardRefs       = useRef<(HTMLDivElement | null)[]>([])
   const ampValueRefs      = useRef<(HTMLSpanElement | null)[]>([])
 
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
-  const [mounted, setMounted]           = useState(false)
+  const [billingCycle, setBillingCycle]     = useState<"monthly" | "annual">("monthly")
+  const [mounted, setMounted]               = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -215,7 +216,8 @@ export default function Home() {
       const iw = img.naturalWidth || 1, ih = img.naturalHeight || 1
       const ca = cw / ch, ia = iw / ih
       let sx = 0, sy = 0, sw = iw, sh = ih
-      if (ia > ca) { sw = ih * ca; sx = (iw - sw) / 2 }
+      const xBias = window.innerWidth <= 768 ? 0.65 : 0.5
+      if (ia > ca) { sw = ih * ca; sx = (iw - sw) * xBias }
       else          { sh = iw / ca; sy = (ih - sh) / 2 }
       ctx2d.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch)
     }
@@ -561,14 +563,62 @@ export default function Home() {
           transform: translateY(-2px);
         }
 
+        .tn-hamburger {
+          display: none;
+          background: transparent;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 8px;
+          padding: 8px;
+          cursor: pointer;
+          color: #F2F2F7;
+          align-items: center;
+          justify-content: center;
+        }
+        .tn-mobile-menu {
+          display: none;
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(8,8,10,0.97);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          z-index: 199;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 32px;
+        }
+        .tn-mobile-menu.open { display: flex; }
+        .tn-mobile-menu a {
+          font-family: 'Clash Display', sans-serif;
+          font-size: 2rem;
+          font-weight: 600;
+          color: #F2F2F7;
+          text-decoration: none;
+          letter-spacing: -0.02em;
+        }
+        .tn-mobile-menu a:hover { color: #F5A623; }
+        .tn-mobile-menu-close {
+          position: absolute;
+          top: 24px; right: clamp(24px, 5vw, 80px);
+          background: transparent;
+          border: none;
+          color: #F2F2F7;
+          cursor: pointer;
+          padding: 8px;
+        }
+
         @media (max-width: 768px) {
           .tn-nav-links   { display: none !important; }
+          .tn-hamburger   { display: inline-flex !important; }
           .tn-step-grid   { grid-template-columns: 1fr !important; }
           .tn-amp-grid    { grid-template-columns: repeat(2, 1fr) !important; }
           .tn-price-grid  { grid-template-columns: 1fr !important; }
           .tn-foot-grid   { grid-template-columns: 1fr !important; gap: 40px !important; }
           .tn-trust-grid  { grid-template-columns: repeat(2, 1fr) !important; }
           .tn-tone-grid   { grid-template-columns: repeat(2, 1fr) !important; }
+          .tn-testimonials { flex-direction: column !important; }
+          .tn-hero-content { max-width: calc(100vw - 48px) !important; }
+          .tn-sign-in-btn { display: none !important; }
         }
       `}</style>
 
@@ -597,8 +647,32 @@ export default function Home() {
           <Link href="/settings"   className="tn-nav-link">Settings</Link>
           <Link href="/plans"      className="tn-nav-link">Plans</Link>
         </div>
-        <Link href="/sign-in" className="ghost-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
+        <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
+        <button
+          className="tn-hamburger"
+          aria-label="Open navigation menu"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`tn-mobile-menu${mobileMenuOpen ? " open" : ""}`} role="dialog" aria-modal="true" aria-label="Navigation menu">
+        <button className="tn-mobile-menu-close" aria-label="Close navigation menu" onClick={() => setMobileMenuOpen(false)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <Link href="/tone-match" onClick={() => setMobileMenuOpen(false)}>Match Tones</Link>
+        <Link href="/collection" onClick={() => setMobileMenuOpen(false)}>Collection</Link>
+        <Link href="/settings"   onClick={() => setMobileMenuOpen(false)}>Settings</Link>
+        <Link href="/plans"      onClick={() => setMobileMenuOpen(false)}>Plans</Link>
+        <Link href="/sign-in"    onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
+      </div>
 
       {/* Grain overlay */}
       <div aria-hidden="true" style={{
@@ -624,7 +698,7 @@ export default function Home() {
           }} />
 
           {/* ── S1 HERO ── */}
-          <div ref={heroContentRef} style={{
+          <div ref={heroContentRef} className="tn-hero-content" style={{
             position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
             display: "flex", flexDirection: "column", justifyContent: "center",
             paddingLeft: "clamp(24px, 7vw, 128px)", paddingRight: "24px",
@@ -1144,7 +1218,7 @@ export default function Home() {
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <span style={sectionLabel}>What Guitarists Say</span>
-          <div style={{ display: "flex", gap: "24px", marginTop: "48px", flexWrap: "wrap" }}>
+          <div className="tn-testimonials" style={{ display: "flex", gap: "24px", marginTop: "48px", flexWrap: "wrap" }}>
             {testimonials.map((t) => (
               <div key={t.name} className="js-testimonial testimonial-card" style={{
                 flex: "1 1 300px",
@@ -1316,6 +1390,31 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Tonelify",
+            "applicationCategory": "MusicApplication",
+            "operatingSystem": "Web",
+            "description": "AI-powered tone matching that adapts legendary guitar tones to your specific amp, guitar, and pickups.",
+            "url": "https://tonelify.com",
+            "offers": [
+              { "@type": "Offer", "price": "0", "priceCurrency": "USD", "name": "Free" },
+              { "@type": "Offer", "price": "5.99", "priceCurrency": "USD", "name": "Beginner" },
+              { "@type": "Offer", "price": "9.99", "priceCurrency": "USD", "name": "Expert" },
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "reviewCount": "35000",
+            },
+          }),
+        }}
+      />
 
     </main>
   )

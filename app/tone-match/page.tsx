@@ -527,7 +527,7 @@ export default function ToneMatchPage() {
                                                 className="flex items-center gap-4 p-3 hover:bg-[#E8712A]/5 cursor-pointer transition-colors border-b border-white/5 last:border-0"
                                             >
                                                 <div className="h-10 w-10 bg-white/8 rounded-md overflow-hidden shrink-0">
-                                                    {result.artworkUrl && <img src={result.artworkUrl} alt="Art" className="h-full w-full object-cover" />}
+                                                    {result.artworkUrl && <img src={result.artworkUrl} alt={`${result.trackName} by ${result.artistName}`} className="h-full w-full object-cover" />}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-[#F2F0ED] text-sm">{result.trackName}</span>
