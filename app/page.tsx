@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
@@ -36,10 +36,18 @@ const testimonials = [
   { quote: "As a home studio producer, this is a game-changer for referencing classic tones.",                 name: "Mike Thompson", role: "Producer"          },
 ]
 
-const badges        = ["1000+ songs", "Any gear", "Instant results", "Free to start"]
-const freeFeatures  = ["3 tone matches per day", "GAIN, BASS & TREBLE", "Basic amp profiles"]
+const badges           = ["1000+ songs", "Any gear", "Instant results", "Free to start"]
+const freeFeatures     = ["3 tone matches per day", "GAIN, BASS & TREBLE only", "Basic amp profiles"]
+const beginnerFeatures = [
+  "20 custom tone adaptations per month",
+  "15 saved tones",
+  "Create gear presets",
+  "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
+]
 const expertFeatures = [
-  "Unlimited tone matches",
+  "Unlimited tone adaptations",
+  "Unlimited saved tones",
+  "Create gear presets",
   "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
   "Effects chain recommendations",
   "Tone tips & explanations",
@@ -90,16 +98,16 @@ function CheckIcon() {
 
 function StepGuitarIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M9 18c-2.5 0-4.5-2-4.5-4.5S6.5 9 9 9c.8 0 1.6.2 2.2.6L17 4l3 3-5.4 5.8c.4.6.6 1.4.6 2.2C15.2 17.5 12.2 18 9 18z" />
-      <circle cx="9" cy="13.5" r="1" fill="#F5A623" />
+      <circle cx="9" cy="13.5" r="1" fill="#9B5DE5" />
     </svg>
   )
 }
 
 function StepSearchIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
       <path d="M9 9a2 2 0 0 1 2-2" />
@@ -109,7 +117,7 @@ function StepSearchIcon() {
 
 function StepSlidersIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="4" y1="6" x2="20" y2="6" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="18" x2="20" y2="18" />
@@ -120,23 +128,27 @@ function StepSlidersIcon() {
   )
 }
 
+function getInitials(name: string) {
+  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+}
+
 const stepIcons = [<StepGuitarIcon key="g" />, <StepSearchIcon key="s" />, <StepSlidersIcon key="sl" />]
 
 const trustItems = [
   {
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
     title: "Secure Payments", sub: "Powered by Stripe",
   },
   {
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
+    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
     title: "7-Day Free Trial", sub: "No card required",
   },
   {
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
+    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
     title: "No Commitment", sub: "Cancel anytime",
   },
   {
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18c-2.5 0-4.5-2-4.5-4.5S6.5 9 9 9c.8 0 1.6.2 2.2.6L17 4l3 3-5.4 5.8c.4.6.6 1.4.6 2.2C15.2 17.5 12.2 18 9 18z" /><circle cx="9" cy="13.5" r="1" fill="#F5A623" /></svg>,
+    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
     title: "35,000+ Users", sub: "Trusted worldwide",
   },
 ]
@@ -162,6 +174,7 @@ export default function Home() {
   const stepRefs        = useRef<(HTMLDivElement | null)[]>([])
   const ampCardRefs     = useRef<(HTMLDivElement | null)[]>([])
   const ampValueRefs    = useRef<(HTMLSpanElement | null)[]>([])
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
@@ -314,7 +327,7 @@ export default function Home() {
             if (!el) return
             const proxy = { val: 0 }
             gsap.to(proxy, {
-              val: value, duration: 1.7, ease: "power2.out", delay: i * 0.09,
+              val: value, duration: 1.5, ease: "power2.out", delay: i * 0.1,
               onUpdate() { el.textContent = proxy.val.toFixed(1) },
             })
           })
@@ -383,7 +396,7 @@ export default function Home() {
 
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&family=Inter+Tight:wght@600&display=swap');
 
         @font-face {
           font-family: 'General Sans';
@@ -460,10 +473,10 @@ export default function Home() {
         .tn-nav-link:hover { opacity: 1; }
 
         .step-card {
-          background: rgba(20,20,24,0.6);
+          background: rgba(18,18,26,0.6);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(245,166,35,0.12);
+          border: 1px solid rgba(155,93,229,0.12);
           border-radius: 16px;
           padding: 32px;
           position: relative;
@@ -473,14 +486,14 @@ export default function Home() {
           flex-direction: column;
         }
         .step-card:hover {
-          border-color: rgba(245,166,35,0.3);
+          border-color: rgba(155,93,229,0.3);
           transform: translateY(-4px);
         }
         .step-num {
-          font-family: 'Clash Display', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
           font-size: 3rem;
-          background: linear-gradient(135deg, #F5A623 0%, #FF6B35 100%);
+          background: linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%);
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -591,14 +604,14 @@ export default function Home() {
 
           {/* ── S2 HOW IT WORKS — solid breaker ── */}
           <div ref={s2Ref} style={{
-            position: "absolute", inset: 0, zIndex: 3, opacity: 0, pointerEvents: "none",
-            background: "linear-gradient(180deg, #0D0D10 0%, #110D1C 50%, #0D0D10 100%)",
+            position: "absolute", inset: 0, zIndex: 20, opacity: 0, pointerEvents: "none",
+            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             padding: "120px clamp(24px, 7vw, 96px)",
           }}>
             <div aria-hidden="true" style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 50% 30%, rgba(245,166,35,0.06) 0%, transparent 60%)",
+              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.08) 0%, transparent 60%)",
             }} />
             <div style={{ maxWidth: "940px", width: "100%", pointerEvents: "auto", position: "relative" }}>
               <div style={{ textAlign: "center", marginBottom: "56px" }}>
@@ -610,7 +623,7 @@ export default function Home() {
                   <div key={step.n} ref={(el) => { stepRefs.current[i] = el }} className="step-card">
                     <div aria-hidden="true" style={{
                       position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-                      background: "linear-gradient(90deg, #F5A623 0%, #FF6B35 100%)",
+                      background: "linear-gradient(90deg, #E8712A 0%, #9B5DE5 100%)",
                     }} />
                     <div style={{ marginBottom: "12px" }}>{stepIcons[i]}</div>
                     <div className="step-num">{step.n}</div>
@@ -798,29 +811,64 @@ export default function Home() {
 
           {/* ── S7 PRICING — solid breaker ── */}
           <div ref={s7Ref} style={{
-            position: "absolute", inset: 0, zIndex: 3, opacity: 0, pointerEvents: "none",
-            background: "#0D0D10",
+            position: "absolute", inset: 0, zIndex: 20, opacity: 0, pointerEvents: "none",
+            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
             display: "flex", flexDirection: "column",
             justifyContent: "center", alignItems: "center",
             padding: "0 clamp(24px, 5vw, 80px)", overflowY: "auto",
           }}>
-            <div style={{ width: "100%", maxWidth: "900px", pointerEvents: "auto" }}>
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.08) 0%, transparent 60%)",
+            }} />
+            <div style={{ width: "100%", maxWidth: "1060px", pointerEvents: "auto", position: "relative" }}>
               <div style={{ marginBottom: "32px", textAlign: "center" }}>
                 <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Pricing</span>
                 <h2 style={{ ...h2Style, margin: 0 }}>Simple, honest pricing</h2>
               </div>
-              <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px", alignItems: "start" }}>
 
-                {/* Beginner */}
+              {/* Monthly / Annual toggle */}
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "14px", marginBottom: "40px" }}>
+                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#8E8E93" }}>Monthly</span>
+                <button
+                  onClick={() => setBillingCycle(c => c === "monthly" ? "annual" : "monthly")}
+                  aria-label="Toggle billing cycle"
+                  style={{
+                    position: "relative", width: "48px", height: "26px", borderRadius: "999px", border: "none",
+                    background: billingCycle === "annual" ? "#E8712A" : "rgba(255,255,255,0.12)",
+                    cursor: "pointer", transition: "background 0.25s", flexShrink: 0,
+                  }}
+                >
+                  <span style={{
+                    position: "absolute", top: "3px",
+                    left: billingCycle === "annual" ? "25px" : "3px",
+                    width: "20px", height: "20px", borderRadius: "50%",
+                    background: "#FFFFFF",
+                    transition: "left 0.25s",
+                    display: "block",
+                  }} />
+                </button>
+                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#8E8E93" }}>Annual</span>
+                {billingCycle === "annual" && (
+                  <span style={{
+                    fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
+                    background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
+                  }}>Save 20%</span>
+                )}
+              </div>
+
+              <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px", alignItems: "start" }}>
+
+                {/* FREE */}
                 <div className="js-pricing-card" style={{
-                  background: "rgba(20,20,24,0.8)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
                   border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
                 }}>
                   <div style={{
                     fontFamily: "'General Sans', sans-serif", fontWeight: 500,
                     fontSize: "0.75rem", textTransform: "uppercase",
                     letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
-                  }}>Beginner</div>
+                  }}>Free</div>
                   <div style={{
                     fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                     fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1, marginBottom: "6px",
@@ -840,38 +888,70 @@ export default function Home() {
                   <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Get Started</Link>
                 </div>
 
-                {/* Expert */}
+                {/* BEGINNER */}
                 <div className="js-pricing-card" style={{
-                  background: "rgba(20,20,24,0.8)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-                  border: "1px solid rgba(245,166,35,0.35)",
-                  boxShadow: "0 0 48px rgba(245,166,35,0.1), inset 0 1px 0 rgba(245,166,35,0.12)",
-                  borderRadius: "16px", padding: "36px",
+                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                    <div style={{
-                      fontFamily: "'General Sans', sans-serif", fontWeight: 500,
-                      fontSize: "0.75rem", textTransform: "uppercase",
-                      letterSpacing: "0.1em", color: "#F5A623",
-                    }}>Expert</div>
-                    <span style={{
-                      fontFamily: "'General Sans', sans-serif", fontWeight: 600,
-                      fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
-                      background: "linear-gradient(135deg, #F5A623 0%, #FF6B35 100%)",
-                      color: "#08080A", borderRadius: "6px", padding: "4px 10px",
-                    }}>Most Popular</span>
-                  </div>
+                  <div style={{
+                    fontFamily: "'General Sans', sans-serif", fontWeight: 500,
+                    fontSize: "0.75rem", textTransform: "uppercase",
+                    letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
+                  }}>Beginner</div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
                     <span style={{
                       fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                      fontSize: "2.5rem", color: "#F5A623", lineHeight: 1,
-                    }}>$9.99</span>
+                      fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
+                    }}>{billingCycle === "monthly" ? "$5.99" : "$4.99"}</span>
                     <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
                   </div>
                   <div style={{
                     fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
                     fontSize: "0.875rem", marginBottom: "28px",
                   }}>7-day free trial</div>
-                  <div style={{ borderTop: "1px solid rgba(245,166,35,0.1)", paddingTop: "24px", marginBottom: "28px" }}>
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
+                    {beginnerFeatures.map((f) => (
+                      <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
+                        <CheckIcon />
+                        <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start Free Trial</Link>
+                </div>
+
+                {/* EXPERT */}
+                <div className="js-pricing-card" style={{
+                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  border: "1px solid #E8712A",
+                  boxShadow: "0 0 48px rgba(232,113,42,0.15), 0 0 80px rgba(155,93,229,0.08)",
+                  borderRadius: "16px", padding: "36px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                    <div style={{
+                      fontFamily: "'General Sans', sans-serif", fontWeight: 500,
+                      fontSize: "0.75rem", textTransform: "uppercase",
+                      letterSpacing: "0.1em", color: "#E8712A",
+                    }}>Expert</div>
+                    <span style={{
+                      fontFamily: "'General Sans', sans-serif", fontWeight: 600,
+                      fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
+                      background: "#E8712A",
+                      color: "#08080C", borderRadius: "999px", padding: "4px 10px",
+                    }}>Most Popular</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
+                      fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
+                    }}>{billingCycle === "monthly" ? "$9.99" : "$7.99"}</span>
+                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
+                  </div>
+                  <div style={{
+                    fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
+                    fontSize: "0.875rem", marginBottom: "28px",
+                  }}>7-day free trial</div>
+                  <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
                     {expertFeatures.map((f) => (
                       <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
                         <CheckIcon />
@@ -879,7 +959,15 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <Link href="/plans" className="cta-btn" style={{ display: "block", textAlign: "center" }}>Start Free Trial</Link>
+                  <Link href="/plans" style={{
+                    display: "block", textAlign: "center",
+                    padding: "14px 32px",
+                    background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                    color: "#08080C",
+                    fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.9375rem",
+                    borderRadius: "12px", textDecoration: "none",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}>Start Free Trial</Link>
                 </div>
 
               </div>
@@ -903,12 +991,25 @@ export default function Home() {
                     }}>
                       &ldquo;{t.quote}&rdquo;
                     </p>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.8125rem", color: "#F2F2F7" }}>
-                      {t.name}
-                    </span>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", marginLeft: "8px" }}>
-                      — {t.role}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div style={{
+                        width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
+                        background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
+                        fontSize: "14px", color: "#FFFFFF",
+                      }}>
+                        {getInitials(t.name)}
+                      </div>
+                      <div>
+                        <span style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.8125rem", color: "#F2F2F7" }}>
+                          {t.name}
+                        </span>
+                        <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", marginLeft: "8px" }}>
+                          — {t.role}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
