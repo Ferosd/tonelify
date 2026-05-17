@@ -2,159 +2,182 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton, SignedIn, SignedOut, SignInButton, SignUpButton, useUser, SignOutButton } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
+import { SignedIn, SignedOut, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, User, Sun, Moon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "next-themes";
+import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+
+const routes = [
+  { href: "/tone-match",    label: "Match Tones",  icon: Guitar },
+  { href: "/collection",    label: "Collection",   icon: Bookmark },
+  { href: "/settings",      label: "Settings",     icon: Settings },
+  { href: "/plans",         label: "Plans",        icon: Sparkles },
+  { href: "/request-gear",  label: "Request Gear", icon: MessageSquare },
+];
 
 export function SiteHeader() {
-    const pathname = usePathname();
-    const [open, setOpen] = useState(false);
-    const { user, isLoaded } = useUser();
-    const { setTheme, theme } = useTheme();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { isLoaded } = useUser();
 
-    const routes = [
-        {
-            href: "/tone-match",
-            label: "Match Tones",
-            icon: Guitar,
-            active: pathname === "/tone-match",
-        },
-        {
-            href: "/collection",
-            label: "Collection",
-            icon: Bookmark,
-            active: pathname === "/collection",
-        },
-        {
-            href: "/settings",
-            label: "Settings",
-            icon: Settings,
-            active: pathname === "/settings",
-        },
-        {
-            href: "/plans",
-            label: "Plans",
-            icon: Sparkles,
-            active: pathname === "/plans",
-        },
-        {
-            href: "/request-gear",
-            label: "Request Gear",
-            icon: MessageSquare,
-            active: pathname === "/request-gear",
-        },
-    ];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-    return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 items-center px-4">
+  return (
+    <header style={{
+      position: "sticky", top: 0, zIndex: 50,
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      background: "rgba(8,8,10,0.8)",
+      borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "1px solid transparent",
+      transition: "border-color 0.3s",
+    }}>
+      <div style={{
+        maxWidth: "1400px", margin: "0 auto",
+        padding: "0 24px", height: "60px",
+        display: "flex", alignItems: "center", gap: "16px",
+      }}>
 
-                {/* HAMBURGER MENU (Visible on ALL screens now) */}
-                <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className="mr-2">
-                            <Menu className="h-6 w-6" />
-                            <span className="sr-only">Toggle Menu</span>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 flex flex-col h-full">
+        {/* Mobile hamburger */}
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <button
+              aria-label="Toggle menu"
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "var(--tn-text-secondary)", padding: "8px",
+                display: "flex", alignItems: "center",
+              }}
+              className="md:hidden"
+            >
+              <Menu size={22} />
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            style={{
+              background: "#0D0D10",
+              borderRight: "1px solid rgba(255,255,255,0.06)",
+              width: 300,
+            }}
+          >
+            <SheetHeader style={{ padding: "24px 24px 16px" }}>
+              <SheetTitle style={{
+                fontFamily: "var(--font-display)", fontWeight: 600,
+                fontSize: "1.25rem", color: "var(--tn-accent)",
+              }}>
+                Tonelify
+              </SheetTitle>
+            </SheetHeader>
 
-                        {/* Sidebar Header */}
-                        <SheetHeader className="p-6 text-left border-b">
-                            <SheetTitle className="flex items-center gap-2 font-bold text-xl">
-                                <img src="/logo-new.png" alt="Tonelify" className="h-8 w-8 object-contain" />
-                                <span>Tonelify</span>
-                            </SheetTitle>
-                        </SheetHeader>
-
-                        {/* Sidebar Links */}
-                        <div className="flex flex-col gap-1 p-4">
-                            {routes.map((route) => (
-                                <Link
-                                    key={route.href}
-                                    href={route.href}
-                                    onClick={() => setOpen(false)}
-                                    className={cn(
-                                        "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all",
-                                        route.active
-                                            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1f1f1f] hover:text-slate-900 dark:hover:text-slate-200"
-                                    )}
-                                >
-                                    <route.icon className={cn("h-5 w-5", route.active ? "text-blue-600 dark:text-blue-400" : "text-slate-400")} />
-                                    {route.label}
-                                </Link>
-                            ))}
-                        </div>
-
-                        {/* Footer / Logout */}
-                        <div className="p-6 border-t mt-auto">
-                            <SignedIn>
-                                <SignOutButton>
-                                    <button className="flex items-center gap-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors w-full px-2 py-2 rounded-lg hover:bg-blue-50">
-                                        <LogOut className="h-4 w-4" />
-                                        Logout
-                                    </button>
-                                </SignOutButton>
-                            </SignedIn>
-                        </div>
-                    </SheetContent>
-                </Sheet>
-
-                {/* Mobile/Desktop Header Title */}
-                <div className="flex items-center gap-2 mr-4">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <img src="/logo-new.png" alt="Tonelify Logo" className="h-10 w-auto object-contain" />
-                        <span className="text-primary text-xl font-bold hidden md:inline-block">Tonelify</span>
-                    </Link>
-                </div>
-
-                {/* DESKTOP NAVIGATION */}
-                <nav className="hidden md:flex items-center gap-6 mx-6">
-                    {routes.map((route) => (
-                        <Link
-                            key={route.href}
-                            href={route.href}
-                            className={cn(
-                                "text-sm font-medium transition-colors hover:text-blue-600",
-                                route.active
-                                    ? "text-blue-600 dark:text-blue-400 font-bold"
-                                    : "text-slate-600 dark:text-slate-400"
-                            )}
-                        >
-                            {route.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="ml-auto flex items-center gap-2">
-                    {/* Theme Toggle */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        className="h-10 w-10 rounded-full transition-transform hover:scale-105 active:scale-95"
-                    >
-                        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
-                        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-500" />
-                        <span className="sr-only">Toggle theme</span>
-                    </Button>
-
-                    <SignedIn>
-                        <UserButton />
-                    </SignedIn>
-                    <SignedOut>
-                        <SignInButton mode="modal">
-                            <Button size="sm" variant="ghost">Sign In</Button>
-                        </SignInButton>
-                    </SignedOut>
-                </div>
+            <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+              {routes.map(route => (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  onClick={() => setOpen(false)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "12px",
+                    padding: "12px 16px", borderRadius: "10px",
+                    fontFamily: "var(--font-body)", fontWeight: 500,
+                    fontSize: "0.9375rem", textDecoration: "none",
+                    color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
+                    background: pathname === route.href ? "rgba(245,166,35,0.08)" : "transparent",
+                  }}
+                >
+                  <route.icon size={18} />
+                  {route.label}
+                </Link>
+              ))}
             </div>
-        </header>
-    );
+
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <SignedIn>
+                <SignOutButton>
+                  <button style={{
+                    display: "flex", alignItems: "center", gap: "10px",
+                    background: "none", border: "none", cursor: "pointer",
+                    fontFamily: "var(--font-body)", fontWeight: 500,
+                    fontSize: "0.9375rem", color: "var(--tn-text-secondary)",
+                    padding: "8px 0", width: "100%",
+                  }}>
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
+                </SignOutButton>
+              </SignedIn>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Logo */}
+        <Link
+          href="/"
+          style={{
+            fontFamily: "var(--font-display)", fontWeight: 600,
+            fontSize: "1.375rem", color: "var(--tn-accent)",
+            textDecoration: "none", letterSpacing: "-0.01em",
+            flexShrink: 0,
+          }}
+        >
+          Tonelify
+        </Link>
+
+        {/* Desktop nav */}
+        <nav
+          className="hidden md:flex"
+          style={{ flex: 1, justifyContent: "center", gap: "8px" }}
+        >
+          {routes.map(route => (
+            <Link
+              key={route.href}
+              href={route.href}
+              style={{
+                fontFamily: "var(--font-body)", fontWeight: 500,
+                fontSize: "0.9375rem", textDecoration: "none",
+                padding: "6px 14px", borderRadius: "8px",
+                color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
+                background: pathname === route.href ? "rgba(245,166,35,0.08)" : "transparent",
+                transition: "color 0.2s, background 0.2s",
+              }}
+              onMouseEnter={e => {
+                if (pathname !== route.href) {
+                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--tn-text-primary)"
+                }
+              }}
+              onMouseLeave={e => {
+                if (pathname !== route.href) {
+                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--tn-text-secondary)"
+                }
+              }}
+            >
+              {route.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right: Sign In */}
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="ghost-btn" style={{ padding: "8px 20px", fontSize: "0.9375rem" }}>
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <SignOutButton>
+              <button className="ghost-btn" style={{ padding: "8px 20px", fontSize: "0.9375rem" }}>
+                Sign Out
+              </button>
+            </SignOutButton>
+          </SignedIn>
+        </div>
+      </div>
+    </header>
+  );
 }

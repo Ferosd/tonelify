@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
-
-const inter = Inter({ subsets: ["latin"] });
-
 import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
@@ -14,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s | Tonelify",
   },
   description:
-    "AI-powered tone matching that adapts legendary guitar tones to your specific amp, guitar, and pickups. Join 35,000+ guitarists getting perfect settings in seconds.",
+    "Dial in legendary guitar tones for your exact amp, guitar, and pickups. Join 35,000+ guitarists getting perfect settings in seconds.",
   keywords: [
     "guitar tone",
     "tone matching",
@@ -36,13 +32,13 @@ export const metadata: Metadata = {
     siteName: "Tonelify",
     title: "Tonelify — Match Any Guitar Tone to Your Gear",
     description:
-      "AI-powered tone matching that adapts legendary guitar tones to your specific amp, guitar, and pickups.",
+      "Dial in legendary guitar tones for your exact amp, guitar, and pickups.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Tonelify - AI Guitar Tone Matching",
+        alt: "Tonelify - Guitar Tone Matching",
       },
     ],
   },
@@ -50,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tonelify — Match Any Guitar Tone",
     description:
-      "AI-powered tone matching for your specific gear. Get perfect amp settings in seconds.",
+      "Dial in legendary tones for your specific gear. Perfect settings in seconds.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -77,7 +73,20 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
+        <head>
+          <link rel="preconnect" href="https://api.fontshare.com" />
+          <link
+            href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&f[]=general-sans@400,500,600&display=swap"
+            rel="stylesheet"
+          />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"
+            rel="stylesheet"
+          />
+        </head>
+        <body>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
