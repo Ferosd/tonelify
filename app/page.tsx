@@ -37,7 +37,6 @@ const testimonials = [
 ]
 
 const badges           = ["1000+ songs", "Any gear", "Instant results", "Free to start"]
-const freeFeatures     = ["3 tone matches per day", "GAIN, BASS & TREBLE only", "Basic amp profiles"]
 const beginnerFeatures = [
   "20 custom tone adaptations per month",
   "15 saved tones",
@@ -84,6 +83,14 @@ const h2Style: React.CSSProperties = {
   letterSpacing: "-0.02em",
   color: "#F2F2F7",
   margin: "0 0 32px",
+}
+
+const gradientDivider: React.CSSProperties = {
+  height: "1px",
+  width: "60%",
+  margin: "40px auto 0",
+  background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+  opacity: 0.3,
 }
 
 // ── ICONS ─────────────────────────────────────────────────────────────────────
@@ -154,14 +161,14 @@ const trustItems = [
 ]
 
 const trendingTones = [
-  { song: "Purple Haze",              artist: "Jimi Hendrix"       },
-  { song: "Comfortably Numb",         artist: "Pink Floyd"         },
-  { song: "Sweet Child O' Mine",      artist: "Guns N' Roses"      },
-  { song: "Texas Flood",              artist: "Stevie Ray Vaughan" },
-  { song: "Sultans of Swing",         artist: "Dire Straits"       },
-  { song: "Hotel California",         artist: "Eagles"             },
-  { song: "Eruption",                 artist: "Van Halen"          },
-  { song: "All Along the Watchtower", artist: "Jimi Hendrix"       },
+  { song: "Purple Haze",              artist: "Jimi Hendrix",       img: "/albums/purple-haze.jpg",      spotifyId: "0wJoRiX5K5BxlqZTolB2LD", floatDuration: 3.0, floatDelay: 0.0 },
+  { song: "Comfortably Numb",         artist: "Pink Floyd",         img: "/albums/comfortably-numb.jpg", spotifyId: "5Dxm6GjLMTF3kxZhRLeqUb", floatDuration: 3.5, floatDelay: 0.4 },
+  { song: "Sweet Child O' Mine",      artist: "Guns N' Roses",      img: "/albums/sweet-child.jpg",      spotifyId: "7o2CTH4ctstm8TNelqjb51", floatDuration: 4.0, floatDelay: 0.8 },
+  { song: "Texas Flood",              artist: "Stevie Ray Vaughan", img: "/albums/texas-flood.jpg",      spotifyId: "3YGkSEhOcgYInjpNMaEOBJ", floatDuration: 3.2, floatDelay: 1.2 },
+  { song: "Sultans of Swing",         artist: "Dire Straits",       img: "/albums/sultans-of-swing.jpg", spotifyId: "4lLtanYk6tkMvoofikzhOb", floatDuration: 3.8, floatDelay: 0.2 },
+  { song: "Hotel California",         artist: "Eagles",             img: "/albums/hotel-california.jpg", spotifyId: "40riOy7x9W7GXjyGp4pjAv", floatDuration: 3.3, floatDelay: 0.6 },
+  { song: "Eruption",                 artist: "Van Halen",          img: "/albums/eruption.jpg",         spotifyId: "3OfxKQMWnIGFEweVigJpOl", floatDuration: 3.6, floatDelay: 1.0 },
+  { song: "All Along the Watchtower", artist: "Jimi Hendrix",       img: "/albums/watchtower.jpg",       spotifyId: "3MPJsiRlMNEN7oJBLVmi7A", floatDuration: 3.4, floatDelay: 1.4 },
 ]
 
 const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS", "Orange", "Boss", "Line 6", "Ibanez", "Epiphone", "Blackstar"]
@@ -169,25 +176,31 @@ const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS",
 // ── COMPONENT ─────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const navRef          = useRef<HTMLElement>(null)
-  const wrapperRef      = useRef<HTMLDivElement>(null)
-  const canvasRef       = useRef<HTMLCanvasElement>(null)
-  const heroFramesRef   = useRef<HTMLImageElement[]>([])
-  const heroFrameIdxRef = useRef(0)
-  const heroContentRef  = useRef<HTMLDivElement>(null)
-  const videoRef        = useRef<HTMLVideoElement>(null)
-  const s2Ref           = useRef<HTMLDivElement>(null)
-  const s3Ref           = useRef<HTMLDivElement>(null)
-  const s4Ref           = useRef<HTMLDivElement>(null)
-  const s5Ref           = useRef<HTMLDivElement>(null)
-  const s6Ref           = useRef<HTMLDivElement>(null)
-  const s7Ref           = useRef<HTMLDivElement>(null)
-  const s8Ref           = useRef<HTMLDivElement>(null)
-  const sTrendRef       = useRef<HTMLDivElement>(null)
-  const stepRefs        = useRef<(HTMLDivElement | null)[]>([])
-  const ampCardRefs     = useRef<(HTMLDivElement | null)[]>([])
-  const ampValueRefs    = useRef<(HTMLSpanElement | null)[]>([])
+  const navRef            = useRef<HTMLElement>(null)
+  const wrapperRef        = useRef<HTMLDivElement>(null)
+  const canvasRef         = useRef<HTMLCanvasElement>(null)
+  const heroFramesRef     = useRef<HTMLImageElement[]>([])
+  const heroFrameIdxRef   = useRef(0)
+  const heroContentRef    = useRef<HTMLDivElement>(null)
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null)
+  const videoRef          = useRef<HTMLVideoElement>(null)
+  const s2Ref             = useRef<HTMLDivElement>(null)
+  const s3Ref             = useRef<HTMLDivElement>(null)
+  const s4Ref             = useRef<HTMLDivElement>(null)
+  const s5Ref             = useRef<HTMLDivElement>(null)
+  const s6Ref             = useRef<HTMLDivElement>(null)
+  const s7Ref             = useRef<HTMLDivElement>(null)
+  const s8Ref             = useRef<HTMLDivElement>(null)
+  const sTrendRef         = useRef<HTMLDivElement>(null)
+  const stepRefs          = useRef<(HTMLDivElement | null)[]>([])
+  const ampCardRefs       = useRef<(HTMLDivElement | null)[]>([])
+  const ampValueRefs      = useRef<(HTMLSpanElement | null)[]>([])
+
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
+  const [mounted, setMounted]           = useState(false)
+  const [activeTrack, setActiveTrack]   = useState<string | null>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
@@ -255,8 +268,12 @@ export default function Home() {
           heroFrameIdxRef.current = idx
           const img = heroFramesRef.current[idx]
           if (img?.complete) drawCoverFrame(img)
+          const heroOpacity = String(Math.max(0, 1 - self.progress * 6))
           if (heroContentRef.current) {
-            heroContentRef.current.style.opacity = String(Math.max(0, 1 - self.progress * 6))
+            heroContentRef.current.style.opacity = heroOpacity
+          }
+          if (scrollIndicatorRef.current) {
+            scrollIndicatorRef.current.style.opacity = heroOpacity
           }
           const vid = videoRef.current
           if (vid && vid.duration) {
@@ -415,7 +432,11 @@ export default function Home() {
   }, [])
 
   return (
-    <main style={{ background: "#08080A", color: "#F2F2F7" }}>
+    <main style={{
+      background: "#08080A", color: "#F2F2F7",
+      opacity: mounted ? 1 : 0,
+      transition: "opacity 0.5s ease-out",
+    }}>
 
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap');
@@ -528,8 +549,22 @@ export default function Home() {
         .eq-bar:nth-child(2) { animation: eq-bar2 1.1s ease-in-out infinite; }
         .eq-bar:nth-child(3) { animation: eq-bar3 0.9s ease-in-out infinite; }
 
+        .tone-card:hover .eq-bar:nth-child(1) { animation-duration: 0.4s; }
+        .tone-card:hover .eq-bar:nth-child(2) { animation-duration: 0.55s; }
+        .tone-card:hover .eq-bar:nth-child(3) { animation-duration: 0.45s; }
+
         @keyframes marquee-scroll { 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
         .marquee-track { animation: marquee-scroll 25s linear infinite; display: flex; align-items: center; }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-3px); }
+        }
+
+        @keyframes bounce-down {
+          0%, 100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(8px); }
+        }
 
         .tone-card {
           background: rgba(20,20,28,0.7);
@@ -541,11 +576,13 @@ export default function Home() {
           display: flex;
           align-items: center;
           gap: 14px;
-          transition: border-color 0.25s, transform 0.25s;
+          cursor: pointer;
+          transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
         .tone-card:hover {
-          border-color: rgba(232,113,42,0.25);
-          transform: translateY(-3px);
+          transform: scale(1.05);
+          border-color: rgba(155,93,229,0.3);
+          box-shadow: 0 0 30px rgba(232,113,42,0.15);
         }
 
         @media (max-width: 768px) {
@@ -593,7 +630,7 @@ export default function Home() {
         backgroundRepeat: "repeat", backgroundSize: "200px 200px",
       }} />
 
-      {/* ── 1100VH SCROLL WRAPPER ── */}
+      {/* ── 1400VH SCROLL WRAPPER ── */}
       <div ref={wrapperRef} style={{ height: "1400vh", position: "relative" }}>
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
@@ -650,6 +687,17 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Scroll indicator — fades with hero via scrollIndicatorRef */}
+          <div ref={scrollIndicatorRef} aria-hidden="true" style={{
+            position: "absolute", bottom: "40px", left: "50%",
+            animation: "bounce-down 1.5s ease-in-out infinite",
+            zIndex: 3, pointerEvents: "none",
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <polyline points="6 9 12 15 18 9" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+
           {/* ── S1.5 TRENDING TONES — solid breaker ── */}
           <div ref={sTrendRef} style={{
             position: "absolute", inset: 0, zIndex: 5, opacity: 0, pointerEvents: "none",
@@ -662,20 +710,41 @@ export default function Home() {
               background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.07) 0%, transparent 60%)",
             }} />
             <div style={{ maxWidth: "1060px", width: "100%", position: "relative", pointerEvents: "auto" }}>
-              <div style={{ textAlign: "center", marginBottom: "56px" }}>
+              <div style={{ textAlign: "center", marginBottom: "44px" }}>
                 <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Trending This Week</span>
                 <h2 style={{ ...h2Style, margin: 0 }}>Popular tones right now</h2>
+                <p style={{
+                  fontFamily: "'General Sans', sans-serif", fontSize: "0.85rem",
+                  color: "#8A8494", marginTop: "8px", marginBottom: 0,
+                }}>
+                  Click to preview on Spotify
+                </p>
               </div>
               <div className="tn-tone-grid" style={{
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px",
               }}>
                 {trendingTones.map((tone) => (
-                  <div key={tone.song} className="tone-card">
-                    <div style={{
-                      width: "60px", height: "60px", flexShrink: 0,
-                      borderRadius: "8px",
-                      background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
-                    }} />
+                  <div
+                    key={tone.song}
+                    className="tone-card"
+                    onClick={() => setActiveTrack(t => t === tone.spotifyId ? null : tone.spotifyId)}
+                    style={{
+                      animationName: "float",
+                      animationDuration: `${tone.floatDuration}s`,
+                      animationDelay: `${tone.floatDelay}s`,
+                      animationTimingFunction: "ease-in-out",
+                      animationIterationCount: "infinite",
+                      outline: activeTrack === tone.spotifyId ? "1px solid rgba(155,93,229,0.5)" : "none",
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tone.img}
+                      alt={tone.song}
+                      width={60}
+                      height={60}
+                      style={{ borderRadius: "8px", objectFit: "cover", flexShrink: 0, width: "60px", height: "60px" }}
+                    />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
                         fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
@@ -696,6 +765,24 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+
+              {/* Spotify embed */}
+              <iframe
+                src={activeTrack ? `https://open.spotify.com/embed/track/${activeTrack}?theme=0` : "about:blank"}
+                width="100%"
+                height="80"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                style={{
+                  borderRadius: 12, marginTop: 32, border: "none",
+                  opacity: activeTrack ? 1 : 0,
+                  transition: "opacity 0.3s",
+                  pointerEvents: activeTrack ? "auto" : "none",
+                  display: "block",
+                }}
+              />
+
+              {/* Section divider */}
+              <div style={gradientDivider} />
             </div>
           </div>
 
@@ -739,6 +826,8 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              {/* Section divider */}
+              <div style={gradientDivider} />
             </div>
           </div>
 
@@ -906,20 +995,46 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ── S7 PRICING — solid breaker ── */}
+          {/* ── S7 PRICING — glass-gradient breaker ── */}
           <div ref={s7Ref} style={{
             position: "absolute", inset: 0, zIndex: 30, opacity: 0, pointerEvents: "none",
             isolation: "isolate",
-            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
             display: "flex", flexDirection: "column",
             justifyContent: "center", alignItems: "center",
             padding: "0 clamp(24px, 5vw, 80px)", overflowY: "auto",
           }}>
+            {/* Bottom gradient layer */}
             <div aria-hidden="true" style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.08) 0%, transparent 60%)",
+              position: "absolute", inset: 0,
+              background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
             }} />
-            <div style={{ width: "100%", maxWidth: "1060px", pointerEvents: "auto", position: "relative" }}>
+            {/* Frosted glass overlay */}
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0,
+              background: "rgba(8,8,12,0.7)",
+              backdropFilter: "blur(40px)",
+              WebkitBackdropFilter: "blur(40px)",
+            }} />
+            {/* Grain */}
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.03,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "repeat", backgroundSize: "200px 200px",
+            }} />
+            {/* Top border line */}
+            <div aria-hidden="true" style={{
+              position: "absolute", top: 0, left: "20%", right: "20%", height: "1px",
+              background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+              opacity: 0.3,
+            }} />
+            {/* Bottom border line */}
+            <div aria-hidden="true" style={{
+              position: "absolute", bottom: 0, left: "20%", right: "20%", height: "1px",
+              background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+              opacity: 0.3,
+            }} />
+
+            <div style={{ width: "100%", maxWidth: "860px", pointerEvents: "auto", position: "relative", zIndex: 1 }}>
               <div style={{ marginBottom: "32px", textAlign: "center" }}>
                 <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Pricing</span>
                 <h2 style={{ ...h2Style, margin: 0 }}>Simple, honest pricing</h2>
@@ -947,49 +1062,23 @@ export default function Home() {
                   }} />
                 </button>
                 <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#8E8E93" }}>Annual</span>
-                {billingCycle === "annual" && (
-                  <span style={{
-                    fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
-                    background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
-                  }}>Save 20%</span>
-                )}
+                <span style={{
+                  fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
+                  background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
+                  opacity: billingCycle === "annual" ? 1 : 0,
+                  transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
+                  transition: "opacity 0.25s, transform 0.25s",
+                  display: "inline-block",
+                }}>Save 20%</span>
               </div>
 
-              <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px", alignItems: "start" }}>
-
-                {/* FREE */}
-                <div className="js-pricing-card" style={{
-                  background: "#12121A",
-                  border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
-                }}>
-                  <div style={{
-                    fontFamily: "'General Sans', sans-serif", fontWeight: 500,
-                    fontSize: "0.75rem", textTransform: "uppercase",
-                    letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
-                  }}>Free</div>
-                  <div style={{
-                    fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                    fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1, marginBottom: "6px",
-                  }}>Free</div>
-                  <div style={{
-                    fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
-                    fontSize: "0.875rem", marginBottom: "28px",
-                  }}>No credit card</div>
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
-                    {freeFeatures.map((f) => (
-                      <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                        <CheckIcon />
-                        <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Get Started</Link>
-                </div>
+              <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
 
                 {/* BEGINNER */}
                 <div className="js-pricing-card" style={{
-                  background: "#12121A",
-                  border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
+                  background: "rgba(18,18,26,0.85)",
+                  backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+                  border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "36px",
                 }}>
                   <div style={{
                     fontFamily: "'General Sans', sans-serif", fontWeight: 500,
@@ -1020,10 +1109,12 @@ export default function Home() {
 
                 {/* EXPERT */}
                 <div className="js-pricing-card" style={{
-                  background: "#12121A",
+                  background: "rgba(18,18,26,0.85)",
+                  backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
                   border: "1px solid #E8712A",
-                  boxShadow: "0 0 48px rgba(232,113,42,0.15), 0 0 80px rgba(155,93,229,0.08)",
+                  boxShadow: "0 0 40px rgba(155,93,229,0.2)",
                   borderRadius: "16px", padding: "36px",
+                  transform: "translateY(-20px)",
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
                     <div style={{
@@ -1036,7 +1127,7 @@ export default function Home() {
                       fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
                       background: "#E8712A",
                       color: "#08080C", borderRadius: "999px", padding: "4px 10px",
-                    }}>Most Popular</span>
+                    }}>MOST POPULAR</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
                     <span style={{
@@ -1062,7 +1153,7 @@ export default function Home() {
                     padding: "14px 32px",
                     background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
                     color: "#08080C",
-                    fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.9375rem",
+                    fontFamily: "'General Sans', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
                     borderRadius: "12px", textDecoration: "none",
                     transition: "transform 0.2s, box-shadow 0.2s",
                   }}>Start Free Trial</Link>
@@ -1116,6 +1207,13 @@ export default function Home() {
 
         </div>
       </div>
+
+      {/* Divider: after sticky scroll, before Gear strip */}
+      <div style={{
+        height: "1px", width: "60%", margin: "0 auto",
+        background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+        opacity: 0.3,
+      }} />
 
       {/* ── GEAR COMPATIBILITY — normal flow ── */}
       <section style={{
