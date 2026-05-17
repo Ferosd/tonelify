@@ -183,6 +183,7 @@ export default function Home() {
   const s6Ref           = useRef<HTMLDivElement>(null)
   const s7Ref           = useRef<HTMLDivElement>(null)
   const s8Ref           = useRef<HTMLDivElement>(null)
+  const sTrendRef       = useRef<HTMLDivElement>(null)
   const stepRefs        = useRef<(HTMLDivElement | null)[]>([])
   const ampCardRefs     = useRef<(HTMLDivElement | null)[]>([])
   const ampValueRefs    = useRef<(HTMLSpanElement | null)[]>([])
@@ -259,80 +260,96 @@ export default function Home() {
           }
           const vid = videoRef.current
           if (vid && vid.duration) {
-            const s = 0.50, e = 0.63
+            const s = 0.57, e = 0.67
             const p = Math.max(0, Math.min(1, (self.progress - s) / (e - s)))
             vid.currentTime = p * vid.duration
           }
         },
       })
 
+      // ── S1.5 TRENDING TONES ──────────────────────────────────
+      gsap.fromTo(sTrendRef.current, { opacity: 0 }, {
+        opacity: 1, ease: "none",
+        scrollTrigger: { trigger: wrapperRef.current, start: "8% top", end: "12% top", scrub: true },
+      })
+      gsap.to(sTrendRef.current, {
+        opacity: 0, ease: "none",
+        scrollTrigger: { trigger: wrapperRef.current, start: "22% top", end: "26% top", scrub: true },
+      })
+      gsap.fromTo(
+        sTrendRef.current?.querySelectorAll(".tone-card") ?? [],
+        { opacity: 0, y: 32 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.1,
+          scrollTrigger: { trigger: wrapperRef.current, start: "10% top", once: true } }
+      )
+
       // ── S2 HOW IT WORKS ──────────────────────────────────────
       gsap.fromTo(s2Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "12% top", end: "19% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "27% top", end: "33% top", scrub: true },
       })
       gsap.to(s2Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "28% top", end: "32% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "40% top", end: "43% top", scrub: true },
       })
       gsap.fromTo(
         stepRefs.current.filter(Boolean) as HTMLDivElement[],
         { opacity: 0, y: 40 },
         { opacity: 1, y: 0, duration: 0.85, ease: "power3.out", stagger: 0.15,
-          scrollTrigger: { trigger: wrapperRef.current, start: "14% top", once: true } }
+          scrollTrigger: { trigger: wrapperRef.current, start: "29% top", once: true } }
       )
 
       // ── S3 FEATURES ──────────────────────────────────────────
       gsap.fromTo(s3Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "32% top", end: "38% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "43% top", end: "48% top", scrub: true },
       })
       gsap.to(s3Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "46% top", end: "50% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "54% top", end: "57% top", scrub: true },
       })
       gsap.fromTo(
         s3Ref.current?.querySelectorAll(".js-feat") ?? [],
         { opacity: 0, x: -32 },
         { opacity: 1, x: 0, stagger: 0.14, duration: 0.7, ease: "power2.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "34% top", once: true } }
+          scrollTrigger: { trigger: wrapperRef.current, start: "44% top", once: true } }
       )
 
       // ── S4 AI ENGINE ─────────────────────────────────────────
       gsap.fromTo(s4Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "50% top", end: "56% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "57% top", end: "62% top", scrub: true },
       })
       gsap.to(s4Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "63% top", end: "67% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "67% top", end: "70% top", scrub: true },
       })
       gsap.fromTo(
         s4Ref.current?.querySelectorAll(".js-pill") ?? [],
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, stagger: 0.12, duration: 0.6, ease: "power2.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "52% top", once: true } }
+          scrollTrigger: { trigger: wrapperRef.current, start: "58% top", once: true } }
       )
 
       // ── S5 AMP SETTINGS ──────────────────────────────────────
       gsap.fromTo(s5Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "67% top", end: "72% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "70% top", end: "74% top", scrub: true },
       })
       gsap.to(s5Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "78% top", end: "81% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "79% top", end: "81% top", scrub: true },
       })
       const ampCards = ampCardRefs.current.filter(Boolean) as HTMLDivElement[]
       if (ampCards.length) {
         gsap.fromTo(ampCards,
           { opacity: 0, y: 40, scale: 0.94 },
           { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "back.out(1.5)", stagger: 0.09,
-            scrollTrigger: { trigger: wrapperRef.current, start: "69% top", once: true } }
+            scrollTrigger: { trigger: wrapperRef.current, start: "72% top", once: true } }
         )
       }
       ScrollTrigger.create({
-        trigger: wrapperRef.current, start: "69% top", once: true,
+        trigger: wrapperRef.current, start: "72% top", once: true,
         onEnter() {
           ampSettings.forEach(({ value }, i) => {
             const el = ampValueRefs.current[i]
@@ -349,43 +366,43 @@ export default function Home() {
       // ── S6 CTA ───────────────────────────────────────────────
       gsap.fromTo(s6Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "81% top", end: "85% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "81% top", end: "84% top", scrub: true },
       })
       gsap.to(s6Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "87% top", end: "90% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "86% top", end: "88% top", scrub: true },
       })
 
       // ── S7 PRICING ───────────────────────────────────────────
       gsap.fromTo(s7Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "90% top", end: "93% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "88% top", end: "91% top", scrub: true },
       })
       gsap.to(s7Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "95% top", end: "97% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "92% top", end: "94% top", scrub: true },
       })
       gsap.fromTo(
         s7Ref.current?.querySelectorAll(".js-pricing-card") ?? [],
         { opacity: 0, y: 48 },
         { opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.15,
-          scrollTrigger: { trigger: wrapperRef.current, start: "91% top", once: true } }
+          scrollTrigger: { trigger: wrapperRef.current, start: "89% top", once: true } }
       )
 
       // ── S8 TESTIMONIALS ──────────────────────────────────────
       gsap.fromTo(s8Ref.current, { opacity: 0 }, {
         opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "93% top", end: "96% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "91% top", end: "93% top", scrub: true },
       })
       gsap.to(s8Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "97% top", end: "99% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "94% top", end: "96% top", scrub: true },
       })
       gsap.fromTo(
         s8Ref.current?.querySelectorAll(".js-testimonial") ?? [],
         { opacity: 0, y: 28 },
         { opacity: 1, y: 0, stagger: 0.13, duration: 0.7, ease: "power2.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "94% top", once: true } }
+          scrollTrigger: { trigger: wrapperRef.current, start: "92% top", once: true } }
       )
 
     })
@@ -582,7 +599,7 @@ export default function Home() {
       }} />
 
       {/* ── 1100VH SCROLL WRAPPER ── */}
-      <div ref={wrapperRef} style={{ height: "1100vh", position: "relative" }}>
+      <div ref={wrapperRef} style={{ height: "1400vh", position: "relative" }}>
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
           {/* Canvas */}
@@ -635,6 +652,55 @@ export default function Home() {
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* ── S1.5 TRENDING TONES — solid breaker ── */}
+          <div ref={sTrendRef} style={{
+            position: "absolute", inset: 0, zIndex: 5, opacity: 0, pointerEvents: "none",
+            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 clamp(24px, 7vw, 96px)",
+          }}>
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.07) 0%, transparent 60%)",
+            }} />
+            <div style={{ maxWidth: "1060px", width: "100%", position: "relative", pointerEvents: "auto" }}>
+              <div style={{ textAlign: "center", marginBottom: "56px" }}>
+                <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Trending This Week</span>
+                <h2 style={{ ...h2Style, margin: 0 }}>Popular tones right now</h2>
+              </div>
+              <div className="tn-tone-grid" style={{
+                display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px",
+              }}>
+                {trendingTones.map((tone) => (
+                  <div key={tone.song} className="tone-card">
+                    <div style={{
+                      width: "60px", height: "60px", flexShrink: 0,
+                      borderRadius: "8px",
+                      background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
+                        fontSize: "0.9rem", color: "#F2F2F7",
+                        marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      }}>{tone.song}</div>
+                      <div style={{
+                        fontFamily: "'Inter Tight', sans-serif", fontWeight: 400,
+                        fontSize: "0.8rem", color: "#8A8494",
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      }}>{tone.artist}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "22px", flexShrink: 0 }}>
+                      <span className="eq-bar" />
+                      <span className="eq-bar" />
+                      <span className="eq-bar" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -847,7 +913,8 @@ export default function Home() {
 
           {/* ── S7 PRICING — solid breaker ── */}
           <div ref={s7Ref} style={{
-            position: "absolute", inset: 0, zIndex: 20, opacity: 0, pointerEvents: "none",
+            position: "absolute", inset: 0, zIndex: 30, opacity: 0, pointerEvents: "none",
+            isolation: "isolate",
             background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
             display: "flex", flexDirection: "column",
             justifyContent: "center", alignItems: "center",
@@ -1054,54 +1121,6 @@ export default function Home() {
 
         </div>
       </div>
-
-      {/* ── TRENDING TONES — normal flow ── */}
-      <section style={{
-        background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
-        padding: "96px clamp(24px, 7vw, 96px)",
-        position: "relative", zIndex: 10,
-      }}>
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.07) 0%, transparent 60%)",
-        }} />
-        <div style={{ maxWidth: "1060px", margin: "0 auto", position: "relative" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Trending This Week</span>
-            <h2 style={{ ...h2Style, margin: 0 }}>Popular tones right now</h2>
-          </div>
-          <div className="tn-tone-grid" style={{
-            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px",
-          }}>
-            {trendingTones.map((tone) => (
-              <div key={tone.song} className="tone-card">
-                <div style={{
-                  width: "60px", height: "60px", flexShrink: 0,
-                  borderRadius: "8px",
-                  background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
-                }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
-                    fontSize: "0.9rem", color: "#F2F2F7",
-                    marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                  }}>{tone.song}</div>
-                  <div style={{
-                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 400,
-                    fontSize: "0.8rem", color: "#8A8494",
-                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                  }}>{tone.artist}</div>
-                </div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "22px", flexShrink: 0 }}>
-                  <span className="eq-bar" />
-                  <span className="eq-bar" />
-                  <span className="eq-bar" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── GEAR COMPATIBILITY — normal flow ── */}
       <section style={{
