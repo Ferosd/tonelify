@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 export default function PlansPage() {
     return (
-        <div className="pt-10 md:pt-20 min-h-screen bg-background text-foreground">
+        <div className="pt-10 md:pt-20 min-h-screen bg-[#08080C] text-[#F2F0ED]">
             <Pricing />
         </div>
     );

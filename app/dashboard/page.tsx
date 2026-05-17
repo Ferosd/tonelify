@@ -49,7 +49,7 @@ export default async function Dashboard() {
     const subscription = await getUserSubscription(userId);
 
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] transition-colors duration-300">
+        <div className="min-h-screen bg-[#08080C]">
             {/* Dashboard Header */}
             {/* Dashboard Header Removed - using global SiteHeader */}
 

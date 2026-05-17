@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: 'Inter Tight', sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -123,18 +123,21 @@
 }
 
 :root {
-  --tn-void: #08080A;
-  --tn-primary: #0D0D10;
-  --tn-elevated: #141418;
-  --tn-surface: #1A1A20;
-  --tn-accent: #F5A623;
+  --tn-void: #08080C;
+  --tn-primary: #08080C;
+  --tn-elevated: #12121A;
+  --tn-surface: #12121A;
+  --tn-accent: #E8712A;
+  --tn-accent-purple: #9B5DE5;
   --tn-accent-bright: #FFD700;
-  --tn-text-primary: #F2F2F7;
-  --tn-text-secondary: #8E8E93;
-  --tn-glow: rgba(245, 166, 35, 0.15);
-  --tn-cta-gradient: linear-gradient(135deg, #F5A623 0%, #FF6B35 50%, #E8912D 100%);
+  --tn-text-primary: #F2F0ED;
+  --tn-text-secondary: #8A8494;
+  --tn-glow: rgba(232, 113, 42, 0.15);
+  --tn-cta-gradient: linear-gradient(135deg, #E8712A 0%, #FF6B35 50%, #E8912D 100%);
   --font-display: 'Clash Display', sans-serif;
   --font-body: 'General Sans', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-prose: 'Inter Tight', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -146,7 +149,7 @@
   body {
     background-color: var(--tn-primary);
     color: var(--tn-text-primary);
-    font-family: var(--font-body);
+    font-family: var(--font-prose);
   }
 }
 
@@ -162,7 +165,7 @@
   color: #08080A;
   border-radius: 12px;
   padding: 14px 32px;
-  font-family: var(--font-body);
+  font-family: var(--font-prose);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -172,7 +175,7 @@
 
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(245, 166, 35, 0.3);
+  box-shadow: 0 8px 32px rgba(232, 113, 42, 0.3);
 }
 
 .ghost-btn {
@@ -183,7 +186,7 @@
   border-radius: 12px;
   padding: 14px 32px;
   color: var(--tn-text-primary);
-  font-family: var(--font-body);
+  font-family: var(--font-prose);
   font-weight: 500;
   font-size: 1rem;
   cursor: pointer;

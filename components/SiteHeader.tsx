@@ -60,14 +60,14 @@ export function SiteHeader() {
           <SheetContent
             side="left"
             style={{
-              background: "#0D0D10",
+              background: "#08080C",
               borderRight: "1px solid rgba(255,255,255,0.06)",
               width: 300,
             }}
           >
             <SheetHeader style={{ padding: "24px 24px 16px" }}>
               <SheetTitle style={{
-                fontFamily: "var(--font-display)", fontWeight: 600,
+                fontFamily: "var(--font-heading)", fontWeight: 700,
                 fontSize: "1.25rem", color: "var(--tn-accent)",
               }}>
                 Tonelify
@@ -83,10 +83,10 @@ export function SiteHeader() {
                   style={{
                     display: "flex", alignItems: "center", gap: "12px",
                     padding: "12px 16px", borderRadius: "10px",
-                    fontFamily: "var(--font-body)", fontWeight: 500,
+                    fontFamily: "var(--font-prose)", fontWeight: 500,
                     fontSize: "0.9375rem", textDecoration: "none",
                     color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
-                    background: pathname === route.href ? "rgba(245,166,35,0.08)" : "transparent",
+                    background: pathname === route.href ? "rgba(232,113,42,0.08)" : "transparent",
                   }}
                 >
                   <route.icon size={18} />
@@ -101,7 +101,7 @@ export function SiteHeader() {
                   <button style={{
                     display: "flex", alignItems: "center", gap: "10px",
                     background: "none", border: "none", cursor: "pointer",
-                    fontFamily: "var(--font-body)", fontWeight: 500,
+                    fontFamily: "var(--font-prose)", fontWeight: 500,
                     fontSize: "0.9375rem", color: "var(--tn-text-secondary)",
                     padding: "8px 0", width: "100%",
                   }}>
@@ -118,7 +118,7 @@ export function SiteHeader() {
         <Link
           href="/"
           style={{
-            fontFamily: "var(--font-display)", fontWeight: 600,
+            fontFamily: "var(--font-heading)", fontWeight: 700,
             fontSize: "1.375rem", color: "var(--tn-accent)",
             textDecoration: "none", letterSpacing: "-0.01em",
             flexShrink: 0,
@@ -137,11 +137,11 @@ export function SiteHeader() {
               key={route.href}
               href={route.href}
               style={{
-                fontFamily: "var(--font-body)", fontWeight: 500,
+                fontFamily: "var(--font-prose)", fontWeight: 500,
                 fontSize: "0.9375rem", textDecoration: "none",
                 padding: "6px 14px", borderRadius: "8px",
                 color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
-                background: pathname === route.href ? "rgba(245,166,35,0.08)" : "transparent",
+                background: pathname === route.href ? "rgba(232,113,42,0.08)" : "transparent",
                 transition: "color 0.2s, background 0.2s",
               }}
               onMouseEnter={e => {

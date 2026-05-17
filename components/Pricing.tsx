@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Sparkles, Loader2, Calendar, Gift } from "lucide-react"
+import { Check, Sparkles, Loader2, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs"
@@ -80,33 +80,33 @@ export function Pricing() {
     }
 
     return (
-        <section className="py-24 bg-white dark:bg-[#0a0a0a] transition-colors duration-300" id="pricing">
+        <section className="py-24 bg-[#08080C]" id="pricing">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
                 {/* Section Header */}
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 text-[#E8712A] text-xs font-semibold mb-4">
                         <Sparkles className="h-3 w-3" />
                         Simple, transparent pricing
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
                         Choose your plan
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-lg max-w-xl mx-auto">
+                    <p className="text-[#8A8494] text-lg max-w-xl mx-auto">
                         All plans include a 7-day free trial. Cancel anytime.
                     </p>
                 </div>
 
                 {/* Toggle Switch */}
                 <div className="flex justify-center mb-12">
-                    <div className="relative flex items-center bg-white dark:bg-slate-900 p-1.5 rounded-full shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div className="relative flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
                         <button
                             onClick={() => setAnnual(false)}
                             className={cn(
-                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-all duration-200",
+                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
                                 !annual
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                                    ? "bg-[#E8712A] text-[#08080C] shadow-md"
+                                    : "text-[#8A8494] hover:text-[#F2F0ED]"
                             )}
                         >
                             Monthly
@@ -114,10 +114,10 @@ export function Pricing() {
                         <button
                             onClick={() => setAnnual(true)}
                             className={cn(
-                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-all duration-200",
+                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
                                 annual
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                                    ? "bg-[#E8712A] text-[#08080C] shadow-md"
+                                    : "text-[#8A8494] hover:text-[#F2F0ED]"
                             )}
                         >
                             Annual
@@ -138,58 +138,58 @@ export function Pricing() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: index * 0.1 }}
                             className={cn(
-                                "relative flex flex-col rounded-2xl bg-white dark:bg-[#1a1a1a] p-6 sm:p-8 border",
+                                "relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border",
                                 plan.featured && annual
-                                    ? "border-blue-500 dark:border-blue-500 shadow-xl shadow-blue-100/50 dark:shadow-blue-900/20"
-                                    : "border-slate-200 dark:border-white/10 shadow-lg"
+                                    ? "border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                                    : "border-white/8 shadow-lg"
                             )}
                         >
                             {/* MOST POPULAR Badge */}
                             {plan.featured && annual && (
-                                <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-blue-600 text-white text-xs font-bold tracking-wide shadow-lg">
+                                <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-[#E8712A] text-[#08080C] text-xs font-bold tracking-wide shadow-lg">
                                     MOST POPULAR
                                 </div>
                             )}
 
-                            {/* 7-DAY FREE TRIAL Badge */}
+                            {/* Plan name + trial badge */}
                             <div className="flex items-center justify-between mb-1">
                                 <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
-                                    <p className="text-sm text-slate-400 font-medium mt-0.5">
+                                    <h3 className="text-2xl font-bold text-[#F2F0ED]">{plan.name}</h3>
+                                    <p className="text-sm text-[#8A8494] font-medium mt-0.5">
                                         {annual ? "Annual" : "Monthly"}
                                     </p>
                                 </div>
-                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                <span className="bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider">
                                     7-Day Free Trial
                                 </span>
                             </div>
 
                             {/* Price */}
                             <div className="mt-4 flex items-baseline gap-x-1.5">
-                                <span className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+                                <span className="text-4xl sm:text-5xl font-black tracking-tight text-[#F2F0ED]">
                                     {annual ? plan.price.annual : plan.price.monthly}
                                 </span>
-                                <span className="text-lg font-bold text-slate-400">/mo</span>
+                                <span className="text-lg font-bold text-[#8A8494]">/mo</span>
                                 {annual && plan.billing.annual && (
-                                    <span className="text-sm text-slate-400 font-medium ml-1">
+                                    <span className="text-sm text-[#8A8494] font-medium ml-1">
                                         {plan.billing.annual}
                                     </span>
                                 )}
                             </div>
                             {annual && plan.save.annual && (
-                                <p className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                <p className="mt-1 text-sm font-semibold text-[#E8712A]">
                                     {plan.save.annual}
                                 </p>
                             )}
 
                             {/* Trial Box */}
-                            <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50/70 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30">
+                            <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#E8712A]/5 border border-[#E8712A]/20">
                                 <div className="flex-shrink-0">
-                                    <Calendar className="h-5 w-5 text-blue-500" />
+                                    <Calendar className="h-5 w-5 text-[#E8712A]" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">7-Day Free Trial</p>
-                                    <p className="text-xs text-blue-500 font-medium">
+                                    <p className="text-sm font-bold text-[#F2F0ED]">7-Day Free Trial</p>
+                                    <p className="text-xs text-[#E8712A] font-medium">
                                         {plan.trial.adaptations} total adaptations during trial
                                     </p>
                                 </div>
@@ -199,10 +199,10 @@ export function Pricing() {
                             <ul className="mt-6 space-y-4 flex-1">
                                 {plan.features.map((feature) => (
                                     <li key={feature.title} className="flex items-start gap-3">
-                                        <Check className="h-5 w-5 flex-none text-blue-500 mt-0.5" />
+                                        <Check className="h-5 w-5 flex-none text-[#E8712A] mt-0.5" />
                                         <div>
-                                            <span className="text-sm font-bold text-slate-800 dark:text-white">{feature.title}</span>
-                                            <p className="text-xs text-slate-400">{feature.description}</p>
+                                            <span className="text-sm font-bold text-[#F2F0ED]">{feature.title}</span>
+                                            <p className="text-xs text-[#8A8494]">{feature.description}</p>
                                         </div>
                                     </li>
                                 ))}
@@ -213,12 +213,7 @@ export function Pricing() {
                                 <Button
                                     onClick={() => handleCheckout(plan.id)}
                                     disabled={loadingPlan === plan.id}
-                                    className={cn(
-                                        "w-full h-14 rounded-full text-base font-bold transition-all duration-200",
-                                        plan.featured
-                                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 dark:shadow-none hover:scale-[1.02] active:scale-[0.98]"
-                                            : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 dark:shadow-none hover:scale-[1.02] active:scale-[0.98]"
-                                    )}
+                                    className="w-full h-14 rounded-full text-base font-bold bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     {loadingPlan === plan.id ? (
                                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -229,7 +224,7 @@ export function Pricing() {
                                         </>
                                     )}
                                 </Button>
-                                <p className="mt-3 text-xs text-center text-slate-400 font-medium">
+                                <p className="mt-3 text-xs text-center text-[#8A8494] font-medium">
                                     Cancel anytime • No hidden fees
                                 </p>
                             </div>
@@ -239,7 +234,7 @@ export function Pricing() {
 
                 {/* Bottom Trust */}
                 <div className="mt-12 text-center">
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-[#8A8494]">
                         Secure payments via Stripe • No hidden fees • Cancel anytime
                     </p>
                 </div>
