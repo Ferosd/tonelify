@@ -3,6 +3,7 @@ import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalSiteHeader } from "@/components/ConditionalSiteHeader";
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: {
@@ -66,6 +67,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  verification: {
+    google: 'mK5vHmwQWzTryoCTW-e1lxdyjd6Cm5cjmyEqRju1eyI',
+  },
 };
 
 export default function RootLayout({
@@ -88,6 +92,15 @@ export default function RootLayout({
             href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&family=Inter+Tight:wght@400;500&display=swap"
             rel="stylesheet"
           />
+          <Script src="https://www.googletagmanager.com/gtag/js?id=G-SRFVYDD4WH" strategy="afterInteractive" />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-SRFVYDD4WH');
+            `}
+          </Script>
         </head>
         <body>
           <ThemeProvider
