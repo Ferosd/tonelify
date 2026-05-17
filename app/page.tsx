@@ -153,6 +153,19 @@ const trustItems = [
   },
 ]
 
+const trendingTones = [
+  { song: "Purple Haze",              artist: "Jimi Hendrix"       },
+  { song: "Comfortably Numb",         artist: "Pink Floyd"         },
+  { song: "Sweet Child O' Mine",      artist: "Guns N' Roses"      },
+  { song: "Texas Flood",              artist: "Stevie Ray Vaughan" },
+  { song: "Sultans of Swing",         artist: "Dire Straits"       },
+  { song: "Hotel California",         artist: "Eagles"             },
+  { song: "Eruption",                 artist: "Van Halen"          },
+  { song: "All Along the Watchtower", artist: "Jimi Hendrix"       },
+]
+
+const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS", "Orange", "Boss", "Line 6", "Ibanez", "Epiphone", "Blackstar"]
+
 // ── COMPONENT ─────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -170,7 +183,6 @@ export default function Home() {
   const s6Ref           = useRef<HTMLDivElement>(null)
   const s7Ref           = useRef<HTMLDivElement>(null)
   const s8Ref           = useRef<HTMLDivElement>(null)
-  const s9Ref           = useRef<HTMLDivElement>(null)
   const stepRefs        = useRef<(HTMLDivElement | null)[]>([])
   const ampCardRefs     = useRef<(HTMLDivElement | null)[]>([])
   const ampValueRefs    = useRef<(HTMLSpanElement | null)[]>([])
@@ -376,12 +388,6 @@ export default function Home() {
           scrollTrigger: { trigger: wrapperRef.current, start: "94% top", once: true } }
       )
 
-      // ── S9 TRUST BAR ─────────────────────────────────────────
-      gsap.fromTo(s9Ref.current, { opacity: 0 }, {
-        opacity: 1, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "96% top", end: "98% top", scrub: true },
-      })
-
     })
 
     return () => {
@@ -396,7 +402,7 @@ export default function Home() {
 
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&family=Inter+Tight:wght@600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@600;700&family=Inter+Tight:wght@400;600&display=swap');
 
         @font-face {
           font-family: 'General Sans';
@@ -501,13 +507,43 @@ export default function Home() {
           line-height: 1;
         }
 
+        @keyframes eq-bar1 { 0%,100%{height:8px}50%{height:20px} }
+        @keyframes eq-bar2 { 0%,100%{height:14px}50%{height:6px} }
+        @keyframes eq-bar3 { 0%,100%{height:10px}50%{height:22px} }
+
+        .eq-bar { width: 3px; background: #E8712A; border-radius: 2px; display: inline-block; }
+        .eq-bar:nth-child(1) { animation: eq-bar1 0.8s ease-in-out infinite; }
+        .eq-bar:nth-child(2) { animation: eq-bar2 1.1s ease-in-out infinite; }
+        .eq-bar:nth-child(3) { animation: eq-bar3 0.9s ease-in-out infinite; }
+
+        @keyframes marquee-scroll { 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
+        .marquee-track { animation: marquee-scroll 25s linear infinite; display: flex; align-items: center; }
+
+        .tone-card {
+          background: rgba(20,20,28,0.7);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          transition: border-color 0.25s, transform 0.25s;
+        }
+        .tone-card:hover {
+          border-color: rgba(232,113,42,0.25);
+          transform: translateY(-3px);
+        }
+
         @media (max-width: 768px) {
-          .tn-nav-links  { display: none !important; }
-          .tn-step-grid  { grid-template-columns: 1fr !important; }
-          .tn-amp-grid   { grid-template-columns: repeat(2, 1fr) !important; }
-          .tn-price-grid { grid-template-columns: 1fr !important; }
-          .tn-foot-grid  { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .tn-trust-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .tn-nav-links   { display: none !important; }
+          .tn-step-grid   { grid-template-columns: 1fr !important; }
+          .tn-amp-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+          .tn-price-grid  { grid-template-columns: 1fr !important; }
+          .tn-foot-grid   { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .tn-trust-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+          .tn-tone-grid   { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
 
@@ -545,8 +581,8 @@ export default function Home() {
         backgroundRepeat: "repeat", backgroundSize: "200px 200px",
       }} />
 
-      {/* ── 900VH SCROLL WRAPPER ── */}
-      <div ref={wrapperRef} style={{ height: "900vh", position: "relative" }}>
+      {/* ── 1100VH SCROLL WRAPPER ── */}
+      <div ref={wrapperRef} style={{ height: "1100vh", position: "relative" }}>
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
           {/* Canvas */}
@@ -861,7 +897,7 @@ export default function Home() {
 
                 {/* FREE */}
                 <div className="js-pricing-card" style={{
-                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  background: "#12121A",
                   border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
                 }}>
                   <div style={{
@@ -890,7 +926,7 @@ export default function Home() {
 
                 {/* BEGINNER */}
                 <div className="js-pricing-card" style={{
-                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  background: "#12121A",
                   border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "36px",
                 }}>
                   <div style={{
@@ -922,7 +958,7 @@ export default function Home() {
 
                 {/* EXPERT */}
                 <div className="js-pricing-card" style={{
-                  background: "rgba(18,18,26,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  background: "#12121A",
                   border: "1px solid #E8712A",
                   boxShadow: "0 0 48px rgba(232,113,42,0.15), 0 0 80px rgba(155,93,229,0.08)",
                   borderRadius: "16px", padding: "36px",
@@ -1016,35 +1052,106 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ── S9 TRUST BAR ── */}
-          <div ref={s9Ref} style={{
-            position: "absolute", inset: 0, zIndex: 2, opacity: 0, pointerEvents: "none",
-            display: "flex", flexDirection: "column",
-            justifyContent: "center", alignItems: "center",
-            padding: "0 clamp(24px, 7vw, 96px)",
-          }}>
-            <div className="tn-trust-grid" style={{
-              display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "32px", maxWidth: "900px", width: "100%", pointerEvents: "auto",
-            }}>
-              {trustItems.map(({ icon, title, sub }) => (
-                <div key={title} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "12px" }}>
-                  {icon}
-                  <div>
-                    <div style={{ fontFamily: "'Clash Display', sans-serif", fontWeight: 600, fontSize: "0.9375rem", color: "#F2F2F7", marginBottom: "4px" }}>
-                      {title}
-                    </div>
-                    <div style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93" }}>
-                      {sub}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </div>
+
+      {/* ── TRENDING TONES — normal flow ── */}
+      <section style={{
+        background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+        padding: "96px clamp(24px, 7vw, 96px)",
+        position: "relative", zIndex: 10,
+      }}>
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.07) 0%, transparent 60%)",
+        }} />
+        <div style={{ maxWidth: "1060px", margin: "0 auto", position: "relative" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Trending This Week</span>
+            <h2 style={{ ...h2Style, margin: 0 }}>Popular tones right now</h2>
+          </div>
+          <div className="tn-tone-grid" style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px",
+          }}>
+            {trendingTones.map((tone) => (
+              <div key={tone.song} className="tone-card">
+                <div style={{
+                  width: "60px", height: "60px", flexShrink: 0,
+                  borderRadius: "8px",
+                  background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
+                    fontSize: "0.9rem", color: "#F2F2F7",
+                    marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{tone.song}</div>
+                  <div style={{
+                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 400,
+                    fontSize: "0.8rem", color: "#8A8494",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{tone.artist}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "22px", flexShrink: 0 }}>
+                  <span className="eq-bar" />
+                  <span className="eq-bar" />
+                  <span className="eq-bar" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GEAR COMPATIBILITY — normal flow ── */}
+      <section style={{
+        background: "rgba(18,18,26,0.5)", padding: "40px 0",
+        position: "relative", zIndex: 10, overflow: "hidden",
+      }}>
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Works With Any Setup</span>
+        </div>
+        <div style={{ overflow: "hidden", width: "100%" }}>
+          <div className="marquee-track" style={{ width: "max-content", gap: "0" }}>
+            {[...gearBrands, ...gearBrands].map((brand, i) => (
+              <span key={i} style={{ display: "inline-flex", alignItems: "center" }}>
+                <span style={{
+                  fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
+                  fontSize: "1.2rem", color: "rgba(255,255,255,0.25)",
+                  padding: "0 28px", whiteSpace: "nowrap",
+                }}>{brand}</span>
+                <span style={{ color: "#E8712A", fontSize: "1rem", lineHeight: 1 }}>•</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRUST BAR — normal flow ── */}
+      <section style={{
+        background: "#0D0D10", padding: "72px clamp(24px, 7vw, 96px)",
+        borderTop: "1px solid rgba(255,255,255,0.05)",
+        position: "relative", zIndex: 10,
+      }}>
+        <div className="tn-trust-grid" style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "32px", maxWidth: "900px", margin: "0 auto",
+        }}>
+          {trustItems.map(({ icon, title, sub }) => (
+            <div key={title} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "12px" }}>
+              {icon}
+              <div>
+                <div style={{ fontFamily: "'Clash Display', sans-serif", fontWeight: 600, fontSize: "0.9375rem", color: "#F2F2F7", marginBottom: "4px" }}>
+                  {title}
+                </div>
+                <div style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93" }}>
+                  {sub}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ── FOOTER — normal flow ── */}
       <footer style={{ background: "#08080A", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "80px 0 40px" }}>
