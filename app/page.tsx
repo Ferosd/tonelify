@@ -198,7 +198,6 @@ export default function Home() {
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
   const [mounted, setMounted]           = useState(false)
-  const [activeTrack, setActiveTrack]   = useState<string | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -557,6 +556,10 @@ export default function Home() {
           border-color: rgba(155,93,229,0.3);
           box-shadow: 0 0 30px rgba(232,113,42,0.15);
         }
+        .testimonial-card:hover {
+          border-color: rgba(155,93,229,0.35);
+          transform: translateY(-2px);
+        }
 
         @media (max-width: 768px) {
           .tn-nav-links   { display: none !important; }
@@ -582,7 +585,7 @@ export default function Home() {
       }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tonelify" style={{ width: 120, height: "auto" }} />
+          <img src="/logo.png" alt="Tonelify" style={{ width: 40, height: 40, borderRadius: 8, background: "#0D0D10" }} />
           <span style={{
             fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
             fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
@@ -698,19 +701,21 @@ export default function Home() {
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px",
               }}>
                 {trendingTones.map((tone) => (
-                  <div
+                  <a
                     key={tone.song}
+                    href={`https://open.spotify.com/track/${tone.spotifyId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="tone-card"
-                    onClick={() => setActiveTrack(t => t === tone.spotifyId ? null : tone.spotifyId)}
                     style={{
                       animationName: "float",
                       animationDuration: `${tone.floatDuration}s`,
                       animationDelay: `${tone.floatDelay}s`,
                       animationTimingFunction: "ease-in-out",
                       animationIterationCount: "infinite",
-                      outline: activeTrack === tone.spotifyId ? "1px solid rgba(155,93,229,0.5)" : "none",
                       cursor: "pointer",
                       willChange: "transform",
+                      textDecoration: "none",
                     }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -738,26 +743,13 @@ export default function Home() {
                       <span className="eq-bar" />
                       <span className="eq-bar" />
                       <span className="eq-bar" />
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954" style={{ marginLeft: 6, alignSelf: "center", flexShrink: 0 }}>
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                      </svg>
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
-
-              {/* Spotify embed */}
-              <iframe
-                key={activeTrack}
-                src={activeTrack ? `https://open.spotify.com/embed/track/${activeTrack}?theme=0` : "about:blank"}
-                width="100%"
-                height="80"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                style={{
-                  borderRadius: 12, marginTop: 32, border: "none",
-                  opacity: activeTrack ? 1 : 0,
-                  transition: "opacity 0.3s",
-                  pointerEvents: activeTrack ? "auto" : "none",
-                  display: "block",
-                }}
-              />
 
               {/* Section divider */}
               <div style={gradientDivider} />
@@ -1153,37 +1145,61 @@ export default function Home() {
 
       {/* ── S8 TESTIMONIALS — static section ── */}
       <section ref={s8Ref} style={{
-        padding: "80px clamp(24px, 7vw, 96px)",
-        background: "#0D0D10",
+        padding: "100px clamp(24px, 7vw, 96px)",
+        background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+        position: "relative",
+        zIndex: 20,
       }}>
-        <div style={{ ...glass, maxWidth: "600px", width: "100%" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <span style={sectionLabel}>What Guitarists Say</span>
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ display: "flex", gap: "24px", marginTop: "48px", flexWrap: "wrap" }}>
             {testimonials.map((t) => (
-              <div key={t.name} className="js-testimonial" style={{ borderLeft: "3px solid #F5A623", paddingLeft: "20px" }}>
+              <div key={t.name} className="js-testimonial testimonial-card" style={{
+                flex: "1 1 300px",
+                background: "rgba(18,18,26,0.7)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                borderRadius: 16,
+                padding: 32,
+                border: "1px solid rgba(155,93,229,0.1)",
+                position: "relative",
+                transition: "border-color 0.2s, transform 0.2s",
+              }}>
+                <span style={{
+                  position: "absolute", top: 16, left: 20,
+                  fontFamily: "Georgia, serif", fontSize: "3rem",
+                  color: "#E8712A", opacity: 0.3, lineHeight: 1,
+                  pointerEvents: "none", userSelect: "none",
+                }}>&ldquo;</span>
+                <div style={{ display: "flex", gap: "4px", marginBottom: 20 }}>
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} style={{ color: "#E8712A", fontSize: "1rem" }}>★</span>
+                  ))}
+                </div>
                 <p style={{
-                  fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem",
-                  lineHeight: 1.65, color: "#8E8E93", margin: "0 0 10px", fontStyle: "italic",
+                  fontFamily: "'Inter Tight', sans-serif", fontWeight: 400,
+                  fontSize: "0.95rem", color: "#F2F0ED", lineHeight: 1.6,
+                  fontStyle: "italic", margin: "0 0 20px",
                 }}>
                   &ldquo;{t.quote}&rdquo;
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: 20 }}>
                   <div style={{
-                    width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
+                    width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
                     background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
-                    fontSize: "14px", color: "#FFFFFF",
+                    fontSize: "15px", color: "#FFFFFF",
                   }}>
                     {getInitials(t.name)}
                   </div>
                   <div>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.8125rem", color: "#F2F2F7" }}>
+                    <div style={{ fontFamily: "'Inter Tight', sans-serif", fontWeight: 600, fontSize: "0.9rem", color: "#FFFFFF" }}>
                       {t.name}
-                    </span>
-                    <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", marginLeft: "8px" }}>
-                      — {t.role}
-                    </span>
+                    </div>
+                    <div style={{ fontFamily: "'Inter Tight', sans-serif", fontWeight: 400, fontSize: "0.8rem", color: "#8A8494" }}>
+                      {t.role}
+                    </div>
                   </div>
                 </div>
               </div>

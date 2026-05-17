@@ -119,7 +119,7 @@ export function SiteHeader() {
           style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", flexShrink: 0 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tonelify" style={{ width: 120, height: "auto" }} />
+          <img src="/logo.png" alt="Tonelify" style={{ width: 40, height: 40, borderRadius: 8, background: "#0D0D10" }} />
           <span style={{
             fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
             fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
