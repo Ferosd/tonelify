@@ -7,14 +7,48 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2 } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useEffect } from "react"
 
+// ───────────── Visual amp knob (rotary dial) ─────────────
+
+function parseKnob(v: any): number | null {
+    if (v === null || v === undefined || v === "") return null
+    const n = parseFloat(String(v).replace(",", "."))
+    return Number.isFinite(n) ? n : null
+}
+
+function AmpKnob({ label, value, accent = false }: { label: string; value: any; accent?: boolean }) {
+    const num = parseKnob(value)
+    const display = value === null || value === undefined || value === "" ? "—" : String(value)
+    const clamped = num === null ? 0 : Math.max(0, Math.min(10, num))
+    const angle = -135 + (clamped / 10) * 270 // 0..10 → sweep 270°
+    const accentColor = accent ? "#FFD700" : "#E8712A"
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative h-16 w-16">
+                <svg viewBox="0 0 100 100" className="h-16 w-16">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="4" />
+                    <circle cx="50" cy="50" r="30" fill="#1c1917" stroke="#403a35" strokeWidth="2" />
+                </svg>
+                <div className="absolute inset-0 flex items-start justify-center" style={{ transform: `rotate(${angle}deg)`, transition: "transform 0.8s cubic-bezier(0.22,1,0.36,1)" }}>
+                    <span className="block mt-2 h-4 w-1 rounded-full" style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}` }} />
+                </div>
+            </div>
+            <div className="text-center">
+                <div className="font-mono text-lg font-bold leading-none" style={{ color: accent ? "#FBBF24" : "#F5F5F4" }}>{display}</div>
+                <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-1">{label}</div>
+            </div>
+        </div>
+    )
+}
+
 export default function ToneMatchPage() {
     const { user } = useUser()
+    const [copied, setCopied] = useState(false)
 
     // Form State
     const [songTitle, setSongTitle] = useState("")
@@ -195,6 +229,43 @@ export default function ToneMatchPage() {
             console.error(err)
         } finally {
             setIsSaving(false)
+        }
+    }
+
+    const buildShareText = () => {
+        if (!result) return ""
+        const a = result.suggestedSettings?.amp || {}
+        const g = result.suggestedSettings?.guitar || {}
+        return [
+            `🎸 ${songTitle || "Tone"}${artist ? " – " + artist : ""} (via Tonelify)`,
+            ``,
+            `AMP — Gain ${a.gain} · Bass ${a.bass} · Mids ${a.mid} · Treble ${a.treble} · Master ${a.master}`,
+            `GUITAR — Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
+            ``,
+            userGuitar || userAmp ? `Dialed for: ${[userGuitar, userAmp].filter(Boolean).join(" + ")}` : "",
+        ].filter(Boolean).join("\n")
+    }
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(buildShareText())
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    const handleShare = async () => {
+        const text = buildShareText()
+        if (typeof navigator !== "undefined" && (navigator as any).share) {
+            try {
+                await (navigator as any).share({ title: "Tonelify Tone", text })
+            } catch (e) {
+                /* user cancelled */
+            }
+        } else {
+            handleCopy()
         }
     }
 
@@ -871,30 +942,34 @@ export default function ToneMatchPage() {
                                             {/* Mesh pattern overlay */}
                                             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:4px_4px] pointer-events-none"></div>
 
-                                            <div className="grid grid-cols-2 gap-4 relative z-10">
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Gain</span>
-                                                    <div className="font-mono text-2xl text-amber-400 font-bold">{result.suggestedSettings?.amp?.gain}</div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Bass</span>
-                                                    <div className="font-mono text-2xl text-white font-bold">{result.suggestedSettings?.amp?.bass}</div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Mids</span>
-                                                    <div className="font-mono text-2xl text-white font-bold">{result.suggestedSettings?.amp?.mid}</div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Treble</span>
-                                                    <div className="font-mono text-2xl text-white font-bold">{result.suggestedSettings?.amp?.treble}</div>
-                                                </div>
-                                            </div>
-                                            <div className="pt-4 mt-2 border-t border-stone-800 flex justify-between items-center relative z-10">
-                                                <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Master Vol</span>
-                                                <div className="font-mono text-xl text-white font-bold bg-stone-800 px-3 py-1 rounded-md border border-stone-700">{result.suggestedSettings?.amp?.master}</div>
+                                            <div className="relative z-10 grid grid-cols-3 sm:grid-cols-5 gap-y-5 gap-x-2 justify-items-center pt-2">
+                                                <AmpKnob label="Gain" value={result.suggestedSettings?.amp?.gain} accent />
+                                                <AmpKnob label="Bass" value={result.suggestedSettings?.amp?.bass} />
+                                                <AmpKnob label="Mids" value={result.suggestedSettings?.amp?.mid} />
+                                                <AmpKnob label="Treble" value={result.suggestedSettings?.amp?.treble} />
+                                                <AmpKnob label="Master" value={result.suggestedSettings?.amp?.master} />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                                    <Button
+                                        type="button"
+                                        onClick={handleCopy}
+                                        variant="outline"
+                                        className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#E8712A] hover:border-[#E8712A]/30 hover:bg-[#E8712A]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
+                                    >
+                                        {copied ? <><Check className="h-4 w-4 text-emerald-400" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Settings</>}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleShare}
+                                        variant="outline"
+                                        className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#9B5DE5] hover:border-[#9B5DE5]/30 hover:bg-[#9B5DE5]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
+                                    >
+                                        <Share2 className="h-4 w-4" /> Share
+                                    </Button>
                                 </div>
 
                                 {user && (
