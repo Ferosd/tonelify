@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { songTitle, artist, userGear } = await req.json();
+        const { songTitle, artist, userGear, instrument, partType, toneType } = await req.json();
 
         if (!songTitle || !artist || !userGear) {
             return NextResponse.json(
@@ -35,12 +35,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Normalize playing-context selections (sent from the tone-match UI)
+        const playInstrument = instrument === "bass" ? "bass" : "guitar";
+        const playPart = partType === "solo" ? "solo" : "riff";
+        const playTone = toneType === "clean" ? "clean" : toneType === "distorted" ? "distorted" : "auto";
+
         // 0. Check Cache
         // Create a unique key based on inputs. Normalize strings to lowercase/trimmed.
-        const cacheKey = `tone-match:v2:${JSON.stringify({
+        // Selections are part of the key so different choices don't collide on one result.
+        const cacheKey = `tone-match:v3:${JSON.stringify({
             song: songTitle.toLowerCase().trim(),
             artist: artist.toLowerCase().trim(),
-            gear: userGear
+            gear: userGear,
+            instrument: playInstrument,
+            part: playPart,
+            tone: playTone
         })}`;
 
         const cachedResult = await redis.get(cacheKey);
@@ -74,9 +83,14 @@ export async function POST(req: NextRequest) {
         // If we have verified gear data, we include it. If not, we ask AI to use its knowledge.
 
         let prompt = `Act as a professional guitar tech and sound engineer.
-    
+
     Target Tone:
     Song: "${songTitle}" by "${artist}"
+
+    Playing Context (honor these in your settings and tips):
+    - Instrument: ${playInstrument === "bass" ? "Bass guitar" : "Electric guitar"}
+    - Part: ${playPart === "solo" ? "Lead / Solo (favor presence, sustain and cut)" : "Rhythm / Riff (favor tightness and note definition)"}
+    - Desired tone: ${playTone === "clean" ? "Clean (minimal gain/breakup)" : playTone === "distorted" ? "Distorted (driven / high gain as the song needs)" : "Auto — match the original recording's character"}
     `;
 
         if (songGearData) {
