@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2 } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -21,12 +21,12 @@ function parseKnob(v: any): number | null {
     return Number.isFinite(n) ? n : null
 }
 
-function AmpKnob({ label, value, accent = false }: { label: string; value: any; accent?: boolean }) {
+function AmpKnob({ label, value, accent = false, color }: { label: string; value: any; accent?: boolean; color?: string }) {
     const num = parseKnob(value)
     const display = value === null || value === undefined || value === "" ? "—" : String(value)
     const clamped = num === null ? 0 : Math.max(0, Math.min(10, num))
     const angle = -135 + (clamped / 10) * 270 // 0..10 → sweep 270°
-    const accentColor = accent ? "#FFD700" : "#E8712A"
+    const accentColor = color || (accent ? "#FFD700" : "#E8712A")
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="relative h-16 w-16">
@@ -49,6 +49,18 @@ function AmpKnob({ label, value, accent = false }: { label: string; value: any; 
 export default function ToneMatchPage() {
     const { user } = useUser()
     const [copied, setCopied] = useState(false)
+    const [credits, setCredits] = useState<number | null>(null)
+
+    // Fetch remaining match credits for the signed-in user
+    useEffect(() => {
+        if (!user) return
+        fetch("/api/subscription")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (d && typeof d.matchesRemaining === "number") setCredits(d.matchesRemaining)
+            })
+            .catch(() => { })
+    }, [user])
 
     // Form State
     const [songTitle, setSongTitle] = useState("")
@@ -196,6 +208,7 @@ export default function ToneMatchPage() {
 
             const data = await response.json()
             setResult(data)
+            setCredits((c) => (c !== null && c > 0 ? c - 1 : c))
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -236,10 +249,12 @@ export default function ToneMatchPage() {
         if (!result) return ""
         const a = result.suggestedSettings?.amp || {}
         const g = result.suggestedSettings?.guitar || {}
+        const mids = a.middle ?? a.mid
+        const match = typeof result.confidenceScore === "number" ? ` · ${Math.round(result.confidenceScore)}% match` : ""
         return [
-            `🎸 ${songTitle || "Tone"}${artist ? " – " + artist : ""} (via Tonelify)`,
+            `🎸 ${songTitle || "Tone"}${artist ? " – " + artist : ""} (via Tonelify${match})`,
             ``,
-            `AMP — Gain ${a.gain} · Bass ${a.bass} · Mids ${a.mid} · Treble ${a.treble} · Master ${a.master}`,
+            `AMP — Gain ${a.gain} · Bass ${a.bass} · Mids ${mids} · Treble ${a.treble} · Presence ${a.presence ?? "-"} · Reverb ${a.reverb ?? "-"}`,
             `GUITAR — Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
             ``,
             userGuitar || userAmp ? `Dialed for: ${[userGuitar, userAmp].filter(Boolean).join(" + ")}` : "",
@@ -273,8 +288,16 @@ export default function ToneMatchPage() {
         <div className="min-h-screen bg-[#08080C] pb-20 font-sans">
             {/* Header Section */}
             <div className="text-center pt-8 md:pt-12 pb-6 md:pb-8 space-y-4 md:space-y-6 bg-[#0E0E14] border-b border-white/8 px-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 text-[#E8712A] text-xs font-semibold">
-                    <span>⚡</span> Gear-Matched Tone Settings
+                <div className="flex items-center justify-center flex-wrap gap-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 text-[#E8712A] text-xs font-semibold">
+                        <span>⚡</span> Gear-Matched Tone Settings
+                    </div>
+                    {user && credits !== null && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#8A8494] text-xs font-semibold border border-white/8">
+                            <span className={credits === 0 ? "text-red-400" : "text-emerald-400"}>●</span>
+                            {credits === -1 ? "Unlimited matches" : `${credits} matches left`}
+                        </div>
+                    )}
                 </div>
 
                 <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#F2F0ED]">
@@ -904,11 +927,96 @@ export default function ToneMatchPage() {
                                         <div className="bg-[#E8712A]/10 p-3 rounded-full h-fit text-[#E8712A]">
                                             <Sparkles className="h-6 w-6" />
                                         </div>
-                                        <div className="space-y-2">
-                                            <h4 className="font-bold text-[#F2F0ED]">AI Tone Analysis</h4>
+                                        <div className="space-y-2 flex-1">
+                                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                                                <h4 className="font-bold text-[#F2F0ED]">AI Tone Analysis</h4>
+                                                {typeof result.confidenceScore === "number" && (
+                                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                                                        <Target className="h-3.5 w-3.5" />
+                                                        {Math.round(result.confidenceScore)}% match
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="italic text-[#8A8494] text-lg leading-relaxed">"{result.explanation}"</p>
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Tone classification tags */}
+                                {result.tags && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {[result.tags.part, result.tags.genre, result.tags.era, result.tags.tempo]
+                                            .filter(Boolean)
+                                            .map((tag: string, i: number) => (
+                                                <span key={i} className="text-xs font-bold text-[#8A8494] bg-white/5 border border-white/8 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                    </div>
+                                )}
+
+                                {/* ORIGINAL TONE (artist reference) */}
+                                {result.original && (
+                                    <div className="space-y-5">
+                                        <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
+                                            <span className="bg-[#9B5DE5]/10 text-[#9B5DE5] p-2 rounded-lg"><Music2 className="h-6 w-6" /></span>
+                                            Original Tone
+                                            {result.original.verified && (
+                                                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full uppercase tracking-wide">Verified</span>
+                                            )}
+                                        </h3>
+                                        <div className="bg-[#12121A] border border-white/8 rounded-2xl p-6 space-y-6">
+                                            <div className="grid sm:grid-cols-3 gap-4">
+                                                {[
+                                                    { label: "Original Guitar", value: result.original.guitar },
+                                                    { label: "Original Amp", value: result.original.amp },
+                                                    { label: "Pickups", value: result.original.pickups },
+                                                ].filter((f) => f.value).map((f) => (
+                                                    <div key={f.label} className="space-y-1">
+                                                        <div className="text-[10px] font-bold text-[#9B5DE5] uppercase tracking-widest">{f.label}</div>
+                                                        <div className="text-sm font-semibold text-[#F2F0ED] leading-snug">{f.value}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {result.original.ampSettings && (
+                                                <div className="pt-5 border-t border-white/8">
+                                                    <div className="text-[10px] font-bold text-[#8A8494] uppercase tracking-widest mb-4">Original Amp Settings</div>
+                                                    <div className="grid grid-cols-3 gap-y-5 gap-x-2 justify-items-center">
+                                                        <AmpKnob label="Gain" value={result.original.ampSettings.gain} color="#9B5DE5" />
+                                                        <AmpKnob label="Bass" value={result.original.ampSettings.bass} color="#9B5DE5" />
+                                                        <AmpKnob label="Mids" value={result.original.ampSettings.middle ?? result.original.ampSettings.mid} color="#9B5DE5" />
+                                                        <AmpKnob label="Treble" value={result.original.ampSettings.treble} color="#9B5DE5" />
+                                                        <AmpKnob label="Presence" value={result.original.ampSettings.presence} color="#9B5DE5" />
+                                                        <AmpKnob label="Reverb" value={result.original.ampSettings.reverb} color="#9B5DE5" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {Array.isArray(result.original.signalChain) && result.original.signalChain.length > 0 && (
+                                                <div className="pt-5 border-t border-white/8">
+                                                    <div className="text-[10px] font-bold text-[#8A8494] uppercase tracking-widest mb-3">Original Signal Chain</div>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {result.original.signalChain.map((stage: string, i: number) => (
+                                                            <span key={i} className="inline-flex items-center gap-2">
+                                                                <span className="text-xs font-semibold text-[#F2F0ED] bg-white/5 border border-white/8 px-3 py-1.5 rounded-lg">{stage}</span>
+                                                                {i < result.original.signalChain.length - 1 && <span className="text-[#9B5DE5]">→</span>}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* YOUR ADAPTATION */}
+                                <div className="flex items-center gap-3 pt-2">
+                                    <span className="bg-[#E8712A]/10 text-[#E8712A] p-2 rounded-lg"><Zap className="h-5 w-5" /></span>
+                                    <h3 className="font-bold text-xl text-[#F2F0ED]">Adapted For Your Gear</h3>
+                                    {(userGuitar || userAmp) && (
+                                        <span className="text-xs text-[#8A8494] truncate">{[userGuitar, userAmp].filter(Boolean).join(" + ")}</span>
+                                    )}
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-8 md:gap-12">
@@ -942,16 +1050,91 @@ export default function ToneMatchPage() {
                                             {/* Mesh pattern overlay */}
                                             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:4px_4px] pointer-events-none"></div>
 
-                                            <div className="relative z-10 grid grid-cols-3 sm:grid-cols-5 gap-y-5 gap-x-2 justify-items-center pt-2">
+                                            <div className="relative z-10 grid grid-cols-3 gap-y-5 gap-x-2 justify-items-center pt-2">
                                                 <AmpKnob label="Gain" value={result.suggestedSettings?.amp?.gain} accent />
                                                 <AmpKnob label="Bass" value={result.suggestedSettings?.amp?.bass} />
-                                                <AmpKnob label="Mids" value={result.suggestedSettings?.amp?.mid} />
+                                                <AmpKnob label="Mids" value={result.suggestedSettings?.amp?.middle ?? result.suggestedSettings?.amp?.mid} />
                                                 <AmpKnob label="Treble" value={result.suggestedSettings?.amp?.treble} />
-                                                <AmpKnob label="Master" value={result.suggestedSettings?.amp?.master} />
+                                                <AmpKnob label="Presence" value={result.suggestedSettings?.amp?.presence ?? result.suggestedSettings?.amp?.master} />
+                                                <AmpKnob label="Reverb" value={result.suggestedSettings?.amp?.reverb} />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                {Array.isArray(result.suggestedSettings?.pedals) && result.suggestedSettings.pedals.length > 0 && (
+                                    <div className="space-y-5">
+                                        <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
+                                            <span className="bg-[#9B5DE5]/10 text-[#9B5DE5] p-2 rounded-lg"><SlidersHorizontal className="h-6 w-6" /></span>
+                                            Signal Chain
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {result.suggestedSettings.pedals.map((pedal: any, idx: number) => (
+                                                <div key={idx} className="flex items-center gap-4 bg-[#12121A] border border-white/8 rounded-2xl p-4">
+                                                    <div className="h-9 w-9 shrink-0 rounded-lg bg-[#9B5DE5]/10 text-[#9B5DE5] flex items-center justify-center font-mono font-bold text-sm">
+                                                        {idx + 1}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-bold text-[#F2F0ED] text-sm">{pedal.name}</div>
+                                                        {pedal.settings && (
+                                                            <div className="font-mono text-xs text-[#8A8494] mt-0.5">{pedal.settings}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* MISSING EFFECTS */}
+                                {Array.isArray(result.missingEffects) && result.missingEffects.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
+                                            <span className="bg-amber-500/10 text-amber-400 p-2 rounded-lg"><AlertTriangle className="h-6 w-6" /></span>
+                                            Missing Effects
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {result.missingEffects.map((fx: any, idx: number) => (
+                                                <div key={idx} className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5 space-y-3">
+                                                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                                                        <div className="font-bold text-[#F2F0ED] text-sm">{fx.name}</div>
+                                                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-full uppercase tracking-wide whitespace-nowrap">Not in your rig</span>
+                                                    </div>
+                                                    {fx.reason && <p className="text-sm text-[#8A8494] leading-relaxed">{fx.reason}</p>}
+                                                    {Array.isArray(fx.alternatives) && fx.alternatives.length > 0 && (
+                                                        <div className="pt-2 border-t border-amber-500/10 space-y-1.5">
+                                                            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">How to match it</div>
+                                                            {fx.alternatives.map((alt: string, ai: number) => (
+                                                                <div key={ai} className="flex gap-2 text-sm text-[#F2F0ED]">
+                                                                    <span className="text-amber-400 shrink-0">→</span>
+                                                                    <span>{alt}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* PLAYING TIPS */}
+                                {Array.isArray(result.playingTips) && result.playingTips.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
+                                            <span className="bg-[#E8712A]/10 text-[#E8712A] p-2 rounded-lg"><Lightbulb className="h-6 w-6" /></span>
+                                            Playing Tips
+                                        </h3>
+                                        <div className="space-y-2.5">
+                                            {result.playingTips.map((tip: string, idx: number) => (
+                                                <div key={idx} className="flex items-start gap-4 bg-[#12121A] border border-white/8 rounded-2xl p-4">
+                                                    <div className="h-7 w-7 shrink-0 rounded-full bg-[#E8712A]/10 text-[#E8712A] flex items-center justify-center font-bold text-sm">{idx + 1}</div>
+                                                    <p className="text-sm text-[#F2F0ED] leading-relaxed pt-0.5">{tip}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="flex flex-wrap justify-center gap-3 pt-2">
                                     <Button

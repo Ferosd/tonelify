@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
         // 0. Check Cache
         // Create a unique key based on inputs. Normalize strings to lowercase/trimmed.
-        const cacheKey = `tone-match:${JSON.stringify({
+        const cacheKey = `tone-match:v2:${JSON.stringify({
             song: songTitle.toLowerCase().trim(),
             artist: artist.toLowerCase().trim(),
             gear: userGear
@@ -95,16 +95,33 @@ export async function POST(req: NextRequest) {
         prompt += `
     User's Available Equipment:
     - Guitar: ${userGear.guitarModel} (Pickups: ${userGear.pickupType})
-    - Amp: ${userGear.ampModel}
+    - Amp: ${userGear.ampModel}${userGear.goingDirect ? " (Going direct / no physical amp)" : ""}
     - Effects: ${userGear.effects ? userGear.effects.join(", ") : "None/Unknown"}
-    
+
     Task:
     Provide the exact settings to replicate the "${songTitle}" tone using the USER'S equipment.
     Do NOT suggest buying new gear unless absolutely necessary (emphasize tweaking current gear).
-    
+    Also document the ORIGINAL artist's rig and settings (use the verified gear above if provided, otherwise your best knowledge), classify the tone, list any effects the original used that the user's gear lacks (with practical alternatives), and give concrete playing tips.
+
     Response Format (JSON only):
     {
       "explanation": "Brief explanation of how to approach this tone with user's gear.",
+      "tags": {
+        "genre": "Primary genre (e.g. Hard Rock)",
+        "era": "Decade/era (e.g. 1990s)",
+        "tempo": "Slow | Medium | Fast",
+        "part": "Riff | Solo"
+      },
+      "original": {
+        "guitar": "Original guitar used by the artist",
+        "amp": "Original amp(s) used",
+        "pickups": "Original pickup type/position",
+        "ampSettings": {
+          "gain": "0-10", "bass": "0-10", "middle": "0-10",
+          "treble": "0-10", "presence": "0-10", "reverb": "0-10"
+        },
+        "signalChain": ["Ordered signal chain, e.g. 'Guitar (neck pickup)'", "'Digital Delay (Roland SRV-2000)'", "'Marshall Silver Jubilee head'"]
+      },
       "suggestedSettings": {
         "guitar": {
           "pickupSelector": "Position (1-5 or description)",
@@ -126,6 +143,18 @@ export async function POST(req: NextRequest) {
           }
         ]
       },
+      "missingEffects": [
+        {
+          "name": "Effect the original used but the user lacks (e.g. Digital Delay rack)",
+          "reason": "Why it matters to the tone",
+          "alternatives": ["Practical way to approximate it with the user's current gear"]
+        }
+      ],
+      "playingTips": [
+        "Actionable technique/playing tip 1",
+        "Tip 2",
+        "Tip 3"
+      ],
       "confidenceScore": 0-100
     }
     `;
@@ -144,6 +173,18 @@ export async function POST(req: NextRequest) {
         });
 
         const aiResponse = JSON.parse(completion.choices[0].message.content || "{}");
+
+        // 3b. If we have verified gear data from our DB, trust it over the AI's guess
+        if (songGearData) {
+            aiResponse.original = {
+                ...(aiResponse.original || {}),
+                guitar: songGearData.guitar_model ?? aiResponse.original?.guitar,
+                amp: songGearData.amp_model ?? aiResponse.original?.amp,
+                pickups: songGearData.pickup_type ?? aiResponse.original?.pickups,
+                effects: songGearData.effects ?? aiResponse.original?.effects,
+                verified: true,
+            };
+        }
 
         // 4. Cache the result for 7 days
         await redis.set(cacheKey, aiResponse, { ex: 60 * 60 * 24 * 7 });
