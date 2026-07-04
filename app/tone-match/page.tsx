@@ -294,14 +294,14 @@ export default function ToneMatchPage() {
                     </div>
                     {user && credits !== null && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#8A8494] text-xs font-semibold border border-white/8">
-                            <span className={credits === 0 ? "text-red-400" : "text-emerald-400"}>●</span>
+                            <span className={credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
                             {credits === -1 ? "Unlimited matches" : `${credits} matches left`}
                         </div>
                     )}
                 </div>
 
-                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#F2F0ED]">
-                    Tonelify
+                <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
+                    Dial in <span className="text-[#F5A623]">any tone</span>
                 </h1>
                 <p className="text-[#8A8494] text-base md:text-lg max-w-2xl mx-auto font-light">
                     Transform legendary {instrument === 'guitar' ? 'guitar' : 'bass'} tones to match your gear
@@ -313,7 +313,7 @@ export default function ToneMatchPage() {
                         <button
                             onClick={() => setInstrument("guitar")}
                             className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "guitar"
-                                ? "bg-[#9B5DE5] text-white shadow-md"
+                                ? "bg-[#F5A623] text-[#08080C] shadow-md"
                                 : "text-[#8A8494] hover:text-[#F2F0ED]"
                                 }`}
                         >
@@ -323,7 +323,7 @@ export default function ToneMatchPage() {
                         <button
                             onClick={() => setInstrument("bass")}
                             className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "bass"
-                                ? "bg-[#9B5DE5] text-white shadow-md"
+                                ? "bg-[#F5A623] text-[#08080C] shadow-md"
                                 : "text-[#8A8494] hover:text-[#F2F0ED]"
                                 }`}
                         >
@@ -336,7 +336,7 @@ export default function ToneMatchPage() {
                 {/* NEW Badge for Bass */}
                 {instrument === 'bass' && (
                     <div className="flex justify-center mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5A623]/10 text-[#FFD700] text-xs font-semibold border border-[#F5A623]/20">
                             <span className="font-bold">NEW</span>
                             <span className="opacity-80">• Bass adaptation is brand new — results may vary</span>
                         </div>
@@ -356,7 +356,7 @@ export default function ToneMatchPage() {
                             1
                         </div>
                         <div>
-                            <h2 className="text-lg md:text-2xl font-bold text-[#F2F0ED] tracking-tight">Your Gear</h2>
+                            <h2 className="font-display text-lg md:text-2xl font-bold text-[#F2F0ED] tracking-tight">Your Gear</h2>
                             <p className="text-[#8A8494] font-medium text-sm md:text-base">Select your current equipment configuration</p>
                         </div>
                     </CardHeader>
@@ -485,14 +485,14 @@ export default function ToneMatchPage() {
                                         </div>
                                     )}
                                     {effectsType === 'multi' && (
-                                        <div className="p-6 bg-[#9B5DE5]/5 border border-[#9B5DE5]/20 rounded-xl flex items-start gap-4">
-                                            <div className="bg-[#9B5DE5]/10 p-2 rounded-lg text-[#9B5DE5]">
+                                        <div className="p-6 bg-[#F5A623]/5 border border-[#F5A623]/20 rounded-xl flex items-start gap-4">
+                                            <div className="bg-[#F5A623]/10 p-2 rounded-lg text-[#F5A623]">
                                                 <Sparkles className="h-5 w-5" />
                                             </div>
                                             <div className="space-y-1">
                                                 <h4 className="font-bold text-[#F2F0ED] text-sm">Using a Multi-FX Unit?</h4>
                                                 <p className="text-sm text-[#8A8494] leading-relaxed">
-                                                    For best results with Helix, Kemper, or Axe-FX, we recommend adding your specific unit in <Link href="/settings" className="font-bold text-[#9B5DE5] hover:text-[#8B4DD5] underline underline-offset-2">Account Settings</Link>.
+                                                    For best results with Helix, Kemper, or Axe-FX, we recommend adding your specific unit in <Link href="/settings" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Account Settings</Link>.
                                                 </p>
                                             </div>
                                         </div>
@@ -505,12 +505,12 @@ export default function ToneMatchPage() {
                                 {/* Bass Guitar Dropdown */}
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
-                                        <Music2 className="h-4 w-4 text-[#9B5DE5]" />
+                                        <Music2 className="h-4 w-4 text-[#F5A623]" />
                                         <Label className="text-xs font-bold text-[#8A8494] uppercase tracking-wide">Bass Guitar</Label>
                                     </div>
                                     <div className="relative group">
                                         <select
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#9B5DE5]/20 focus:border-[#9B5DE5]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#9B5DE5]/40"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userGuitar}
                                             onChange={(e) => setUserGuitar(e.target.value)}
                                         >
@@ -525,7 +525,7 @@ export default function ToneMatchPage() {
                                             <option value="Warwick Thumb">Warwick Thumb</option>
                                             <option value="Hofner Violin Bass">Höfner Violin Bass</option>
                                         </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#9B5DE5] transition-colors">
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#F5A623] transition-colors">
                                             <ArrowLeft className="h-4 w-4 -rotate-90" />
                                         </div>
                                     </div>
@@ -534,12 +534,12 @@ export default function ToneMatchPage() {
                                 {/* Bass Amplifier Dropdown */}
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
-                                        <Speaker className="h-4 w-4 text-[#9B5DE5]" />
+                                        <Speaker className="h-4 w-4 text-[#F5A623]" />
                                         <Label className="text-xs font-bold text-[#8A8494] uppercase tracking-wide">Bass Amplifier</Label>
                                     </div>
                                     <div className="relative group">
                                         <select
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#9B5DE5]/20 focus:border-[#9B5DE5]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#9B5DE5]/40"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userAmp}
                                             onChange={(e) => setUserAmp(e.target.value)}
                                         >
@@ -554,7 +554,7 @@ export default function ToneMatchPage() {
                                             <option value="Trace Elliot">Trace Elliot</option>
                                             <option value="Darkglass Microtubes">Darkglass Microtubes</option>
                                         </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#9B5DE5] transition-colors">
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#F5A623] transition-colors">
                                             <ArrowLeft className="h-4 w-4 -rotate-90" />
                                         </div>
                                     </div>
@@ -571,7 +571,7 @@ export default function ToneMatchPage() {
                             2
                         </div>
                         <div>
-                            <h2 className="text-lg md:text-2xl font-bold text-[#F2F0ED] tracking-tight">Song & Part</h2>
+                            <h2 className="font-display text-lg md:text-2xl font-bold text-[#F2F0ED] tracking-tight">Song & Part</h2>
                             <p className="text-[#8A8494] font-medium text-sm md:text-base">Identify the track and tone you want to capture</p>
                         </div>
                     </CardHeader>
@@ -696,7 +696,7 @@ export default function ToneMatchPage() {
                                             <Label className="block text-sm font-bold text-[#F2F0ED]">Tone Type</Label>
                                             <span className="text-xs text-[#8A8494] font-medium tracking-wide">
                                                 {instrument === 'guitar'
-                                                    ? 'Select whether you want a clean or distorted bass tone.'
+                                                    ? 'Select whether you want a clean or distorted guitar tone.'
                                                     : 'Select whether you want a clean or distorted bass tone.'
                                                 }
                                             </span>
@@ -713,22 +713,22 @@ export default function ToneMatchPage() {
                                         <button
                                             type="button"
                                             onClick={() => setToneType("auto")}
-                                            className={`border rounded-xl p-4 flex flex-col items-center gap-3 transition-colors ${toneType === 'auto' ? 'border-emerald-500 bg-emerald-500/5 ring-2 ring-emerald-500/20 shadow-md scale-[1.02]' : 'border-white/8 bg-white/3 hover:bg-white/5 hover:border-emerald-500/30 text-[#8A8494]'}`}
+                                            className={`border rounded-xl p-4 flex flex-col items-center gap-3 transition-colors ${toneType === 'auto' ? 'border-[#F5A623] bg-[#F5A623]/5 ring-2 ring-[#F5A623]/20 shadow-md scale-[1.02]' : 'border-white/8 bg-white/3 hover:bg-white/5 hover:border-[#F5A623]/30 text-[#8A8494]'}`}
                                         >
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ${toneType === 'auto' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/8 text-[#8A8494]'}`}>
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ${toneType === 'auto' ? 'bg-[#F5A623]/10 text-[#FFD700]' : 'bg-white/8 text-[#8A8494]'}`}>
                                                 <Search className="h-4 w-4" />
                                             </div>
-                                            <span className={`font-bold text-xs uppercase tracking-wide ${toneType === 'auto' ? 'text-emerald-400' : 'text-[#8A8494]'}`}>Auto</span>
+                                            <span className={`font-bold text-xs uppercase tracking-wide ${toneType === 'auto' ? 'text-[#FFD700]' : 'text-[#8A8494]'}`}>Auto</span>
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setToneType("clean")}
-                                            className={`border rounded-xl p-4 flex flex-col items-center gap-3 transition-colors ${toneType === 'clean' ? 'border-[#9B5DE5] bg-[#9B5DE5]/5 ring-2 ring-[#9B5DE5]/20 shadow-md scale-[1.02]' : 'border-white/8 bg-white/3 hover:bg-white/5 hover:border-[#9B5DE5]/30 text-[#8A8494]'}`}
+                                            className={`border rounded-xl p-4 flex flex-col items-center gap-3 transition-colors ${toneType === 'clean' ? 'border-[#F5A623] bg-[#F5A623]/5 ring-2 ring-[#F5A623]/20 shadow-md scale-[1.02]' : 'border-white/8 bg-white/3 hover:bg-white/5 hover:border-[#F5A623]/30 text-[#8A8494]'}`}
                                         >
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ${toneType === 'clean' ? 'bg-[#9B5DE5]/10 text-[#9B5DE5]' : 'bg-white/8 text-[#8A8494]'}`}>
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ${toneType === 'clean' ? 'bg-[#F5A623]/10 text-[#F5A623]' : 'bg-white/8 text-[#8A8494]'}`}>
                                                 <Sparkles className="h-4 w-4" />
                                             </div>
-                                            <span className={`font-bold text-xs uppercase tracking-wide ${toneType === 'clean' ? 'text-[#9B5DE5]' : 'text-[#8A8494]'}`}>Clean</span>
+                                            <span className={`font-bold text-xs uppercase tracking-wide ${toneType === 'clean' ? 'text-[#F5A623]' : 'text-[#8A8494]'}`}>Clean</span>
                                         </button>
                                         <button
                                             type="button"
@@ -747,14 +747,14 @@ export default function ToneMatchPage() {
                                         <button
                                             type="button"
                                             onClick={() => setToneType("clean")}
-                                            className={`border-2 rounded-2xl p-6 flex flex-col items-center gap-4 transition-colors ${toneType === 'clean' ? 'border-[#9B5DE5] bg-[#9B5DE5]/5 ring-2 ring-[#9B5DE5]/20 shadow-lg scale-[1.02]' : 'border-white/8 bg-[#12121A] hover:border-[#9B5DE5]/30 hover:bg-[#9B5DE5]/5'}`}
+                                            className={`border-2 rounded-2xl p-6 flex flex-col items-center gap-4 transition-colors ${toneType === 'clean' ? 'border-[#F5A623] bg-[#F5A623]/5 ring-2 ring-[#F5A623]/20 shadow-lg scale-[1.02]' : 'border-white/8 bg-[#12121A] hover:border-[#F5A623]/30 hover:bg-[#F5A623]/5'}`}
                                         >
-                                            <div className={`h-12 w-12 rounded-full flex items-center justify-center transition-colors ${toneType === 'clean' ? 'bg-[#9B5DE5]/10 text-[#9B5DE5]' : 'bg-white/8 text-[#8A8494]'}`}>
+                                            <div className={`h-12 w-12 rounded-full flex items-center justify-center transition-colors ${toneType === 'clean' ? 'bg-[#F5A623]/10 text-[#F5A623]' : 'bg-white/8 text-[#8A8494]'}`}>
                                                 <Sparkles className="h-6 w-6" />
                                             </div>
                                             <div className="text-center space-y-1">
-                                                <span className={`font-bold text-sm ${toneType === 'clean' ? 'text-[#9B5DE5]' : 'text-[#F2F0ED]'}`}>Clean</span>
-                                                <span className={`block text-xs ${toneType === 'clean' ? 'text-[#9B5DE5]' : 'text-[#8A8494]'}`}>Gain = 0</span>
+                                                <span className={`font-bold text-sm ${toneType === 'clean' ? 'text-[#F5A623]' : 'text-[#F2F0ED]'}`}>Clean</span>
+                                                <span className={`block text-xs ${toneType === 'clean' ? 'text-[#F5A623]' : 'text-[#8A8494]'}`}>Gain = 0</span>
                                             </div>
                                         </button>
                                         <button
@@ -789,7 +789,7 @@ export default function ToneMatchPage() {
                         <h3 className="text-2xl font-bold text-[#F2F0ED] leading-tight">
                             Try Tonelify free for a limited time
                         </h3>
-                        <p className="text-emerald-400 font-medium text-sm">
+                        <p className="text-[#FFD700] font-medium text-sm">
                             Start a free trial and unlock full adaptations, tone saving, and presets.
                         </p>
                     </div>
@@ -931,7 +931,7 @@ export default function ToneMatchPage() {
                                             <div className="flex items-center justify-between gap-3 flex-wrap">
                                                 <h4 className="font-bold text-[#F2F0ED]">AI Tone Analysis</h4>
                                                 {typeof result.confidenceScore === "number" && (
-                                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/20 px-3 py-1 rounded-full">
                                                         <Target className="h-3.5 w-3.5" />
                                                         {Math.round(result.confidenceScore)}% match
                                                     </span>
@@ -959,10 +959,10 @@ export default function ToneMatchPage() {
                                 {result.original && (
                                     <div className="space-y-5">
                                         <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
-                                            <span className="bg-[#9B5DE5]/10 text-[#9B5DE5] p-2 rounded-lg"><Music2 className="h-6 w-6" /></span>
+                                            <span className="bg-[#F5A623]/10 text-[#F5A623] p-2 rounded-lg"><Music2 className="h-6 w-6" /></span>
                                             Original Tone
                                             {result.original.verified && (
-                                                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full uppercase tracking-wide">Verified</span>
+                                                <span className="text-[10px] font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/20 px-2 py-1 rounded-full uppercase tracking-wide">Verified</span>
                                             )}
                                         </h3>
                                         <div className="bg-[#12121A] border border-white/8 rounded-2xl p-6 space-y-6">
@@ -973,7 +973,7 @@ export default function ToneMatchPage() {
                                                     { label: "Pickups", value: result.original.pickups },
                                                 ].filter((f) => f.value).map((f) => (
                                                     <div key={f.label} className="space-y-1">
-                                                        <div className="text-[10px] font-bold text-[#9B5DE5] uppercase tracking-widest">{f.label}</div>
+                                                        <div className="text-[10px] font-bold text-[#F5A623] uppercase tracking-widest">{f.label}</div>
                                                         <div className="text-sm font-semibold text-[#F2F0ED] leading-snug">{f.value}</div>
                                                     </div>
                                                 ))}
@@ -983,12 +983,12 @@ export default function ToneMatchPage() {
                                                 <div className="pt-5 border-t border-white/8">
                                                     <div className="text-[10px] font-bold text-[#8A8494] uppercase tracking-widest mb-4">Original Amp Settings</div>
                                                     <div className="grid grid-cols-3 gap-y-5 gap-x-2 justify-items-center">
-                                                        <AmpKnob label="Gain" value={result.original.ampSettings.gain} color="#9B5DE5" />
-                                                        <AmpKnob label="Bass" value={result.original.ampSettings.bass} color="#9B5DE5" />
-                                                        <AmpKnob label="Mids" value={result.original.ampSettings.middle ?? result.original.ampSettings.mid} color="#9B5DE5" />
-                                                        <AmpKnob label="Treble" value={result.original.ampSettings.treble} color="#9B5DE5" />
-                                                        <AmpKnob label="Presence" value={result.original.ampSettings.presence} color="#9B5DE5" />
-                                                        <AmpKnob label="Reverb" value={result.original.ampSettings.reverb} color="#9B5DE5" />
+                                                        <AmpKnob label="Gain" value={result.original.ampSettings.gain} color="#F5A623" />
+                                                        <AmpKnob label="Bass" value={result.original.ampSettings.bass} color="#F5A623" />
+                                                        <AmpKnob label="Mids" value={result.original.ampSettings.middle ?? result.original.ampSettings.mid} color="#F5A623" />
+                                                        <AmpKnob label="Treble" value={result.original.ampSettings.treble} color="#F5A623" />
+                                                        <AmpKnob label="Presence" value={result.original.ampSettings.presence} color="#F5A623" />
+                                                        <AmpKnob label="Reverb" value={result.original.ampSettings.reverb} color="#F5A623" />
                                                     </div>
                                                 </div>
                                             )}
@@ -1000,7 +1000,7 @@ export default function ToneMatchPage() {
                                                         {result.original.signalChain.map((stage: string, i: number) => (
                                                             <span key={i} className="inline-flex items-center gap-2">
                                                                 <span className="text-xs font-semibold text-[#F2F0ED] bg-white/5 border border-white/8 px-3 py-1.5 rounded-lg">{stage}</span>
-                                                                {i < result.original.signalChain.length - 1 && <span className="text-[#9B5DE5]">→</span>}
+                                                                {i < result.original.signalChain.length - 1 && <span className="text-[#F5A623]">→</span>}
                                                             </span>
                                                         ))}
                                                     </div>
@@ -1065,13 +1065,13 @@ export default function ToneMatchPage() {
                                 {Array.isArray(result.suggestedSettings?.pedals) && result.suggestedSettings.pedals.length > 0 && (
                                     <div className="space-y-5">
                                         <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
-                                            <span className="bg-[#9B5DE5]/10 text-[#9B5DE5] p-2 rounded-lg"><SlidersHorizontal className="h-6 w-6" /></span>
+                                            <span className="bg-[#F5A623]/10 text-[#F5A623] p-2 rounded-lg"><SlidersHorizontal className="h-6 w-6" /></span>
                                             Signal Chain
                                         </h3>
                                         <div className="space-y-3">
                                             {result.suggestedSettings.pedals.map((pedal: any, idx: number) => (
                                                 <div key={idx} className="flex items-center gap-4 bg-[#12121A] border border-white/8 rounded-2xl p-4">
-                                                    <div className="h-9 w-9 shrink-0 rounded-lg bg-[#9B5DE5]/10 text-[#9B5DE5] flex items-center justify-center font-mono font-bold text-sm">
+                                                    <div className="h-9 w-9 shrink-0 rounded-lg bg-[#F5A623]/10 text-[#F5A623] flex items-center justify-center font-mono font-bold text-sm">
                                                         {idx + 1}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -1143,13 +1143,13 @@ export default function ToneMatchPage() {
                                         variant="outline"
                                         className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#E8712A] hover:border-[#E8712A]/30 hover:bg-[#E8712A]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
                                     >
-                                        {copied ? <><Check className="h-4 w-4 text-emerald-400" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Settings</>}
+                                        {copied ? <><Check className="h-4 w-4 text-[#FFD700]" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Settings</>}
                                     </Button>
                                     <Button
                                         type="button"
                                         onClick={handleShare}
                                         variant="outline"
-                                        className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#9B5DE5] hover:border-[#9B5DE5]/30 hover:bg-[#9B5DE5]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
+                                        className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#F5A623] hover:border-[#F5A623]/30 hover:bg-[#F5A623]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
                                     >
                                         <Share2 className="h-4 w-4" /> Share
                                     </Button>

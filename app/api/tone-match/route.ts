@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
+import { z } from "zod";
 import { openai } from "@/lib/openai";
 import { redis } from "@/lib/redis";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { canUserMatch, incrementMatchUsage } from "@/lib/subscription";
+
+// Input validation: length caps keep prompt size (and OpenAI cost) bounded
+const requestSchema = z.object({
+    songTitle: z.string().trim().min(1).max(200),
+    artist: z.string().trim().min(1).max(120),
+    instrument: z.string().max(20).optional(),
+    partType: z.string().max(20).optional(),
+    toneType: z.string().max(20).optional(),
+    userGear: z.object({
+        guitarModel: z.string().trim().min(1).max(120),
+        pickupType: z.string().trim().max(80).optional().default(""),
+        ampModel: z.string().trim().max(120).optional().default(""),
+        goingDirect: z.boolean().optional().default(false),
+        effects: z.array(z.string().trim().max(80)).max(20).optional().default([]),
+        effectsType: z.string().max(20).optional(),
+    }),
+});
 
 
 export async function POST(req: NextRequest) {
@@ -26,14 +45,14 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { songTitle, artist, userGear, instrument, partType, toneType } = await req.json();
-
-        if (!songTitle || !artist || !userGear) {
+        const parsed = requestSchema.safeParse(await req.json());
+        if (!parsed.success) {
             return NextResponse.json(
-                { error: "Missing required fields" },
+                { error: "Missing or invalid fields", details: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`) },
                 { status: 400 }
             );
         }
+        const { songTitle, artist, userGear, instrument, partType, toneType } = parsed.data;
 
         // Normalize playing-context selections (sent from the tone-match UI)
         const playInstrument = instrument === "bass" ? "bass" : "guitar";
@@ -43,14 +62,16 @@ export async function POST(req: NextRequest) {
         // 0. Check Cache
         // Create a unique key based on inputs. Normalize strings to lowercase/trimmed.
         // Selections are part of the key so different choices don't collide on one result.
-        const cacheKey = `tone-match:v3:${JSON.stringify({
+        const cachePayload = JSON.stringify({
             song: songTitle.toLowerCase().trim(),
             artist: artist.toLowerCase().trim(),
             gear: userGear,
             instrument: playInstrument,
             part: playPart,
             tone: playTone
-        })}`;
+        });
+        // Hash keeps Redis keys bounded regardless of input length
+        const cacheKey = `tone-match:v4:${createHash("sha256").update(cachePayload).digest("hex")}`;
 
         const cachedResult = await redis.get(cacheKey);
         if (cachedResult) {

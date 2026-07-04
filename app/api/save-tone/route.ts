@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { canUserSaveTone } from "@/lib/subscription";
 
 
 export async function POST(req: NextRequest) {
@@ -12,10 +13,27 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // Enforce the plan's saved-tone limit
+        const { allowed, limit, used } = await canUserSaveTone(userId);
+        if (!allowed) {
+            return NextResponse.json(
+                {
+                    error: "Saved tone limit reached",
+                    limit,
+                    used,
+                    message: `You've saved ${used} of ${limit} tones on your plan. Upgrade to save more.`,
+                },
+                { status: 403 }
+            );
+        }
+
         const { songTitle, artist, userGear, settings } = await req.json();
 
         if (!settings) {
             return NextResponse.json({ error: "Missing settings data" }, { status: 400 });
+        }
+        if (typeof songTitle !== "string" || songTitle.length > 200 || (artist && (typeof artist !== "string" || artist.length > 120))) {
+            return NextResponse.json({ error: "Invalid song or artist" }, { status: 400 });
         }
 
         // 1. Ensure User Profile Exists

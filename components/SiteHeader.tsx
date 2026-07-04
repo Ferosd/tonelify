@@ -49,9 +49,8 @@ export function SiteHeader() {
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 color: "var(--tn-text-secondary)", padding: "8px",
-                display: "flex", alignItems: "center",
               }}
-              className="md:hidden"
+              className="flex items-center md:hidden"
             >
               <Menu size={22} />
             </button>
@@ -121,8 +120,8 @@ export function SiteHeader() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Tonelify" style={{ width: 48, height: 48, borderRadius: 10, objectFit: "contain", background: "transparent" }} />
           <span style={{
-            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
-            fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
+            fontFamily: "'Clash Display', sans-serif", fontWeight: 700,
+            fontSize: "1.4rem", color: "#F5A623", lineHeight: 1, letterSpacing: "-0.02em",
           }}>Tonelify</span>
         </Link>
 

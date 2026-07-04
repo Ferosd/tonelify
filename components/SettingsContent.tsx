@@ -28,7 +28,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
     return (
         <div className="min-h-screen bg-[#08080C]">
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#E8712A] to-[#9B5DE5] pb-20 pt-8 md:pt-10 px-4 md:px-8">
+            <div className="bg-gradient-to-r from-[#E8712A] to-[#D14B32] pb-20 pt-8 md:pt-10 px-4 md:px-8">
                 <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-white">
 
                     <div className="flex items-center gap-4 w-full md:w-auto">
@@ -235,7 +235,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                             <AccordionItem value="security" className="border border-white/8 rounded-xl bg-[#12121A] px-2">
                                 <AccordionTrigger className="hover:no-underline py-6 px-4">
                                     <div className="flex items-center gap-4 text-left">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#9B5DE5]/10 text-[#9B5DE5]">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5A623]/10 text-[#F5A623]">
                                             <Key className="h-5 w-5" />
                                         </div>
                                         <div>

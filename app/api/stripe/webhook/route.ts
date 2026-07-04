@@ -8,16 +8,20 @@ export async function POST(req: NextRequest) {
 
     let event: any;
 
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+        console.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not configured — rejecting event");
+        return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    }
+    if (!signature) {
+        return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
+    }
+
     try {
-        if (process.env.STRIPE_WEBHOOK_SECRET) {
-            event = stripe.webhooks.constructEvent(
-                body,
-                signature!,
-                process.env.STRIPE_WEBHOOK_SECRET
-            );
-        } else {
-            event = JSON.parse(body);
-        }
+        event = stripe.webhooks.constructEvent(
+            body,
+            signature,
+            process.env.STRIPE_WEBHOOK_SECRET
+        );
     } catch (err: any) {
         console.error("Webhook signature verification failed:", err.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });

@@ -31,9 +31,12 @@ const ampSettings = [
 ]
 
 const testimonials = [
-  { quote: "Finally nailed the Hendrix tone with my Squier Strat! The AI compensation for my gear was spot-on.", name: "John Martinez", role: "Hobbyist Guitarist" },
-  { quote: "Saved me hours of tweaking knobs. Enter the song, my gear, boom — instant results.",               name: "Sarah Chen",    role: "Covers Band"       },
-  { quote: "As a home studio producer, this is a game-changer for referencing classic tones.",                 name: "Mike Thompson", role: "Producer"          },
+  { quote: "Finally nailed the Hendrix tone with my Squier Strat. The compensation for my cheaper pickups was spot-on.", name: "John Martinez", role: "Hobbyist Guitarist",  gear: "Squier Strat · Champion 40" },
+  { quote: "Saved me hours of tweaking knobs. Enter the song, enter my gear — settings that actually sound right.",      name: "Sarah Chen",    role: "Covers Band",         gear: "PRS SE · Boss Katana 100"   },
+  { quote: "As a home studio producer, this is a game-changer for referencing classic tones fast.",                      name: "Mike Thompson", role: "Producer",            gear: "Les Paul Studio · Helix"    },
+  { quote: "The signal chain breakdowns taught me more about my rig than years of forum digging.",                       name: "Deniz Kaya",    role: "Bedroom Player",      gear: "Ibanez RG · Micro Terror"   },
+  { quote: "Dialed in a convincing SRV tone on a budget amp. I honestly didn't think that was possible.",                name: "Tom Weber",     role: "Blues Jam Regular",   gear: "Player Strat · Blues Junior" },
+  { quote: "Our second guitarist and I finally match live. We just copy the same settings before every show.",           name: "Aisha Brooks",  role: "Gigging Guitarist",   gear: "Tele Deluxe · JCM900"       },
 ]
 
 const badges           = ["1000+ songs", "Any gear", "Instant results", "Free to start"]
@@ -56,7 +59,7 @@ const expertFeatures = [
 // ── SHARED STYLES ─────────────────────────────────────────────────────────────
 
 const glass: React.CSSProperties = {
-  background: "rgba(20,20,24,0.75)",
+  background: "rgba(15,13,12,0.88)",
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)",
   border: "1px solid rgba(255,255,255,0.08)",
@@ -89,7 +92,7 @@ const gradientDivider: React.CSSProperties = {
   height: "1px",
   width: "60%",
   margin: "40px auto 0",
-  background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+  background: "linear-gradient(90deg, transparent, #E8712A, #D14B32, transparent)",
   opacity: 0.3,
 }
 
@@ -105,16 +108,16 @@ function CheckIcon() {
 
 function StepGuitarIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M9 18c-2.5 0-4.5-2-4.5-4.5S6.5 9 9 9c.8 0 1.6.2 2.2.6L17 4l3 3-5.4 5.8c.4.6.6 1.4.6 2.2C15.2 17.5 12.2 18 9 18z" />
-      <circle cx="9" cy="13.5" r="1" fill="#9B5DE5" />
+      <circle cx="9" cy="13.5" r="1" fill="#F5A623" />
     </svg>
   )
 }
 
 function StepSearchIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
       <path d="M9 9a2 2 0 0 1 2-2" />
@@ -124,7 +127,7 @@ function StepSearchIcon() {
 
 function StepSlidersIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="4" y1="6" x2="20" y2="6" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="18" x2="20" y2="18" />
@@ -224,8 +227,9 @@ export default function Home() {
 
     const resizeCanvas = () => {
       if (!canvas) return
-      canvas.width  = window.innerWidth
-      canvas.height = window.innerHeight
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas.width  = Math.round(window.innerWidth * dpr)
+      canvas.height = Math.round(window.innerHeight * dpr)
       const img = heroFramesRef.current[heroFrameIdxRef.current]
       if (img?.complete) drawCoverFrame(img)
     }
@@ -393,7 +397,7 @@ export default function Home() {
       })
       gsap.to(s6Ref.current, {
         opacity: 0, ease: "none",
-        scrollTrigger: { trigger: wrapperRef.current, start: "86% top", end: "88% top", scrub: true },
+        scrollTrigger: { trigger: wrapperRef.current, start: "90% top", end: "93% top", scrub: true },
       })
 
     })
@@ -425,7 +429,7 @@ export default function Home() {
           --tn-accent-bright:  #FFD700;
           --tn-glow:           rgba(245,166,35,0.15);
           --tn-text-primary:   #F2F2F7;
-          --tn-text-secondary: #8E8E93;
+          --tn-text-secondary: #A6A6AF;
           --tn-gradient:       linear-gradient(135deg, #F5A623 0%, #FF6B35 50%, #E8912D 100%);
           --font-display:      'Clash Display', sans-serif;
           --font-body:         'General Sans', sans-serif;
@@ -486,10 +490,10 @@ export default function Home() {
         .tn-nav-link:hover { opacity: 1; }
 
         .step-card {
-          background: rgba(18,18,26,0.6);
+          background: rgba(20,17,15,0.6);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(155,93,229,0.12);
+          border: 1px solid rgba(245,166,35,0.12);
           border-radius: 16px;
           padding: 32px;
           position: relative;
@@ -499,14 +503,14 @@ export default function Home() {
           flex-direction: column;
         }
         .step-card:hover {
-          border-color: rgba(155,93,229,0.3);
+          border-color: rgba(245,166,35,0.3);
           transform: translateY(-4px);
         }
         .step-num {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
           font-size: 3rem;
-          background: linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%);
+          background: linear-gradient(135deg, #E8712A 0%, #D14B32 100%);
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -541,7 +545,7 @@ export default function Home() {
         }
 
         .tone-card {
-          background: rgba(20,20,28,0.7);
+          background: rgba(22,18,16,0.78);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border: 1px solid rgba(255,255,255,0.07);
@@ -555,11 +559,11 @@ export default function Home() {
         }
         .tone-card:hover {
           transform: scale(1.05);
-          border-color: rgba(155,93,229,0.3);
+          border-color: rgba(245,166,35,0.3);
           box-shadow: 0 0 30px rgba(232,113,42,0.15);
         }
         .testimonial-card:hover {
-          border-color: rgba(155,93,229,0.35);
+          border-color: rgba(245,166,35,0.35);
           transform: translateY(-2px);
         }
 
@@ -637,8 +641,8 @@ export default function Home() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Tonelify" style={{ width: 48, height: 48, borderRadius: 10, objectFit: "contain", background: "transparent" }} />
           <span style={{
-            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
-            fontSize: "1.4rem", color: "#E8712A", lineHeight: 1,
+            fontFamily: "'Clash Display', sans-serif", fontWeight: 700,
+            fontSize: "1.4rem", color: "#F5A623", lineHeight: 1, letterSpacing: "-0.02em",
           }}>Tonelify</span>
         </Link>
         <div className="tn-nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
@@ -686,10 +690,10 @@ export default function Home() {
         <div style={{ position: "sticky", top: 0, height: "100dvh", overflow: "hidden" }}>
 
           {/* Canvas */}
-          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#08080A" }} />
+          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#08080A url('/frames/frame_0001.jpg') right center / cover no-repeat" }} />
 
           {/* Hidden video — AI ENGINE scroll-sync */}
-          <video ref={videoRef} src="/video.mp4" muted playsInline preload="auto" style={{ display: "none" }} />
+          <video ref={videoRef} src="/video.mp4" muted playsInline preload="metadata" style={{ display: "none" }} />
 
           {/* Left vignette */}
           <div aria-hidden="true" style={{
@@ -717,7 +721,7 @@ export default function Home() {
             </h1>
             <p style={{
               fontFamily: "'General Sans', sans-serif", fontSize: "1.0625rem",
-              lineHeight: 1.65, color: "#8E8E93",
+              lineHeight: 1.65, color: "#A6A6AF",
               maxWidth: "380px", margin: "0 0 32px",
             }}>
               Match any legendary tone to your exact gear. Precise amp settings in seconds.
@@ -730,7 +734,7 @@ export default function Home() {
               {badges.map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
                   <CheckIcon />
-                  <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93" }}>
+                  <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#A6A6AF" }}>
                     {label}
                   </span>
                 </div>
@@ -752,13 +756,13 @@ export default function Home() {
           {/* ── S1.5 TRENDING TONES — solid breaker ── */}
           <div ref={sTrendRef} style={{
             position: "absolute", inset: 0, zIndex: 5, opacity: 0, pointerEvents: "none",
-            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+            background: "linear-gradient(180deg, #100D0B 0%, #1A100C 50%, #100D0B 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 clamp(24px, 7vw, 96px)",
           }}>
             <div aria-hidden="true" style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.07) 0%, transparent 60%)",
+              background: "radial-gradient(circle at 50% 30%, rgba(245,166,35,0.07) 0%, transparent 60%)",
             }} />
             <div style={{ maxWidth: "1060px", width: "100%", position: "relative", pointerEvents: "auto" }}>
               <div style={{ textAlign: "center", marginBottom: "44px" }}>
@@ -825,13 +829,13 @@ export default function Home() {
           {/* ── S2 HOW IT WORKS — solid breaker ── */}
           <div ref={s2Ref} style={{
             position: "absolute", inset: 0, zIndex: 20, opacity: 0, pointerEvents: "none",
-            background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+            background: "linear-gradient(180deg, #100D0B 0%, #1A100C 50%, #100D0B 100%)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             padding: "120px clamp(24px, 7vw, 96px)",
           }}>
             <div aria-hidden="true" style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 50% 30%, rgba(155,93,229,0.08) 0%, transparent 60%)",
+              background: "radial-gradient(circle at 50% 30%, rgba(245,166,35,0.08) 0%, transparent 60%)",
             }} />
             <div style={{ maxWidth: "940px", width: "100%", pointerEvents: "auto", position: "relative" }}>
               <div style={{ textAlign: "center", marginBottom: "56px" }}>
@@ -843,7 +847,7 @@ export default function Home() {
                   <div key={step.n} ref={(el) => { stepRefs.current[i] = el }} className="step-card">
                     <div aria-hidden="true" style={{
                       position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-                      background: "linear-gradient(90deg, #E8712A 0%, #9B5DE5 100%)",
+                      background: "linear-gradient(90deg, #E8712A 0%, #D14B32 100%)",
                     }} />
                     <div style={{ marginBottom: "12px" }}>{stepIcons[i]}</div>
                     <div className="step-num">{step.n}</div>
@@ -855,7 +859,7 @@ export default function Home() {
                     </h3>
                     <p style={{
                       fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem",
-                      lineHeight: 1.65, color: "#8E8E93", margin: 0,
+                      lineHeight: 1.65, color: "#A6A6AF", margin: 0,
                     }}>
                       {step.desc}
                     </p>
@@ -894,7 +898,7 @@ export default function Home() {
                   </h3>
                   <p style={{
                     fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem",
-                    lineHeight: 1.65, color: "#8E8E93", margin: 0,
+                    lineHeight: 1.65, color: "#A6A6AF", margin: 0,
                   }}>
                     {f.desc}
                   </p>
@@ -921,7 +925,7 @@ export default function Home() {
               </h2>
               <p style={{
                 fontFamily: "'General Sans', sans-serif", fontSize: "1.0625rem",
-                lineHeight: 1.65, color: "#8E8E93", margin: "0 0 32px",
+                lineHeight: 1.65, color: "#A6A6AF", margin: "0 0 32px",
               }}>
                 Frequency response, harmonic content, pickup characteristics — matched against thousands of real amp profiles.
               </p>
@@ -964,7 +968,7 @@ export default function Home() {
                   key={lbl}
                   ref={(el) => { ampCardRefs.current[i] = el }}
                   style={{
-                    background: "rgba(20,20,24,0.82)",
+                    background: "rgba(15,13,12,0.9)",
                     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
                     border: "1px solid rgba(255,255,255,0.08)",
                     borderRadius: "16px", padding: "28px 24px",
@@ -995,7 +999,7 @@ export default function Home() {
                   <div style={{
                     fontFamily: "'General Sans', sans-serif", fontWeight: 500,
                     fontSize: "0.6875rem", textTransform: "uppercase",
-                    letterSpacing: "0.12em", color: "#8E8E93",
+                    letterSpacing: "0.12em", color: "#A6A6AF",
                   }}>
                     {lbl}
                   </div>
@@ -1025,7 +1029,7 @@ export default function Home() {
               flexWrap: "wrap", justifyContent: "center", pointerEvents: "auto",
             }}>
               <Link href="/sign-up" className="cta-btn">Try It Free</Link>
-              <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#8E8E93" }}>
+              <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#A6A6AF" }}>
                 No credit card required
               </span>
             </div>
@@ -1037,7 +1041,7 @@ export default function Home() {
       {/* Divider: after sticky scroll */}
       <div style={{
         height: "1px", width: "60%", margin: "0 auto",
-        background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+        background: "linear-gradient(90deg, transparent, #E8712A, #D14B32, transparent)",
         opacity: 0.3,
       }} />
 
@@ -1052,7 +1056,7 @@ export default function Home() {
         {/* Bottom gradient layer */}
         <div aria-hidden="true" style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+          background: "linear-gradient(135deg, #E8712A 0%, #D14B32 100%)",
         }} />
         {/* Frosted glass overlay */}
         <div aria-hidden="true" style={{
@@ -1070,13 +1074,13 @@ export default function Home() {
         {/* Top border line */}
         <div aria-hidden="true" style={{
           position: "absolute", top: 0, left: "20%", right: "20%", height: "1px",
-          background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+          background: "linear-gradient(90deg, transparent, #E8712A, #D14B32, transparent)",
           opacity: 0.3,
         }} />
         {/* Bottom border line */}
         <div aria-hidden="true" style={{
           position: "absolute", bottom: 0, left: "20%", right: "20%", height: "1px",
-          background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+          background: "linear-gradient(90deg, transparent, #E8712A, #D14B32, transparent)",
           opacity: 0.3,
         }} />
 
@@ -1088,7 +1092,7 @@ export default function Home() {
 
           {/* Monthly / Annual toggle */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "14px", marginBottom: "40px" }}>
-            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#8E8E93" }}>Monthly</span>
+            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#A6A6AF" }}>Monthly</span>
             <button
               onClick={() => setBillingCycle(c => c === "monthly" ? "annual" : "monthly")}
               aria-label="Toggle billing cycle"
@@ -1107,7 +1111,7 @@ export default function Home() {
                 display: "block",
               }} />
             </button>
-            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#8E8E93" }}>Annual</span>
+            <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#A6A6AF" }}>Annual</span>
             <span style={{
               fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.75rem",
               background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
@@ -1115,38 +1119,38 @@ export default function Home() {
               transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
               transition: "opacity 0.25s, transform 0.25s",
               display: "inline-block",
-            }}>Save 20%</span>
+            }}>Save up to 58%</span>
           </div>
 
           <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
 
             {/* BEGINNER */}
             <div className="js-pricing-card" style={{
-              background: "rgba(18,18,26,0.85)",
+              background: "rgba(20,17,15,0.85)",
               backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
               border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "36px",
             }}>
               <div style={{
                 fontFamily: "'General Sans', sans-serif", fontWeight: 500,
                 fontSize: "0.75rem", textTransform: "uppercase",
-                letterSpacing: "0.1em", color: "#8E8E93", marginBottom: "16px",
+                letterSpacing: "0.1em", color: "#A6A6AF", marginBottom: "16px",
               }}>Beginner</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                   fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? "$5.99" : "$4.99"}</span>
-                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
+                }}>{billingCycle === "monthly" ? "$5.99" : "$2.50"}</span>
+                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
               </div>
               <div style={{
-                fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
+                fontFamily: "'General Sans', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
               }}>7-day free trial</div>
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
                 {beginnerFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
                     <CheckIcon />
-                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
+                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -1155,10 +1159,10 @@ export default function Home() {
 
             {/* EXPERT */}
             <div className="js-pricing-card" style={{
-              background: "rgba(18,18,26,0.85)",
+              background: "rgba(20,17,15,0.85)",
               backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
               border: "1px solid #E8712A",
-              boxShadow: "0 0 40px rgba(155,93,229,0.2)",
+              boxShadow: "0 0 40px rgba(245,166,35,0.2)",
               borderRadius: "16px", padding: "36px",
               transform: "translateY(-20px)",
             }}>
@@ -1179,25 +1183,25 @@ export default function Home() {
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                   fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? "$9.99" : "$7.99"}</span>
-                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9375rem" }}>/month</span>
+                }}>{billingCycle === "monthly" ? "$9.99" : "$3.75"}</span>
+                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
               </div>
               <div style={{
-                fontFamily: "'General Sans', sans-serif", color: "#8E8E93",
+                fontFamily: "'General Sans', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
               }}>7-day free trial</div>
               <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
                 {expertFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
                     <CheckIcon />
-                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#8E8E93", fontSize: "0.9rem" }}>{f}</span>
+                    <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
                   </div>
                 ))}
               </div>
               <Link href="/plans" style={{
                 display: "block", textAlign: "center",
                 padding: "14px 32px",
-                background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                background: "linear-gradient(135deg, #E8712A 0%, #D14B32 100%)",
                 color: "#08080C",
                 fontFamily: "'General Sans', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
                 borderRadius: "12px", textDecoration: "none",
@@ -1212,7 +1216,7 @@ export default function Home() {
       {/* ── S8 TESTIMONIALS — static section ── */}
       <section ref={s8Ref} style={{
         padding: "100px clamp(24px, 7vw, 96px)",
-        background: "linear-gradient(180deg, #0F0F18 0%, #1A0F2E 50%, #0F0F18 100%)",
+        background: "linear-gradient(180deg, #100D0B 0%, #1A100C 50%, #100D0B 100%)",
         position: "relative",
         zIndex: 20,
       }}>
@@ -1222,12 +1226,12 @@ export default function Home() {
             {testimonials.map((t) => (
               <div key={t.name} className="js-testimonial testimonial-card" style={{
                 flex: "1 1 300px",
-                background: "rgba(18,18,26,0.7)",
+                background: "rgba(20,17,15,0.7)",
                 backdropFilter: "blur(16px)",
                 WebkitBackdropFilter: "blur(16px)",
                 borderRadius: 16,
                 padding: 32,
-                border: "1px solid rgba(155,93,229,0.1)",
+                border: "1px solid rgba(245,166,35,0.1)",
                 position: "relative",
                 transition: "border-color 0.2s, transform 0.2s",
               }}>
@@ -1243,16 +1247,16 @@ export default function Home() {
                   ))}
                 </div>
                 <p style={{
-                  fontFamily: "'Inter Tight', sans-serif", fontWeight: 400,
+                  fontFamily: "'General Sans', sans-serif", fontWeight: 400,
                   fontSize: "0.95rem", color: "#F2F0ED", lineHeight: 1.6,
-                  fontStyle: "italic", margin: "0 0 20px",
+                  margin: "0 0 20px",
                 }}>
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: 20 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, #E8712A 0%, #9B5DE5 100%)",
+                    background: "linear-gradient(135deg, #E8712A 0%, #D14B32 100%)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
                     fontSize: "15px", color: "#FFFFFF",
@@ -1260,11 +1264,14 @@ export default function Home() {
                     {getInitials(t.name)}
                   </div>
                   <div>
-                    <div style={{ fontFamily: "'Inter Tight', sans-serif", fontWeight: 600, fontSize: "0.9rem", color: "#FFFFFF" }}>
+                    <div style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.9rem", color: "#FFFFFF" }}>
                       {t.name}
                     </div>
-                    <div style={{ fontFamily: "'Inter Tight', sans-serif", fontWeight: 400, fontSize: "0.8rem", color: "#8A8494" }}>
+                    <div style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 400, fontSize: "0.8rem", color: "#8A8494" }}>
                       {t.role}
+                    </div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, fontSize: "0.7rem", color: "#F5A623", marginTop: "4px", letterSpacing: "0.02em" }}>
+                      {t.gear}
                     </div>
                   </div>
                 </div>
@@ -1277,13 +1284,13 @@ export default function Home() {
       {/* Divider: before Gear strip */}
       <div style={{
         height: "1px", width: "60%", margin: "0 auto",
-        background: "linear-gradient(90deg, transparent, #E8712A, #9B5DE5, transparent)",
+        background: "linear-gradient(90deg, transparent, #E8712A, #D14B32, transparent)",
         opacity: 0.3,
       }} />
 
       {/* ── GEAR COMPATIBILITY — normal flow ── */}
       <section style={{
-        background: "rgba(18,18,26,0.5)", padding: "40px 0",
+        background: "rgba(20,17,15,0.5)", padding: "40px 0",
         position: "relative", zIndex: 10, overflow: "hidden",
       }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
@@ -1322,7 +1329,7 @@ export default function Home() {
                 <div style={{ fontFamily: "'Clash Display', sans-serif", fontWeight: 600, fontSize: "0.9375rem", color: "#F2F2F7", marginBottom: "4px" }}>
                   {title}
                 </div>
-                <div style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93" }}>
+                <div style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#A6A6AF" }}>
                   {sub}
                 </div>
               </div>
@@ -1342,16 +1349,16 @@ export default function Home() {
                 fontSize: "1.5rem", color: "#F5A623",
                 textDecoration: "none", display: "block", marginBottom: "14px", letterSpacing: "-0.02em",
               }}>Tonelify</Link>
-              <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem", lineHeight: 1.7, color: "#8E8E93", maxWidth: "280px", margin: "0 0 20px" }}>
+              <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem", lineHeight: 1.7, color: "#A6A6AF", maxWidth: "280px", margin: "0 0 20px" }}>
                 Gear-matched guitar tone settings for musicians worldwide.
               </p>
-              <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#8E8E93", opacity: 0.5, margin: 0 }}>
+              <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#A6A6AF", opacity: 0.5, margin: 0 }}>
                 © 2026 Tonelify. All rights reserved.
               </p>
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#8E8E93", margin: "0 0 20px" }}>
+              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Quick Links
               </h4>
               {([["Home", "/"], ["Match Tones", "/tone-match"], ["Collection", "/collection"], ["Plans", "/plans"], ["Dashboard", "/dashboard"], ["Settings", "/settings"]] as const).map(([text, href]) => (
@@ -1364,7 +1371,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#8E8E93", margin: "0 0 20px" }}>
+              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Support
               </h4>
               <div style={{ marginBottom: "12px" }}>
@@ -1375,7 +1382,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#8E8E93", margin: "0 0 20px" }}>
+              <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Legal
               </h4>
               {([["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]] as const).map(([text, href]) => (

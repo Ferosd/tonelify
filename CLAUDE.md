@@ -1,5 +1,13 @@
 # TONELIFY REDESIGN
 
+## Palet Güncellemesi (2026-07)
+- Mor (#9B5DE5) tamamen kaldırıldı; ikincil vurgu artık kor kırmızısı: #D14B32
+- Gradyanlar amber→kor: linear-gradient(135deg, #E8712A 0%, #D14B32 100%)
+- Koyu ara-section zeminleri sıcak tonlara çekildi: #100D0B / #1A100C
+- İkincil metin kontrastı yükseltildi: #A6A6AF (landing) / #A6A29B (app token)
+- Yeşil/emerald vurgular amber ailesine dönüştürüldü (#F5A623 / #FFD700)
+- Wordmark her yerde Clash Display 700, #F5A623
+
 ## Marka Kimliği
 - Clash Display başlıklar (https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap)
 - General Sans body (https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600&display=swap)

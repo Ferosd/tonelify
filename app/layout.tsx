@@ -78,7 +78,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#F5A623",
+          colorBackground: "#141418",
+          colorInputBackground: "#1A1A20",
+          colorText: "#F2F2F7",
+          colorTextSecondary: "#A6A29B",
+          colorInputText: "#F2F2F7",
+          colorNeutral: "#F2F2F7",
+          borderRadius: "12px",
+        },
+        elements: {
+          card: { backgroundColor: "#141418", border: "1px solid rgba(255,255,255,0.08)" },
+          footer: { background: "#101014" },
+        },
+      }}
+    >
       <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="preconnect" href="https://api.fontshare.com" />

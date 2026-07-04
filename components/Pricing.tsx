@@ -89,7 +89,7 @@ export function Pricing() {
                         <Sparkles className="h-3 w-3" />
                         Simple, transparent pricing
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
+                    <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
                         Choose your plan
                     </h2>
                     <p className="text-[#8A8494] text-lg max-w-xl mx-auto">
@@ -122,8 +122,8 @@ export function Pricing() {
                         >
                             Annual
                         </button>
-                        <span className="ml-2 bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm whitespace-nowrap">
-                            Insane Deal!
+                        <span className="ml-2 bg-[#F5A623]/15 text-[#F5A623] border border-[#F5A623]/30 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
+                            Save up to 58%
                         </span>
                     </div>
                 </div>
@@ -166,7 +166,7 @@ export function Pricing() {
 
                             {/* Price */}
                             <div className="mt-4 flex items-baseline gap-x-1.5">
-                                <span className="text-4xl sm:text-5xl font-black tracking-tight text-[#F2F0ED]">
+                                <span className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-[#F2F0ED]">
                                     {annual ? plan.price.annual : plan.price.monthly}
                                 </span>
                                 <span className="text-lg font-bold text-[#8A8494]">/mo</span>

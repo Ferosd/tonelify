@@ -13,6 +13,11 @@ export interface UserSubscription {
 
 // Free tier defaults (no subscription)
 const FREE_MATCH_LIMIT = 3;
+const FREE_SAVED_TONE_LIMIT = 3;
+
+// Grace period after current_period_end before an "active" subscription
+// is treated as expired (covers missed/delayed webhooks)
+const EXPIRY_GRACE_MS = 3 * 24 * 60 * 60 * 1000;
 
 // Get current month string (e.g. "2026-02")
 function getCurrentMonth(): string {
@@ -31,10 +36,14 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
 
     const plan = (sub?.plan as PlanId) || null;
 
-    // Check if subscription is expired
+    // Check if subscription is expired.
+    // Non-active subs expire right at period end; "active" subs get a short
+    // grace window so a missed renewal webhook doesn't grant access forever.
     if (sub && sub.current_period_end) {
         const endDate = new Date(sub.current_period_end);
-        if (endDate < new Date() && sub.status !== "active") {
+        const pastPeriodEnd = endDate < new Date();
+        const pastGrace = endDate.getTime() + EXPIRY_GRACE_MS < Date.now();
+        if ((pastPeriodEnd && sub.status !== "active") || pastGrace) {
             // Subscription expired, downgrade to free
             await getSupabaseAdmin()
                 .from("user_subscriptions")
@@ -117,9 +126,36 @@ export async function canUserMatch(userId: string): Promise<{ allowed: boolean; 
     return { allowed, subscription };
 }
 
+// Check if user can save another tone (enforces plan savedToneLimit)
+export async function canUserSaveTone(userId: string): Promise<{ allowed: boolean; limit: number; used: number }> {
+    const subscription = await getUserSubscription(userId);
+
+    const planLimit = subscription.plan === "free"
+        ? FREE_SAVED_TONE_LIMIT
+        : PLANS[subscription.plan as PlanId]?.savedToneLimit ?? FREE_SAVED_TONE_LIMIT;
+
+    if (planLimit === Infinity) {
+        return { allowed: true, limit: -1, used: 0 };
+    }
+
+    const { count } = await getSupabaseAdmin()
+        .from("tone_matches")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+
+    const used = count ?? 0;
+    return { allowed: used < planLimit, limit: planLimit as number, used };
+}
+
 // Increment match usage
 export async function incrementMatchUsage(userId: string): Promise<void> {
     const month = getCurrentMonth();
+
+    // Prefer the atomic DB function (see scripts/sql/increment_match_usage.sql);
+    // fall back to read-modify-write if it isn't installed yet.
+    const { error: rpcError } = await getSupabaseAdmin()
+        .rpc("increment_match_usage", { p_user_id: userId, p_month: month });
+    if (!rpcError) return;
 
     const { data: existing } = await getSupabaseAdmin()
         .from("match_usage")
