@@ -74,18 +74,21 @@ export function ExploreContent() {
     const [partFilter, setPartFilter] = useState<PartFilter>("All")
     const [query, setQuery] = useState("")
 
-    // Resolve album covers via the cached search API; persist in localStorage
+    // Resolve album covers via the cached search API; persist in localStorage.
+    // Runs after paint (setTimeout) so hydration renders the gradient fallbacks first.
     useEffect(() => {
         let cancelled = false
-        const cached: Record<string, string> = (() => {
-            try { return JSON.parse(localStorage.getItem(COVER_CACHE_KEY) || "{}") } catch { return {} }
-        })()
-        setCovers(cached)
 
-        const missing = TONE_LIBRARY.filter((t) => !cached[t.id])
-        if (missing.length === 0) return
+        const timer = setTimeout(async () => {
+            const cached: Record<string, string> = (() => {
+                try { return JSON.parse(localStorage.getItem(COVER_CACHE_KEY) || "{}") } catch { return {} }
+            })()
+            if (cancelled) return
+            if (Object.keys(cached).length > 0) setCovers(cached)
 
-        async function load() {
+            const missing = TONE_LIBRARY.filter((t) => !cached[t.id])
+            if (missing.length === 0) return
+
             const next = { ...cached }
             for (const tone of missing) {
                 if (cancelled) return
@@ -103,9 +106,9 @@ export function ExploreContent() {
                 }
             }
             try { localStorage.setItem(COVER_CACHE_KEY, JSON.stringify(next)) } catch { }
-        }
-        load()
-        return () => { cancelled = true }
+        }, 0)
+
+        return () => { cancelled = true; clearTimeout(timer) }
     }, [])
 
     const filtered = useMemo(() => {
@@ -178,7 +181,7 @@ export function ExploreContent() {
             {/* Not here? CTA */}
             <div className="text-center pt-4 pb-8">
                 <p className="text-sm text-[#8A8494]">
-                    Don't see your song?{" "}
+                    Don&apos;t see your song?{" "}
                     <Link href="/tone-match" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">
                         Research any tone with AI →
                     </Link>
