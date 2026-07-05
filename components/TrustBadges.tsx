@@ -23,7 +23,7 @@ export function TrustBadges() {
         {
             id: 4,
             icon: Globe,
-            title: "35,000+ Users",
+            title: "1,000+ Users",
             subtitle: "Trusted worldwide"
         }
     ];

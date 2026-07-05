@@ -39,7 +39,7 @@ const testimonials = [
   { quote: "Our second guitarist and I finally match live. We just copy the same settings before every show.",           name: "Aisha Brooks",  role: "Gigging Guitarist",   gear: "Tele Deluxe · JCM900"       },
 ]
 
-const badges           = ["1000+ songs", "Any gear", "Instant results", "Free to start"]
+const badges           = ["Any song", "Any gear", "Instant results", "Free to start"]
 const beginnerFeatures = [
   "20 custom tone adaptations per month",
   "15 saved tones",
@@ -159,7 +159,7 @@ const trustItems = [
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
-    title: "35,000+ Users", sub: "Trusted worldwide",
+    title: "1,000+ Users", sub: "Trusted worldwide",
   },
 ]
 
@@ -776,7 +776,7 @@ export default function Home() {
                   fontFamily: "'General Sans', sans-serif", fontSize: "0.85rem",
                   color: "#8A8494", marginTop: "8px", marginBottom: 0,
                 }}>
-                  Matched by 35,000+ guitarists this week
+                  Matched by 1,000+ guitarists
                 </p>
               </div>
               <div className="tn-tone-grid" style={{

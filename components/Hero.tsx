@@ -78,7 +78,7 @@ export function Hero() {
                     <div className="flex flex-wrap justify-center gap-4">
                         <div className="flex items-center gap-2 px-5 py-2 bg-white border border-slate-200 rounded-full shadow-sm text-sm font-semibold text-slate-600">
                             <Users className="h-4 w-4 text-blue-500" />
-                            Join 35k guitarists
+                            Join 1,000+ guitarists
                         </div>
                         <div className="flex items-center gap-2 px-5 py-2 bg-green-50 border border-green-100 rounded-full shadow-sm text-sm font-semibold text-green-700">
                             <span className="relative flex h-2 w-2">

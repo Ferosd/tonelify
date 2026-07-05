@@ -11,7 +11,7 @@ export function CTA() {
                             Ready to Stop Guessing Your Settings?
                         </h2>
                         <p className="mx-auto max-w-[600px] text-slate-600 dark:text-slate-400 md:text-xl">
-                            Join thousands of guitarists who are already matching legendary tones with their gear.
+                            Join 1,000+ guitarists who are already matching legendary tones with their gear.
                         </p>
                     </div>
                     <div className="flex flex-col w-full max-w-sm gap-4 mt-8">

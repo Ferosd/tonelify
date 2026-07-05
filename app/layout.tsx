@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | Tonelify",
   },
   description:
-    "Dial in legendary guitar tones for your exact amp, guitar, and pickups. Join 35,000+ guitarists getting perfect settings in seconds.",
+    "Dial in legendary guitar tones for your exact amp, guitar, and pickups. Join 1,000+ guitarists getting perfect settings in seconds.",
   keywords: [
     "guitar tone",
     "tone matching",
