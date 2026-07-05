@@ -3,6 +3,7 @@ import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalSiteHeader } from "@/components/ConditionalSiteHeader";
+import { MobileTabBar } from "@/components/MobileTabBar";
 import Script from 'next/script';
 
 export const metadata: Metadata = {
@@ -62,7 +63,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://tonelify.com",
+    canonical: "/",
   },
   icons: {
     icon: "/favicon.ico",
@@ -128,6 +129,7 @@ export default function RootLayout({
           >
             <ConditionalSiteHeader />
             {children}
+            <MobileTabBar />
           </ThemeProvider>
         </body>
       </html>

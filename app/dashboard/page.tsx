@@ -14,6 +14,13 @@ import { getUserSubscription } from "@/lib/subscription";
 export const metadata: Metadata = {
     title: "Collection — Your Saved Tones & Equipment",
     description: "View your matched tones, saved equipment profiles, and subscription status on Tonelify.",
+    alternates: {
+        canonical: "/dashboard",
+    },
+    robots: {
+        index: false,
+        follow: true,
+    },
 };
 
 export default async function Dashboard() {

@@ -19,7 +19,7 @@ const rankColors = [
     "text-[#A6A29B] border-white/10 bg-white/5",
 ]
 
-export function TrendingTones() {
+export function TrendingTones({ onSelect }: { onSelect?: (title: string, artist: string) => void }) {
     return (
         <div className="w-full space-y-6 md:space-y-8 text-center mb-8 md:mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="space-y-2 flex flex-col items-center">
@@ -36,6 +36,10 @@ export function TrendingTones() {
                 {trendingTones.map((tone, i) => (
                     <div
                         key={tone.rank}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onSelect?.(tone.title, tone.artist)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect?.(tone.title, tone.artist) } }}
                         className="flex-none w-[220px] md:w-[260px] p-3 md:p-4 flex items-center gap-3 md:gap-4 rounded-xl border border-white/8 bg-[#12121A]/80 backdrop-blur-md hover:border-[#F5A623]/30 hover:-translate-y-1 hover:shadow-[0_0_24px_rgba(245,166,35,0.08)] transition-[transform,border-color,box-shadow] cursor-pointer group"
                     >
                         <div className={`h-12 w-12 flex-none rounded-xl border flex items-center justify-center font-mono font-bold text-lg transition-transform group-hover:scale-110 ${rankColors[i]}`}>

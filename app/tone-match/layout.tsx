@@ -9,6 +9,9 @@ export const metadata: Metadata = {
         description:
             "Match any legendary guitar tone to your specific gear. Get AI-powered amp settings instantly.",
     },
+    alternates: {
+        canonical: "/tone-match",
+    },
 };
 
 export default function ToneMatchLayout({

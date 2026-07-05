@@ -4,6 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
     title: "Terms of Service",
     description: "Tonelify Terms of Service — rules and guidelines for using our platform.",
+    alternates: {
+        canonical: "/terms",
+    },
 };
 
 export default function TermsPage() {

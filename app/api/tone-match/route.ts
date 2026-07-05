@@ -164,6 +164,8 @@ export async function POST(req: NextRequest) {
           "tone": "0-10"
         },
         "amp": {
+          "mode": "Amp voicing/mode ONLY if the user's amp has selectable voicings (e.g. 'Brown' on a Boss Katana, 'Modern' on a Mesa). Omit or null otherwise.",
+          "channel": "Amp channel ONLY if the user's amp has multiple channels (e.g. 'Dirty', 'Lead', 'OD2'). Omit or null otherwise.",
           "gain": "0-10",
           "bass": "0-10",
           "middle": "0-10",

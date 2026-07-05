@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap, RefreshCw, ThumbsUp, ThumbsDown } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -62,6 +62,17 @@ export default function ToneMatchPage() {
             .catch(() => { })
     }, [user])
 
+    // Fetch the user's saved gear rigs so presets reflect their real equipment
+    useEffect(() => {
+        if (!user) return
+        fetch("/api/equipment")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (Array.isArray(d)) setSavedRigs(d)
+            })
+            .catch(() => { })
+    }, [user])
+
     // Form State
     const [songTitle, setSongTitle] = useState("")
     const [artist, setArtist] = useState("")
@@ -69,6 +80,7 @@ export default function ToneMatchPage() {
 
     // Step 1: Gear State
     const [preset, setPreset] = useState("manual")
+    const [savedRigs, setSavedRigs] = useState<any[]>([])
     const [userGuitar, setUserGuitar] = useState("")
     const [userAmp, setUserAmp] = useState("")
     const [goingDirect, setGoingDirect] = useState(false)
@@ -85,20 +97,33 @@ export default function ToneMatchPage() {
     const [error, setError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+    const [feedback, setFeedback] = useState<"up" | "down" | null>(null)
 
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [isSearching, setIsSearching] = useState(false)
     const debouncedSongTitle = useDebounce(songTitle, 500)
 
-    // Load state from localStorage on mount
+    // Prefill song/artist from a tone card, scroll to the form
+    const selectTone = (title: string, toneArtist: string) => {
+        setSongTitle(title)
+        setArtist(toneArtist)
+        setIsSearching(false)
+        setSearchResults([])
+        document.getElementById("song")?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+
+    // Load state from localStorage on mount (URL params win, e.g. /tone-match?song=...&artist=... from Explore)
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlSong = params.get("song");
+        const urlArtist = params.get("artist");
         const savedState = localStorage.getItem("toneMatchState");
         if (savedState) {
             try {
                 const parsed = JSON.parse(savedState);
-                setSongTitle(parsed.songTitle || "");
-                setArtist(parsed.artist || "");
+                setSongTitle(urlSong || parsed.songTitle || "");
+                setArtist(urlArtist || parsed.artist || "");
                 setInstrument(parsed.instrument || "guitar");
                 setPreset(parsed.preset || "manual");
                 setUserGuitar(parsed.userGuitar || "");
@@ -111,6 +136,9 @@ export default function ToneMatchPage() {
             } catch (e) {
                 console.error("Failed to parse saved state", e);
             }
+        } else {
+            if (urlSong) setSongTitle(urlSong);
+            if (urlArtist) setArtist(urlArtist);
         }
     }, []);
 
@@ -151,21 +179,16 @@ export default function ToneMatchPage() {
         search();
     }, [debouncedSongTitle, isSearching]);
 
-    // Handle Preset Selection
+    // Handle Preset Selection — presets are the user's real saved rigs from Collection
     const handlePresetChange = (value: string) => {
         setPreset(value)
-        if (value === "preset1") {
-            setUserGuitar("Fender Stratocaster")
-            setUserAmp("Fender Twin Reverb")
-            setGoingDirect(false)
-            setUserEffects("Tube Screamer, Compressor")
-            setEffectsType("pedals")
-        } else if (value === "preset2") {
-            setUserGuitar("Gibson Les Paul")
-            setUserAmp("Marshall JCM800")
-            setGoingDirect(false)
-            setUserEffects("Wah, Delay, Reverb")
-            setEffectsType("pedals")
+        if (value.startsWith("rig-")) {
+            const rig = savedRigs.find((r) => `rig-${r.id}` === value)
+            if (rig) {
+                setUserGuitar(rig.guitar_model || "")
+                setUserAmp(rig.amp_model || "")
+                setGoingDirect(false)
+            }
         } else {
             // Manual - optional: clear fields or keep as is
             setUserGuitar("")
@@ -180,6 +203,7 @@ export default function ToneMatchPage() {
         setError(null)
         setResult(null)
         setIsSaved(false)
+        setFeedback(null)
 
         try {
             const response = await fetch("/api/tone-match", {
@@ -251,10 +275,11 @@ export default function ToneMatchPage() {
         const g = result.suggestedSettings?.guitar || {}
         const mids = a.middle ?? a.mid
         const match = typeof result.confidenceScore === "number" ? ` · ${Math.round(result.confidenceScore)}% match` : ""
+        const modeChannel = [a.mode ? `Mode ${a.mode}` : "", a.channel ? `Channel ${a.channel}` : ""].filter(Boolean).join(" · ")
         return [
             `🎸 ${songTitle || "Tone"}${artist ? " – " + artist : ""} (via Tonelify${match})`,
             ``,
-            `AMP — Gain ${a.gain} · Bass ${a.bass} · Mids ${mids} · Treble ${a.treble} · Presence ${a.presence ?? "-"} · Reverb ${a.reverb ?? "-"}`,
+            `AMP — ${modeChannel ? modeChannel + " · " : ""}Gain ${a.gain} · Bass ${a.bass} · Mids ${mids} · Treble ${a.treble} · Presence ${a.presence ?? "-"} · Reverb ${a.reverb ?? "-"}`,
             `GUITAR — Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
             ``,
             userGuitar || userAmp ? `Dialed for: ${[userGuitar, userAmp].filter(Boolean).join(" + ")}` : "",
@@ -268,6 +293,17 @@ export default function ToneMatchPage() {
             setTimeout(() => setCopied(false), 2000)
         } catch (e) {
             console.error(e)
+        }
+    }
+
+    const handleFeedback = (value: "up" | "down") => {
+        setFeedback(value)
+        if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+            ; (window as any).gtag("event", "tone_feedback", {
+                rating: value,
+                song: songTitle,
+                artist,
+            })
         }
     }
 
@@ -347,7 +383,7 @@ export default function ToneMatchPage() {
             <div className="container max-w-5xl px-3 md:px-4 py-4 md:py-8 mx-auto space-y-6 md:space-y-8">
 
                 {/* Trending Section */}
-                <TrendingTones />
+                <TrendingTones onSelect={selectTone} />
 
                 {/* ==================== STEP 1: YOUR GEAR ==================== */}
                 <Card className="border border-white/8 overflow-hidden bg-[#0E0E14]">
@@ -369,7 +405,12 @@ export default function ToneMatchPage() {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
                                         <Sparkles className="h-4 w-4 text-[#E8712A]" />
-                                        <Label className="text-xs font-extrabold text-[#8A8494] uppercase tracking-widest">Load Preset</Label>
+                                        <Label className="text-xs font-extrabold text-[#8A8494] uppercase tracking-widest">Load My Gear</Label>
+                                        {savedRigs.length > 0 && (
+                                            <span className="text-[10px] font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/20 px-2 py-0.5 rounded-full">
+                                                {savedRigs.length} saved
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="relative group">
                                         <select
@@ -377,15 +418,26 @@ export default function ToneMatchPage() {
                                             value={preset}
                                             onChange={(e) => handlePresetChange(e.target.value)}
                                         >
-                                            <option value="manual">Select a preset...</option>
-                                            <option value="preset1">My Clean Setup (Strat + Twin)</option>
-                                            <option value="preset2">Live Rig (Les Paul + JCM800)</option>
+                                            <option value="manual">
+                                                {savedRigs.length > 0 ? "Select a saved rig..." : user ? "No saved rigs yet" : "Sign in to load your saved gear"}
+                                            </option>
+                                            {savedRigs.map((rig) => (
+                                                <option key={rig.id} value={`rig-${rig.id}`}>
+                                                    {rig.name}{rig.guitar_model || rig.amp_model ? ` (${[rig.guitar_model, rig.amp_model].filter(Boolean).join(" + ")})` : ""}
+                                                </option>
+                                            ))}
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#E8712A] transition-colors">
                                             <ArrowLeft className="h-4 w-4 -rotate-90" />
                                         </div>
                                     </div>
                                 </div>
+
+                                {user && savedRigs.length === 0 && (
+                                    <p className="text-xs text-[#8A8494] font-medium -mt-6">
+                                        Save your rig once in <Link href="/collection" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Collection</Link> and load it here with one tap.
+                                    </p>
+                                )}
 
                                 <div className="relative flex items-center py-2">
                                     <div className="flex-grow border-t border-white/8"></div>
@@ -1045,10 +1097,28 @@ export default function ToneMatchPage() {
                                         <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
                                             <span className="bg-[#E8712A]/10 text-[#E8712A] p-2 rounded-lg"><Speaker className="h-6 w-6" /></span>
                                             Amp Settings
+                                            {userAmp && !goingDirect && (
+                                                <span className="text-[10px] font-bold text-[#F5A623] bg-[#F5A623]/10 border border-[#F5A623]/20 px-2 py-1 rounded-full uppercase tracking-wide truncate max-w-[160px]">{userAmp}</span>
+                                            )}
                                         </h3>
                                         <div className="bg-stone-900 text-white rounded-2xl p-6 space-y-4 border border-stone-800 shadow-xl shadow-stone-900/20 relative overflow-hidden">
                                             {/* Mesh pattern overlay */}
                                             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:4px_4px] pointer-events-none"></div>
+
+                                            {(result.suggestedSettings?.amp?.mode || result.suggestedSettings?.amp?.channel) && (
+                                                <div className="relative z-10 flex flex-wrap gap-2">
+                                                    {result.suggestedSettings.amp.mode && (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/25 px-3 py-1.5 rounded-lg font-mono">
+                                                            <Zap className="h-3.5 w-3.5" /> MODE: {String(result.suggestedSettings.amp.mode).toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                    {result.suggestedSettings.amp.channel && (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E8712A] bg-[#E8712A]/10 border border-[#E8712A]/25 px-3 py-1.5 rounded-lg font-mono">
+                                                            <SlidersHorizontal className="h-3.5 w-3.5" /> CHANNEL: {String(result.suggestedSettings.amp.channel).toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             <div className="relative z-10 grid grid-cols-3 gap-y-5 gap-x-2 justify-items-center pt-2">
                                                 <AmpKnob label="Gain" value={result.suggestedSettings?.amp?.gain} accent />
@@ -1153,6 +1223,48 @@ export default function ToneMatchPage() {
                                     >
                                         <Share2 className="h-4 w-4" /> Share
                                     </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={runResearch}
+                                        disabled={isLoading}
+                                        variant="outline"
+                                        className="h-11 px-6 rounded-full border-white/8 text-[#8A8494] hover:text-[#FFD700] hover:border-[#FFD700]/30 hover:bg-[#FFD700]/5 bg-transparent font-semibold text-sm flex items-center gap-2 transition-colors"
+                                    >
+                                        <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Regenerate
+                                    </Button>
+                                </div>
+
+                                {/* SOUNDING RIGHT? FEEDBACK */}
+                                <div className="flex items-center justify-center gap-3 pt-1">
+                                    {feedback === null ? (
+                                        <>
+                                            <span className="text-sm font-semibold text-[#8A8494]">Sounding right?</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFeedback("up")}
+                                                aria-label="Tone sounds right"
+                                                className="h-10 w-10 rounded-full border border-white/8 bg-[#12121A] text-[#8A8494] hover:text-[#FFD700] hover:border-[#F5A623]/40 hover:bg-[#F5A623]/10 flex items-center justify-center transition-colors"
+                                            >
+                                                <ThumbsUp className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFeedback("down")}
+                                                aria-label="Tone sounds off"
+                                                className="h-10 w-10 rounded-full border border-white/8 bg-[#12121A] text-[#8A8494] hover:text-[#D14B32] hover:border-[#D14B32]/40 hover:bg-[#D14B32]/10 flex items-center justify-center transition-colors"
+                                            >
+                                                <ThumbsDown className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    ) : feedback === "up" ? (
+                                        <span className="text-sm font-semibold text-[#FFD700] flex items-center gap-2 animate-in fade-in duration-300">
+                                            <ThumbsUp className="h-4 w-4" /> Rock on! Thanks for the feedback.
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm font-semibold text-[#A6A29B] flex items-center gap-2 animate-in fade-in duration-300">
+                                            <RefreshCw className="h-4 w-4 text-[#E8712A]" /> Thanks — try Regenerate for a fresh take on this tone.
+                                        </span>
+                                    )}
                                 </div>
 
                                 {user && (

@@ -9,6 +9,9 @@ export const metadata: Metadata = {
         description:
             "Suggest new guitars, amps, and pedals to add to Tonelify.",
     },
+    alternates: {
+        canonical: "/request-gear",
+    },
 };
 
 export default function RequestGearLayout({

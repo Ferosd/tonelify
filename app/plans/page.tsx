@@ -8,6 +8,9 @@ export const metadata: Metadata = {
         title: "Plans & Pricing — Tonelify",
         description: "Choose your plan and start matching legendary guitar tones today. 7-day free trial included.",
     },
+    alternates: {
+        canonical: "/plans",
+    },
 };
 export default function PlansPage() {
     return (

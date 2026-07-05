@@ -245,9 +245,12 @@ export default function Home() {
     }
     window.addEventListener("scroll", handleNavScroll)
 
+    // On mobile, load every 3rd frame (~1.6MB instead of ~4.8MB); scrub snaps to loaded frames
+    const FRAME_STEP = window.innerWidth <= 768 ? 3 : 1
     const BATCH = 20
     const loadBatch = (start: number) => {
       for (let i = start; i < Math.min(start + BATCH, TOTAL); i++) {
+        if (i % FRAME_STEP !== 0 && i !== TOTAL - 1) continue
         const img = new Image()
         img.src = `/frames/frame_${String(i + 1).padStart(4, "0")}.jpg`
         heroFramesRef.current[i] = img
@@ -274,7 +277,8 @@ export default function Home() {
         end: "bottom bottom",
         scrub: true,
         onUpdate(self) {
-          const idx = Math.min(Math.floor(self.progress * 240), 240)
+          let idx = Math.min(Math.floor(self.progress * 240), 240)
+          idx = Math.min(240, Math.round(idx / FRAME_STEP) * FRAME_STEP)
           heroFrameIdxRef.current = idx
           const img = heroFramesRef.current[idx]
           if (img?.complete) drawCoverFrame(img)
@@ -1414,11 +1418,6 @@ export default function Home() {
               { "@type": "Offer", "price": "5.99", "priceCurrency": "USD", "name": "Beginner" },
               { "@type": "Offer", "price": "9.99", "priceCurrency": "USD", "name": "Expert" },
             ],
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.8",
-              "reviewCount": "35000",
-            },
           }),
         }}
       />

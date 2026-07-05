@@ -8,6 +8,13 @@ export const metadata: Metadata = {
         title: "Settings — Tonelify Account",
         description: "Manage your Tonelify profile and subscription.",
     },
+    alternates: {
+        canonical: "/settings",
+    },
+    robots: {
+        index: false,
+        follow: true,
+    },
 };
 
 export default function SettingsLayout({

@@ -17,34 +17,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         },
         {
+            url: `${baseUrl}/explore`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.9,
+        },
+        {
             url: `${baseUrl}/plans`,
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
-            url: `${baseUrl}/dashboard`,
-            lastModified: new Date(),
-            changeFrequency: "weekly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/settings`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.5,
-        },
-        {
             url: `${baseUrl}/request-gear`,
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.4,
-        },
-        {
-            url: `${baseUrl}/collection`,
-            lastModified: new Date(),
-            changeFrequency: "weekly",
-            priority: 0.7,
         },
         {
             url: `${baseUrl}/privacy`,

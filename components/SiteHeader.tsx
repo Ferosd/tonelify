@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut } from "lucide-react";
+import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const routes = [
+  { href: "/explore",       label: "Explore",      icon: Compass },
   { href: "/tone-match",    label: "Match Tones",  icon: Guitar },
   { href: "/collection",    label: "Collection",   icon: Bookmark },
   { href: "/settings",      label: "Settings",     icon: Settings },
