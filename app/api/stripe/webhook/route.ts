@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { stripe, getPlanByPriceId } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
@@ -118,12 +118,30 @@ export async function POST(req: NextRequest) {
         }
 
         else if (eventType === "customer.subscription.updated") {
-            if (obj?.cancel_at_period_end) {
-                await getSupabaseAdmin()
-                    .from("user_subscriptions")
-                    .update({ cancel_at_period_end: true, updated_at: new Date().toISOString() })
-                    .eq("stripe_subscription_id", obj.id);
+            // Sync plan changes made in the Billing Portal (monthly↔annual,
+            // beginner↔expert), renewals, and cancel/resume — all on the
+            // same subscription record
+            const priceId = obj?.items?.data?.[0]?.price?.id;
+            const match = priceId ? getPlanByPriceId(priceId) : null;
+
+            const update: Record<string, any> = {
+                cancel_at_period_end: !!obj?.cancel_at_period_end,
+                updated_at: new Date().toISOString(),
+            };
+            if (match) update.plan = match.planId;
+            if (obj?.current_period_end) {
+                update.current_period_end = new Date(obj.current_period_end * 1000).toISOString();
             }
+            if (obj?.status === "active" || obj?.status === "trialing") {
+                update.status = "active";
+            }
+
+            await getSupabaseAdmin()
+                .from("user_subscriptions")
+                .update(update)
+                .eq("stripe_subscription_id", obj.id);
+
+            if (match) console.log(`[Webhook] ✅ Plan synced: sub ${obj.id} → ${match.planId}`);
         }
 
         else if (eventType === "customer.subscription.deleted") {

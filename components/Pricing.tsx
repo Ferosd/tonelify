@@ -69,7 +69,7 @@ export function Pricing() {
             if (data.url) {
                 window.location.href = data.url
             } else {
-                alert("Something went wrong. Please try again.")
+                alert(data.error || "Something went wrong. Please try again.")
             }
         } catch (error) {
             console.error("Checkout error:", error)
