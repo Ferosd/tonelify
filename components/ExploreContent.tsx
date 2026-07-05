@@ -21,7 +21,7 @@ function fallbackGradient(id: string) {
 function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
     return (
         <Link
-            href={`/tone-match?song=${encodeURIComponent(tone.title)}&artist=${encodeURIComponent(tone.artist)}`}
+            href={`/explore/${tone.id}`}
             className="group flex flex-col rounded-2xl border border-white/8 bg-[#12121A]/80 backdrop-blur-md overflow-hidden hover:border-[#F5A623]/40 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(245,166,35,0.12)] transition-[transform,border-color,box-shadow]"
         >
             {/* Cover */}
@@ -61,7 +61,7 @@ function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#F5A623] opacity-0 group-hover:opacity-100 transition-opacity pt-2">
                     <GuitarIcon className="h-3.5 w-3.5" />
-                    Match this tone →
+                    View tone →
                 </div>
             </div>
         </Link>

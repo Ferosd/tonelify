@@ -1214,6 +1214,18 @@ export default function Home() {
             </div>
 
           </div>
+
+          {/* Free tier note */}
+          <p style={{
+            fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem",
+            color: "#A6A6AF", textAlign: "center", marginTop: "36px", marginBottom: 0,
+          }}>
+            Just browsing? The <span style={{ color: "#F5A623", fontWeight: 600 }}>Free plan</span> includes
+            3 tone matches every month — no card required.{" "}
+            <Link href="/tone-match" style={{ color: "#F5A623", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>
+              Try it now
+            </Link>
+          </p>
         </div>
       </section>
 

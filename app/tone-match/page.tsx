@@ -199,6 +199,12 @@ export default function ToneMatchPage() {
 
     // Actual API Call
     const runResearch = async () => {
+        // Signed-out visitors hit a protected API — send them to sign-up with their
+        // form state preserved in localStorage instead of showing a dead error
+        if (!user) {
+            window.location.href = `/sign-up?redirect_url=${encodeURIComponent("/tone-match")}`
+            return
+        }
         setIsLoading(true)
         setError(null)
         setResult(null)
@@ -283,6 +289,8 @@ export default function ToneMatchPage() {
             `GUITAR — Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
             ``,
             userGuitar || userAmp ? `Dialed for: ${[userGuitar, userAmp].filter(Boolean).join(" + ")}` : "",
+            ``,
+            `Get yours → https://tonelify.com/tone-match?song=${encodeURIComponent(songTitle || "")}&artist=${encodeURIComponent(artist || "")}`,
         ].filter(Boolean).join("\n")
     }
 
@@ -829,30 +837,33 @@ export default function ToneMatchPage() {
                     </CardContent>
                 </Card>
 
-                {/* ==================== PROMO BANNER ==================== */}
-                {/* ==================== PROMO BANNER ==================== */}
-                <div className="w-full bg-[#12121A] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left border border-white/8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                        <Sparkles className="h-24 w-24 text-[#E8712A]" />
-                    </div>
+                {/* ==================== PROMO BANNER (guests only) ==================== */}
+                {!user && (
+                    <div className="w-full bg-[#12121A] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left border border-white/8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                            <Sparkles className="h-24 w-24 text-[#E8712A]" />
+                        </div>
 
-                    <div className="space-y-2 relative z-10 max-w-xl">
-                        <span className="text-xs font-bold text-[#8A8494] uppercase tracking-widest">New here?</span>
-                        <h3 className="text-2xl font-bold text-[#F2F0ED] leading-tight">
-                            Try Tonelify free for a limited time
-                        </h3>
-                        <p className="text-[#FFD700] font-medium text-sm">
-                            Start a free trial and unlock full adaptations, tone saving, and presets.
-                        </p>
-                    </div>
+                        <div className="space-y-2 relative z-10 max-w-xl">
+                            <span className="text-xs font-bold text-[#8A8494] uppercase tracking-widest">New here?</span>
+                            <h3 className="text-2xl font-bold text-[#F2F0ED] leading-tight">
+                                Try Tonelify free — 3 tone matches a month
+                            </h3>
+                            <p className="text-[#FFD700] font-medium text-sm">
+                                Create a free account, no credit card required. Upgrade anytime for unlimited adaptations.
+                            </p>
+                        </div>
 
-                    <div className="flex flex-col items-center gap-2 relative z-10 shrink-0">
-                        <Button className="bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold h-12 px-8 rounded-full shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105">
-                            Start Free Trial
-                        </Button>
-                        <span className="text-[10px] text-[#8A8494]">Cancel anytime during your trial · No long-term commitment</span>
+                        <div className="flex flex-col items-center gap-2 relative z-10 shrink-0">
+                            <Link href={`/sign-up?redirect_url=${encodeURIComponent("/tone-match")}`}>
+                                <Button className="bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold h-12 px-8 rounded-full shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105">
+                                    Start Free
+                                </Button>
+                            </Link>
+                            <span className="text-[10px] text-[#8A8494]">No credit card · Cancel anytime</span>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ==================== RUN RESEARCH BUTTON ==================== */}
                 <div className="w-full space-y-6">

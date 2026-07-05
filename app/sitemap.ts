@@ -1,7 +1,15 @@
 import type { MetadataRoute } from "next";
+import { TONE_LIBRARY } from "@/lib/tone-library";
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tonelify.com";
+
+    const tonePages: MetadataRoute.Sitemap = TONE_LIBRARY.map((tone) => ({
+        url: `${baseUrl}/explore/${tone.id}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.7,
+    }));
 
     return [
         {
@@ -46,5 +54,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "yearly",
             priority: 0.2,
         },
+        ...tonePages,
     ];
 }

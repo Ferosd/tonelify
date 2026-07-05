@@ -232,8 +232,19 @@ export function Pricing() {
                     ))}
                 </div>
 
+                {/* Free tier note */}
+                <div className="mt-10 text-center">
+                    <p className="text-sm text-[#A6A29B]">
+                        Not ready to commit? The <span className="text-[#F5A623] font-semibold">Free plan</span> gives you
+                        3 tone matches every month — no card required.{" "}
+                        <a href="/tone-match" className="text-[#F5A623] font-semibold underline underline-offset-2 hover:text-[#FFD700]">
+                            Start matching →
+                        </a>
+                    </p>
+                </div>
+
                 {/* Bottom Trust */}
-                <div className="mt-12 text-center">
+                <div className="mt-6 text-center">
                     <p className="text-sm text-[#8A8494]">
                         Secure payments via Stripe • No hidden fees • Cancel anytime
                     </p>
