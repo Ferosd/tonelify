@@ -27,7 +27,7 @@ export function MobileTabBar() {
                 paddingBottom: "env(safe-area-inset-bottom)",
             }}
         >
-            <div className="flex items-stretch justify-around">
+            <div className="flex items-stretch justify-around px-1 pt-1.5 pb-1">
                 {tabs.map((tab) => {
                     const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`)
                     const Icon = tab.icon
@@ -36,11 +36,18 @@ export function MobileTabBar() {
                             key={tab.href}
                             href={tab.href}
                             aria-current={active ? "page" : undefined}
-                            className={`flex flex-col items-center gap-1 flex-1 py-2.5 text-[10px] font-bold tracking-wide transition-colors ${active ? "text-[#F5A623]" : "text-[#8A8494] hover:text-[#F2F2F7]"
+                            className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-h-[48px] rounded-xl text-[10px] font-bold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5A623] ${active ? "text-[#F5A623]" : "text-[#8A8494] active:text-[#F2F2F7]"
                                 }`}
                         >
-                            <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
-                            {tab.label}
+                            {/* Active pill reads as a selected tab without shouting */}
+                            {active && (
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-x-2 inset-y-0 rounded-xl bg-[#F5A623]/10 border border-[#F5A623]/20"
+                                />
+                            )}
+                            <Icon className="relative h-5 w-5" strokeWidth={active ? 2.4 : 2} />
+                            <span className="relative">{tab.label}</span>
                         </Link>
                     )
                 })}

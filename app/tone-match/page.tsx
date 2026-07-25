@@ -329,36 +329,50 @@ export default function ToneMatchPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#08080C] pb-20 font-sans">
-            {/* Header Section */}
-            <div className="text-center pt-8 md:pt-12 pb-6 md:pb-8 space-y-4 md:space-y-6 bg-[#0E0E14] border-b border-white/8 px-4">
-                <div className="flex items-center justify-center flex-wrap gap-2">
+        <div className="min-h-screen bg-[#08080C] pb-28 md:pb-20 font-sans">
+            {/* Header Section — compact app bar on phones, marketing header on desktop */}
+            <div className="text-left md:text-center pt-4 md:pt-12 pb-4 md:pb-8 space-y-3 md:space-y-6 bg-[#0E0E14] border-b border-white/8 px-4">
+                <div className="hidden md:flex items-center justify-center flex-wrap gap-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 text-[#E8712A] text-xs font-semibold">
                         <span>⚡</span> Gear-Matched Tone Settings
                     </div>
+                </div>
+
+                <div className="flex items-start justify-between gap-3 md:block">
+                    <div className="min-w-0 md:space-y-4">
+                        <h1 className="font-display text-[1.625rem] leading-[1.1] md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
+                            Dial in <span className="text-[#F5A623]">any tone</span>
+                        </h1>
+                        <p className="text-[#A6A29B] text-[0.875rem] md:text-lg max-w-2xl mx-auto mt-1 md:mt-0">
+                            Match legendary {instrument === 'guitar' ? 'guitar' : 'bass'} tones to your gear
+                        </p>
+                    </div>
                     {user && credits !== null && (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#8A8494] text-xs font-semibold border border-white/8">
+                        <div className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8 whitespace-nowrap md:hidden">
                             <span className={credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
-                            {credits === -1 ? "Unlimited matches" : `${credits} matches left`}
+                            {credits === -1 ? "Unlimited" : `${credits} left`}
                         </div>
                     )}
                 </div>
 
-                <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
-                    Dial in <span className="text-[#F5A623]">any tone</span>
-                </h1>
-                <p className="text-[#8A8494] text-base md:text-lg max-w-2xl mx-auto font-light">
-                    Transform legendary {instrument === 'guitar' ? 'guitar' : 'bass'} tones to match your gear
-                </p>
+                {user && credits !== null && (
+                    <div className="hidden md:flex justify-center">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8">
+                            <span className={credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
+                            {credits === -1 ? "Unlimited matches" : `${credits} matches left`}
+                        </div>
+                    </div>
+                )}
 
-                {/* Instrument Toggle */}
-                <div className="flex justify-center mt-8 animate-in fade-in zoom-in duration-300">
-                    <div className="bg-[#12121A] p-1 rounded-xl border border-white/8 inline-flex">
+                {/* Instrument Toggle — full-width segmented control on phones */}
+                <div className="flex md:justify-center md:mt-8">
+                    <div className="bg-[#12121A] p-1 rounded-xl border border-white/8 flex w-full md:w-auto md:inline-flex">
                         <button
                             onClick={() => setInstrument("guitar")}
-                            className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "guitar"
+                            aria-pressed={instrument === "guitar"}
+                            className={`flex flex-1 md:flex-none items-center justify-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "guitar"
                                 ? "bg-[#F5A623] text-[#08080C] shadow-md"
-                                : "text-[#8A8494] hover:text-[#F2F0ED]"
+                                : "text-[#A6A29B] hover:text-[#F2F0ED]"
                                 }`}
                         >
                             <GuitarIcon className="h-4 w-4" />
@@ -366,9 +380,10 @@ export default function ToneMatchPage() {
                         </button>
                         <button
                             onClick={() => setInstrument("bass")}
-                            className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "bass"
+                            aria-pressed={instrument === "bass"}
+                            className={`flex flex-1 md:flex-none items-center justify-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${instrument === "bass"
                                 ? "bg-[#F5A623] text-[#08080C] shadow-md"
-                                : "text-[#8A8494] hover:text-[#F2F0ED]"
+                                : "text-[#A6A29B] hover:text-[#F2F0ED]"
                                 }`}
                         >
                             <Music2 className="h-4 w-4" />
@@ -379,10 +394,10 @@ export default function ToneMatchPage() {
 
                 {/* NEW Badge for Bass */}
                 {instrument === 'bass' && (
-                    <div className="flex justify-center mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5A623]/10 text-[#FFD700] text-xs font-semibold border border-[#F5A623]/20">
+                    <div className="flex md:justify-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5A623]/10 text-[#FFD700] text-[11px] md:text-xs font-semibold border border-[#F5A623]/20">
                             <span className="font-bold">NEW</span>
-                            <span className="opacity-80">• Bass adaptation is brand new — results may vary</span>
+                            <span className="opacity-80">Bass adaptation is brand new — results may vary</span>
                         </div>
                     </div>
                 )}

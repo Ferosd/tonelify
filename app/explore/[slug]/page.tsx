@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TONE_LIBRARY, getToneBySlug, getRelatedTones } from "@/lib/tone-library";
+import { getArtwork } from "@/lib/artwork";
 
 export const revalidate = 86400;
 // The library is a fixed in-code list — unknown slugs should be hard 404s, not soft ones
@@ -11,22 +12,6 @@ type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
     return TONE_LIBRARY.map((t) => ({ slug: t.id }));
-}
-
-// Album artwork straight from iTunes at render time, cached for a day
-async function getArtwork(title: string, artist: string): Promise<string | null> {
-    try {
-        const res = await fetch(
-            `https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${artist}`)}&media=music&entity=song&limit=1`,
-            { next: { revalidate: 86400 } }
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
-        const art: string | undefined = data.results?.[0]?.artworkUrl100;
-        return art ? art.replace("100x100", "600x600") : null;
-    } catch {
-        return null;
-    }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

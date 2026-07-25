@@ -627,6 +627,29 @@ export default function Home() {
           .tn-testimonials { flex-direction: column !important; }
           .tn-hero-content { max-width: calc(100vw - 48px) !important; }
           .tn-sign-in-btn { display: none !important; }
+
+          /* Phone hero: anchor the copy to the bottom over a solid scrim so the
+             headline never fights the lit side of the photograph. */
+          .tn-hero-scrim {
+            background: linear-gradient(
+              to top,
+              rgba(8,8,10,0.96) 0%,
+              rgba(8,8,10,0.88) 32%,
+              rgba(8,8,10,0.55) 58%,
+              rgba(8,8,10,0.15) 100%
+            ) !important;
+          }
+          .tn-hero-content {
+            justify-content: flex-end !important;
+            padding-bottom: 108px !important;
+          }
+          .tn-hero-content h1 { margin-bottom: 16px !important; }
+          .tn-hero-content p {
+            color: #C9C5BE !important;
+            max-width: none !important;
+            margin-bottom: 24px !important;
+          }
+          .tn-hero-badges { gap: 8px 16px !important; margin-top: 20px !important; }
         }
       `}</style>
 
@@ -699,8 +722,9 @@ export default function Home() {
           {/* Hidden video — AI ENGINE scroll-sync */}
           <video ref={videoRef} src="/video.mp4" muted playsInline preload="metadata" style={{ display: "none" }} />
 
-          {/* Left vignette */}
-          <div aria-hidden="true" style={{
+          {/* Left vignette — becomes a bottom-up scrim on phones, where the copy
+              sits over the brightly lit half of the frame instead of beside it */}
+          <div aria-hidden="true" className="tn-hero-scrim" style={{
             position: "absolute", inset: 0, pointerEvents: "none",
             background: "linear-gradient(to right, rgba(8,8,10,0.85) 0%, rgba(8,8,10,0.3) 40%, transparent 60%)",
           }} />
@@ -734,7 +758,7 @@ export default function Home() {
               <Link href="/tone-match" className="cta-btn">Start Matching Tones</Link>
               <Link href="/plans"      className="ghost-btn">See plans</Link>
             </div>
-            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginTop: "28px", pointerEvents: "auto" }}>
+            <div className="tn-hero-badges" style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginTop: "28px", pointerEvents: "auto" }}>
               {badges.map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
                   <CheckIcon />
