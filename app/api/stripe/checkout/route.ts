@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { stripe, PLANS, PlanId } from "@/lib/stripe";
+import { stripe, PLANS, getPriceId, isPurchasablePlan, type BillingInterval } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase";
+
+const INTERVALS: BillingInterval[] = ["week", "month", "year"];
 
 export async function POST(req: NextRequest) {
     try {
@@ -10,18 +12,30 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { planId, annual } = await req.json();
+        const { planId, interval, annual } = await req.json();
 
         // Validate plan
-        if (!planId || !["beginner", "expert"].includes(planId)) {
+        if (!isPurchasablePlan(planId)) {
             return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
         }
 
-        const plan = PLANS[planId as PlanId];
-        const priceId = annual ? plan.stripePriceIdAnnual : plan.stripePriceIdMonthly;
+        const plan = PLANS[planId];
+
+        // `interval` is the current contract; `annual` is the older boolean and
+        // is still honoured so a cached client bundle keeps working.
+        const requested: BillingInterval =
+            INTERVALS.includes(interval) ? interval
+                : planId === "weekly" ? "week"
+                    : annual ? "year" : "month";
+
+        const priceId = getPriceId(planId, requested);
 
         if (!priceId) {
-            return NextResponse.json({ error: "Price not found" }, { status: 400 });
+            console.error(`Missing price id for plan ${planId} / ${requested}`);
+            return NextResponse.json(
+                { error: "That plan isn't available right now. Try again shortly." },
+                { status: 400 }
+            );
         }
 
         // Determine base URL
@@ -65,8 +79,10 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Returning customers (expired/canceled) don't get a second free trial
+        // Returning customers (expired/canceled) don't get a second free trial,
+        // and the Week Pass never carries one
         const isReturningCustomer = !!existing;
+        const trialDays = isReturningCustomer ? 0 : plan.trialDays;
 
         const sessionParams: any = {
             mode: "subscription",
@@ -88,7 +104,7 @@ export async function POST(req: NextRequest) {
                     userId,
                     planId,
                 },
-                ...(isReturningCustomer ? {} : { trial_period_days: 7 }),
+                ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
             },
             allow_promotion_codes: true,
         };

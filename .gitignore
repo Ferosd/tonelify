@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 tonelify/
+.vercel
+
+# Keep the documented template in version control
+!.env.example

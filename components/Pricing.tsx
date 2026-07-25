@@ -1,90 +1,119 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Sparkles, Loader2, Calendar } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { Check, Sparkles, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 
-interface PlanFeature {
-    title: string
-    description: string
+type Interval = "week" | "month" | "year"
+
+const intervals: { id: Interval; label: string }[] = [
+    { id: "week", label: "Weekly" },
+    { id: "month", label: "Monthly" },
+    { id: "year", label: "Yearly" },
+]
+
+// Mirrors the Stripe prices. Amounts here are display only; checkout always
+// resolves the real price id on the server.
+const paid: Record<Interval, {
+    planId: "weekly" | "player"
+    name: string
+    price: string
+    per: string
+    note: string
+    cta: string
+    trial: boolean
+}> = {
+    week: {
+        planId: "weekly",
+        name: "Week Pass",
+        price: "$4.99",
+        per: "/week",
+        note: "Renews weekly until you cancel",
+        cta: "Get the week pass",
+        trial: false,
+    },
+    month: {
+        planId: "player",
+        name: "Player",
+        price: "$12.99",
+        per: "/month",
+        note: "Cancel anytime",
+        cta: "Start 7-day free trial",
+        trial: true,
+    },
+    year: {
+        planId: "player",
+        name: "Player",
+        price: "$59.99",
+        per: "/year",
+        note: "Works out at $5.00 a month. Save $95.89 against monthly.",
+        cta: "Start 7-day free trial",
+        trial: true,
+    },
 }
 
-const plans = [
-    {
-        name: "Beginner",
-        id: "beginner",
-        price: { monthly: "$5.99", annual: "$2.50" },
-        period: { monthly: "/mo", annual: "/mo" },
-        billing: { monthly: "", annual: "($29.99/year)" },
-        save: { monthly: "", annual: "Save $41.89 per year" },
-        trial: { adaptations: 6 },
-        featured: false,
-        features: [
-            { title: "20 custom tone adaptations", description: "per month" },
-            { title: "15 saved tones", description: "per month • Access them anytime" },
-            { title: "Create gear presets", description: "Quick setup for your rig" },
-        ] as PlanFeature[],
-    },
-    {
-        name: "Expert",
-        id: "expert",
-        price: { monthly: "$9.99", annual: "$3.75" },
-        period: { monthly: "/mo", annual: "/mo" },
-        billing: { monthly: "", annual: "($44.99/year)" },
-        save: { monthly: "", annual: "Save $74.89 per year" },
-        trial: { adaptations: 9 },
-        featured: true,
-        features: [
-            { title: "Unlimited custom tone adaptations", description: "per month" },
-            { title: "Unlimited saved tones", description: "Save as many as you want" },
-            { title: "Create gear presets", description: "Quick setup for your rig" },
-            { title: "Priority support", description: "Get help when you need it" },
-        ] as PlanFeature[],
-    },
+const paidFeatures = [
+    "Unlimited tone matches",
+    "Unlimited saved tones",
+    "Gear presets for each of your rigs",
+    "Full amp settings: gain, bass, mids, treble, master",
+    "Effects chain and signal order",
+    "Tone tips for every match",
+    "Priority support",
+]
+
+const freeFeatures = [
+    "3 tone matches per month",
+    "3 saved tones",
+    "Full amp settings on every match",
+    "No card required",
 ]
 
 export function Pricing() {
-    const [annual, setAnnual] = useState(false)
-    const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+    const [interval, setInterval] = useState<Interval>("month")
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const { isSignedIn } = useUser()
 
-    const handleCheckout = async (planId: string) => {
+    const plan = paid[interval]
+
+    const handleCheckout = async () => {
         if (!isSignedIn) {
             window.location.href = "/sign-up"
             return
         }
 
-        setLoadingPlan(planId)
+        setLoading(true)
+        setError(null)
         try {
             const response = await fetch("/api/stripe/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planId, annual }),
+                body: JSON.stringify({ planId: plan.planId, interval }),
             })
 
             const data = await response.json()
             if (data.url) {
                 window.location.href = data.url
             } else {
-                alert(data.error || "Something went wrong. Please try again.")
+                setError(data.error || "Checkout didn't open. Try again in a moment.")
             }
-        } catch (error) {
-            console.error("Checkout error:", error)
-            alert("Something went wrong. Please try again.")
+        } catch {
+            setError("Checkout didn't open. Check your connection and try again.")
         } finally {
-            setLoadingPlan(null)
+            setLoading(false)
         }
     }
 
     return (
-        <section className="py-24 bg-[#08080C]" id="pricing">
+        <section className="py-16 md:py-24 bg-[#08080C]" id="pricing">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
-                {/* Section Header */}
-                <div className="text-center mb-10">
+                {/* Header */}
+                <div className="text-center mb-8 md:mb-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 text-[#E8712A] text-xs font-semibold mb-4">
                         <Sparkles className="h-3 w-3" />
                         Simple, transparent pricing
@@ -92,163 +121,125 @@ export function Pricing() {
                     <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
                         Choose your plan
                     </h2>
-                    <p className="text-[#8A8494] text-lg max-w-xl mx-auto">
-                        All plans include a 7-day free trial. Cancel anytime.
+                    <p className="text-[#A6A29B] text-base md:text-lg max-w-xl mx-auto">
+                        Start free with three matches a month. Upgrade when you want the rest.
                     </p>
                 </div>
 
-                {/* Toggle Switch */}
-                <div className="flex justify-center mb-12">
-                    <div className="relative flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
-                        <button
-                            onClick={() => setAnnual(false)}
-                            className={cn(
-                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
-                                !annual
-                                    ? "bg-[#E8712A] text-[#08080C] shadow-md"
-                                    : "text-[#8A8494] hover:text-[#F2F0ED]"
-                            )}
-                        >
-                            Monthly
-                        </button>
-                        <button
-                            onClick={() => setAnnual(true)}
-                            className={cn(
-                                "relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
-                                annual
-                                    ? "bg-[#E8712A] text-[#08080C] shadow-md"
-                                    : "text-[#8A8494] hover:text-[#F2F0ED]"
-                            )}
-                        >
-                            Annual
-                        </button>
-                        <span className="ml-2 bg-[#F5A623]/15 text-[#F5A623] border border-[#F5A623]/30 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
-                            Save up to 58%
-                        </span>
+                {/* Interval toggle */}
+                <div className="flex justify-center mb-10 md:mb-12">
+                    <div className="flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
+                        {intervals.map((i) => (
+                            <button
+                                key={i.id}
+                                onClick={() => setInterval(i.id)}
+                                aria-pressed={interval === i.id}
+                                className={cn(
+                                    "px-4 sm:px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
+                                    interval === i.id
+                                        ? "bg-[#E8712A] text-[#08080C] shadow-md"
+                                        : "text-[#A6A29B] hover:text-[#F2F0ED]"
+                                )}
+                            >
+                                {i.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-                {/* Plans Grid — 2 columns */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    {plans.map((plan, index) => (
-                        <motion.div
-                            key={plan.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.4, delay: index * 0.1 }}
-                            className={cn(
-                                "relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border",
-                                plan.featured && annual
-                                    ? "border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
-                                    : "border-white/8 shadow-lg"
-                            )}
+
+                    {/* Free */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4 }}
+                        className="relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-white/8"
+                    >
+                        <h3 className="text-2xl font-bold text-[#F2F0ED]">Free</h3>
+                        <p className="text-sm text-[#8A8494] font-medium mt-0.5">For trying it out</p>
+
+                        <div className="flex items-baseline gap-1 mt-6 mb-6">
+                            <span className="font-display text-5xl font-bold text-[#F2F0ED]">$0</span>
+                        </div>
+
+                        <ul className="space-y-3 mb-8 flex-1">
+                            {freeFeatures.map((f) => (
+                                <li key={f} className="flex items-start gap-3">
+                                    <Check className="h-4 w-4 text-[#8A8494] shrink-0 mt-0.5" />
+                                    <span className="text-sm text-[#A6A29B]">{f}</span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <Link
+                            href="/tone-match"
+                            className="w-full h-12 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center hover:border-[#E8712A] transition-colors"
                         >
-                            {/* MOST POPULAR Badge */}
-                            {plan.featured && annual && (
-                                <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-[#E8712A] text-[#08080C] text-xs font-bold tracking-wide shadow-lg">
-                                    MOST POPULAR
-                                </div>
-                            )}
+                            Start matching free
+                        </Link>
+                    </motion.div>
 
-                            {/* Plan name + trial badge */}
-                            <div className="flex items-center justify-between mb-1">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-[#F2F0ED]">{plan.name}</h3>
-                                    <p className="text-sm text-[#8A8494] font-medium mt-0.5">
-                                        {annual ? "Annual" : "Monthly"}
-                                    </p>
-                                </div>
-                                <span className="bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider">
-                                    7-Day Free Trial
+                    {/* Paid */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                    >
+                        {interval === "year" && (
+                            <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-[#E8712A] text-[#08080C] text-xs font-bold tracking-wide shadow-lg">
+                                BEST VALUE
+                            </div>
+                        )}
+
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                            <div>
+                                <h3 className="text-2xl font-bold text-[#F2F0ED]">{plan.name}</h3>
+                                <p className="text-sm text-[#8A8494] font-medium mt-0.5">Everything, no caps</p>
+                            </div>
+                            {plan.trial && (
+                                <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                    7-day free trial
                                 </span>
-                            </div>
-
-                            {/* Price */}
-                            <div className="mt-4 flex items-baseline gap-x-1.5">
-                                <span className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-[#F2F0ED]">
-                                    {annual ? plan.price.annual : plan.price.monthly}
-                                </span>
-                                <span className="text-lg font-bold text-[#8A8494]">/mo</span>
-                                {annual && plan.billing.annual && (
-                                    <span className="text-sm text-[#8A8494] font-medium ml-1">
-                                        {plan.billing.annual}
-                                    </span>
-                                )}
-                            </div>
-                            {annual && plan.save.annual && (
-                                <p className="mt-1 text-sm font-semibold text-[#E8712A]">
-                                    {plan.save.annual}
-                                </p>
                             )}
+                        </div>
 
-                            {/* Trial Box */}
-                            <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#E8712A]/5 border border-[#E8712A]/20">
-                                <div className="flex-shrink-0">
-                                    <Calendar className="h-5 w-5 text-[#E8712A]" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-[#F2F0ED]">7-Day Free Trial</p>
-                                    <p className="text-xs text-[#E8712A] font-medium">
-                                        {plan.trial.adaptations} total adaptations during trial
-                                    </p>
-                                </div>
-                            </div>
+                        <div className="flex items-baseline gap-1 mt-6">
+                            <span className="font-display text-5xl font-bold text-[#F2F0ED]">{plan.price}</span>
+                            <span className="text-[#8A8494] font-medium">{plan.per}</span>
+                        </div>
+                        <p className="text-xs text-[#A6A29B] mt-2 mb-6">{plan.note}</p>
 
-                            {/* Features */}
-                            <ul className="mt-6 space-y-4 flex-1">
-                                {plan.features.map((feature) => (
-                                    <li key={feature.title} className="flex items-start gap-3">
-                                        <Check className="h-5 w-5 flex-none text-[#E8712A] mt-0.5" />
-                                        <div>
-                                            <span className="text-sm font-bold text-[#F2F0ED]">{feature.title}</span>
-                                            <p className="text-xs text-[#8A8494]">{feature.description}</p>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                        <ul className="space-y-3 mb-8 flex-1">
+                            {paidFeatures.map((f) => (
+                                <li key={f} className="flex items-start gap-3">
+                                    <Check className="h-4 w-4 text-[#F5A623] shrink-0 mt-0.5" />
+                                    <span className="text-sm text-[#F2F0ED]">{f}</span>
+                                </li>
+                            ))}
+                        </ul>
 
-                            {/* CTA */}
-                            <div className="mt-8">
-                                <Button
-                                    onClick={() => handleCheckout(plan.id)}
-                                    disabled={loadingPlan === plan.id}
-                                    className="w-full h-14 rounded-full text-base font-bold bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                                >
-                                    {loadingPlan === plan.id ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                    ) : (
-                                        <>
-                                            Start 7-Day Free Trial
-                                            <span className="ml-2">→</span>
-                                        </>
-                                    )}
-                                </Button>
-                                <p className="mt-3 text-xs text-center text-[#8A8494] font-medium">
-                                    Cancel anytime • No hidden fees
-                                </p>
-                            </div>
-                        </motion.div>
-                    ))}
+                        {error && (
+                            <p role="alert" className="text-sm text-red-400 mb-3">{error}</p>
+                        )}
+
+                        <button
+                            onClick={handleCheckout}
+                            disabled={loading}
+                            className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+                            style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
+                        >
+                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
+                        </button>
+                    </motion.div>
                 </div>
 
-                {/* Free tier note */}
-                <div className="mt-10 text-center">
-                    <p className="text-sm text-[#A6A29B]">
-                        Not ready to commit? The <span className="text-[#F5A623] font-semibold">Free plan</span> gives you
-                        3 tone matches every month — no card required.{" "}
-                        <a href="/tone-match" className="text-[#F5A623] font-semibold underline underline-offset-2 hover:text-[#FFD700]">
-                            Start matching →
-                        </a>
-                    </p>
-                </div>
-
-                {/* Bottom Trust */}
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-[#8A8494]">
-                        Secure payments via Stripe • No hidden fees • Cancel anytime
-                    </p>
-                </div>
+                <p className="text-center text-xs text-[#8A8494] mt-8">
+                    Payments handled by Stripe. Cancel from Settings at any time.
+                </p>
             </div>
         </section>
     )

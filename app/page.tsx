@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { LandingTestimonials } from "@/components/LandingTestimonials"
+import { Reviews } from "@/components/Reviews"
+import { ToneProof, TONE_COUNT } from "@/components/ToneProof"
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -30,29 +33,21 @@ const ampSettings = [
   { label: "PRESENCE", value: 3.5 },
 ]
 
-const testimonials = [
-  { quote: "Finally nailed the Hendrix tone with my Squier Strat. The compensation for my cheaper pickups was spot-on.", name: "John Martinez", role: "Hobbyist Guitarist",  gear: "Squier Strat · Champion 40" },
-  { quote: "Saved me hours of tweaking knobs. Enter the song, enter my gear — settings that actually sound right.",      name: "Sarah Chen",    role: "Covers Band",         gear: "PRS SE · Boss Katana 100"   },
-  { quote: "As a home studio producer, this is a game-changer for referencing classic tones fast.",                      name: "Mike Thompson", role: "Producer",            gear: "Les Paul Studio · Helix"    },
-  { quote: "The signal chain breakdowns taught me more about my rig than years of forum digging.",                       name: "Deniz Kaya",    role: "Bedroom Player",      gear: "Ibanez RG · Micro Terror"   },
-  { quote: "Dialed in a convincing SRV tone on a budget amp. I honestly didn't think that was possible.",                name: "Tom Weber",     role: "Blues Jam Regular",   gear: "Player Strat · Blues Junior" },
-  { quote: "Our second guitarist and I finally match live. We just copy the same settings before every show.",           name: "Aisha Brooks",  role: "Gigging Guitarist",   gear: "Tele Deluxe · JCM900"       },
-]
 
 const badges           = ["Any song", "Any gear", "Instant results", "Free to start"]
-const beginnerFeatures = [
-  "20 custom tone adaptations per month",
-  "15 saved tones",
-  "Create gear presets",
+const freeFeatures = [
+  "3 tone matches per month",
+  "3 saved tones",
   "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
+  "No card required",
 ]
-const expertFeatures = [
-  "Unlimited tone adaptations",
+const playerFeatures = [
+  "Unlimited tone matches",
   "Unlimited saved tones",
   "Create gear presets",
   "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
-  "Effects chain recommendations",
-  "Tone tips & explanations",
+  "Effects chain and signal order",
+  "Tone tips for every match",
   "Priority support",
 ]
 
@@ -136,10 +131,6 @@ function StepSlidersIcon() {
       <circle cx="10" cy="18" r="2" fill="#0D0D10" />
     </svg>
   )
-}
-
-function getInitials(name: string) {
-  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
 }
 
 const stepIcons = [<StepGuitarIcon key="g" />, <StepSearchIcon key="s" />, <StepSlidersIcon key="sl" />]
@@ -625,6 +616,7 @@ export default function Home() {
           .tn-trust-grid  { grid-template-columns: repeat(2, 1fr) !important; }
           .tn-tone-grid   { grid-template-columns: repeat(2, 1fr) !important; }
           .tn-testimonials { flex-direction: column !important; }
+          .tn-proof-grid   { flex-direction: column !important; }
           .tn-hero-content { max-width: calc(100vw - 48px) !important; }
           .tn-sign-in-btn { display: none !important; }
 
@@ -1147,7 +1139,7 @@ export default function Home() {
               transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
               transition: "opacity 0.25s, transform 0.25s",
               display: "inline-block",
-            }}>Save up to 58%</span>
+            }}>Save 62%</span>
           </div>
 
           <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
@@ -1162,27 +1154,26 @@ export default function Home() {
                 fontFamily: "'General Sans', sans-serif", fontWeight: 500,
                 fontSize: "0.75rem", textTransform: "uppercase",
                 letterSpacing: "0.1em", color: "#A6A6AF", marginBottom: "16px",
-              }}>Beginner</div>
+              }}>Free</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                   fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? "$5.99" : "$2.50"}</span>
-                <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
+                }}>$0</span>
               </div>
               <div style={{
                 fontFamily: "'General Sans', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
-              }}>7-day free trial</div>
+              }}>For trying it out</div>
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
-                {beginnerFeatures.map((f) => (
+                {freeFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
                     <CheckIcon />
                     <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <Link href="/plans" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start Free Trial</Link>
+              <Link href="/tone-match" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start matching free</Link>
             </div>
 
             {/* EXPERT */}
@@ -1199,27 +1190,27 @@ export default function Home() {
                   fontFamily: "'General Sans', sans-serif", fontWeight: 500,
                   fontSize: "0.75rem", textTransform: "uppercase",
                   letterSpacing: "0.1em", color: "#E8712A",
-                }}>Expert</div>
+                }}>Player</div>
                 <span style={{
                   fontFamily: "'General Sans', sans-serif", fontWeight: 600,
                   fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
                   background: "#E8712A",
                   color: "#08080C", borderRadius: "999px", padding: "4px 10px",
-                }}>MOST POPULAR</span>
+                }}>{billingCycle === "annual" ? "BEST VALUE" : "MOST POPULAR"}</span>
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                   fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? "$9.99" : "$3.75"}</span>
+                }}>{billingCycle === "monthly" ? "$12.99" : "$5.00"}</span>
                 <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
               </div>
               <div style={{
                 fontFamily: "'General Sans', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
-              }}>7-day free trial</div>
+              }}>{billingCycle === "annual" ? "$59.99 billed yearly · 7-day free trial" : "7-day free trial"}</div>
               <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
-                {expertFeatures.map((f) => (
+                {playerFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
                     <CheckIcon />
                     <span style={{ fontFamily: "'General Sans', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
@@ -1244,16 +1235,16 @@ export default function Home() {
             fontFamily: "'General Sans', sans-serif", fontSize: "0.9rem",
             color: "#A6A6AF", textAlign: "center", marginTop: "36px", marginBottom: 0,
           }}>
-            Just browsing? The <span style={{ color: "#F5A623", fontWeight: 600 }}>Free plan</span> includes
-            3 tone matches every month — no card required.{" "}
-            <Link href="/tone-match" style={{ color: "#F5A623", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>
-              Try it now
+            Only need it for one song? The <span style={{ color: "#F5A623", fontWeight: 600 }}>Week Pass</span> gives
+            you everything for $4.99 a week.{" "}
+            <Link href="/plans" style={{ color: "#F5A623", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>
+              See all plans
             </Link>
           </p>
         </div>
       </section>
 
-      {/* ── S8 TESTIMONIALS — static section ── */}
+      {/* ── S8 TESTIMONIALS — fed by the real reviews table ── */}
       <section ref={s8Ref} style={{
         padding: "100px clamp(24px, 7vw, 96px)",
         background: "linear-gradient(180deg, #100D0B 0%, #1A100C 50%, #100D0B 100%)",
@@ -1261,65 +1252,33 @@ export default function Home() {
         zIndex: 20,
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <span style={sectionLabel}>What Guitarists Say</span>
-          <div className="tn-testimonials" style={{ display: "flex", gap: "24px", marginTop: "48px", flexWrap: "wrap" }}>
-            {testimonials.map((t) => (
-              <div key={t.name} className="js-testimonial testimonial-card" style={{
-                flex: "1 1 300px",
-                background: "rgba(20,17,15,0.7)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                borderRadius: 16,
-                padding: 32,
-                border: "1px solid rgba(245,166,35,0.1)",
-                position: "relative",
-                transition: "border-color 0.2s, transform 0.2s",
-              }}>
-                <span style={{
-                  position: "absolute", top: 16, left: 20,
-                  fontFamily: "Georgia, serif", fontSize: "3rem",
-                  color: "#E8712A", opacity: 0.3, lineHeight: 1,
-                  pointerEvents: "none", userSelect: "none",
-                }}>&ldquo;</span>
-                <div style={{ display: "flex", gap: "4px", marginBottom: 20 }}>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} style={{ color: "#E8712A", fontSize: "1rem" }}>★</span>
-                  ))}
-                </div>
-                <p style={{
-                  fontFamily: "'General Sans', sans-serif", fontWeight: 400,
-                  fontSize: "0.95rem", color: "#F2F0ED", lineHeight: 1.6,
-                  margin: "0 0 20px",
-                }}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: 20 }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, #E8712A 0%, #D14B32 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "'Inter Tight', sans-serif", fontWeight: 600,
-                    fontSize: "15px", color: "#FFFFFF",
-                  }}>
-                    {getInitials(t.name)}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 600, fontSize: "0.9rem", color: "#FFFFFF" }}>
-                      {t.name}
-                    </div>
-                    <div style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 400, fontSize: "0.8rem", color: "#8A8494" }}>
-                      {t.role}
-                    </div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, fontSize: "0.7rem", color: "#F5A623", marginTop: "4px", letterSpacing: "0.02em" }}>
-                      {t.gear}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <span style={sectionLabel}>From the record to your rig</span>
+          <h2 style={{ ...h2Style, margin: "16px 0 0" }}>
+            Every tone documented down to the amp
+          </h2>
+          <p style={{
+            fontFamily: "'General Sans', sans-serif", fontSize: "1rem",
+            lineHeight: 1.65, color: "#A6A6AF", maxWidth: 620, margin: "14px 0 0",
+          }}>
+            {TONE_COUNT} records in the library, each one traced back to the guitar, the amp
+            and the pedals that made it — then translated to whatever you own.
+          </p>
+
+          <ToneProof />
+
+          <div style={{ marginTop: 56 }}>
+            <span style={sectionLabel}>What Guitarists Say</span>
+            <div className="tn-testimonials" style={{ display: "flex", gap: "24px", marginTop: "28px", flexWrap: "wrap" }}>
+              <LandingTestimonials />
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ── S8b REVIEWS — read the full list and post one ── */}
+      <div style={{ position: "relative", zIndex: 20 }}>
+        <Reviews />
+      </div>
 
       {/* Divider: before Gear strip */}
       <div style={{
@@ -1451,8 +1410,8 @@ export default function Home() {
             "url": "https://tonelify.com",
             "offers": [
               { "@type": "Offer", "price": "0", "priceCurrency": "USD", "name": "Free" },
-              { "@type": "Offer", "price": "5.99", "priceCurrency": "USD", "name": "Beginner" },
-              { "@type": "Offer", "price": "9.99", "priceCurrency": "USD", "name": "Expert" },
+              { "@type": "Offer", "price": "4.99", "priceCurrency": "USD", "name": "Week Pass" },
+              { "@type": "Offer", "price": "12.99", "priceCurrency": "USD", "name": "Player" },
             ],
           }),
         }}
