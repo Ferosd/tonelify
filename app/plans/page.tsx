@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Pricing } from "@/components/Pricing";
 
 export const metadata: Metadata = {
-    title: "Plans & Pricing — Tonelify",
+    // The root layout appends "| Tonelify", so the brand is left off here
+    title: "Pricing — Guitar Tone Matching Plans",
     description: "Free plan with three matches a month, or unlimited from $4.99 a week. Monthly and yearly plans include a 3-day free trial.",
     openGraph: {
         title: "Plans & Pricing — Tonelify",

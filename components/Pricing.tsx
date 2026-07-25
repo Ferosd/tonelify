@@ -118,11 +118,13 @@ export function Pricing() {
                         <Sparkles className="h-3 w-3" />
                         Simple, transparent pricing
                     </div>
-                    <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
-                        Choose your plan
-                    </h2>
+                    {/* This component only renders on /plans, so it owns the H1 */}
+                    <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#F2F0ED] mb-3">
+                        Tonelify pricing
+                    </h1>
                     <p className="text-[#A6A29B] text-base md:text-lg max-w-xl mx-auto">
-                        Start free with three matches a month. Upgrade when you want the rest.
+                        Start free with three tone matches a month. Unlimited matching costs $4.99 for a
+                        week, $12.99 a month, or $59.99 a year.
                     </p>
                 </div>
 

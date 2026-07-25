@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe, PLANS, getPriceId, isPurchasablePlan, type BillingInterval } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { SITE_URL } from "@/lib/site";
 
 const INTERVALS: BillingInterval[] = ["week", "month", "year"];
 
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Determine base URL
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin") || "http://localhost:3000";
+        const baseUrl = SITE_URL || req.headers.get("origin") || "http://localhost:3000";
 
         const { data: existing } = await getSupabaseAdmin()
             .from("user_subscriptions")

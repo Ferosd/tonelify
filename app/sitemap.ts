@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { TONE_LIBRARY } from "@/lib/tone-library";
+import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tonelify.com";
+    const baseUrl = SITE_URL;
 
     const tonePages: MetadataRoute.Sitemap = TONE_LIBRARY.map((tone) => ({
         url: `${baseUrl}/explore/${tone.id}`,

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TONE_LIBRARY, getToneBySlug, getRelatedTones } from "@/lib/tone-library";
+import { TONE_LIBRARY, getToneBySlug, getRelatedTones, type LibraryTone } from "@/lib/tone-library";
 import { getArtwork } from "@/lib/artwork";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
 // The library is a fixed in-code list — unknown slugs should be hard 404s, not soft ones
@@ -26,6 +27,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         alternates: { canonical: `/explore/${tone.id}` },
         openGraph: { title, description },
     };
+}
+
+/**
+ * Every answer is derived from the tone library, so these stay true for all 24
+ * pages without anyone hand-writing (or inventing) copy per song.
+ */
+function faqs(tone: LibraryTone) {
+    const gear = tone.originalGear.charAt(0).toLowerCase() + tone.originalGear.slice(1);
+    return [
+        {
+            q: `What amp settings do you need for ${tone.title}?`,
+            a: `There is no single set of numbers, because the settings depend on the amp in front of you. A high-gain head and a small solid-state combo reach the same ${tone.character.toLowerCase()} in different positions. Tonelify takes your amp and guitar and returns the gain, bass, mids, treble and presence values for that specific rig.`,
+        },
+        {
+            q: `Can you get the ${tone.title} tone without the original gear?`,
+            a: `Yes. The original was tracked with ${gear}, but the parts that define the sound are the gain structure, the EQ curve, the pickup position and the effects order. Those translate to other equipment, which is what the adaptation step does.`,
+        },
+        {
+            q: `Is ${tone.title} a rhythm or a lead tone?`,
+            a: `It is a ${tone.part.toLowerCase()} part with a ${tone.tone.toLowerCase()} character, from ${tone.artist}'s ${tone.era} ${tone.genre.toLowerCase()} catalogue.`,
+        },
+        {
+            q: `Does Tonelify cost anything to try?`,
+            a: `No. The free plan includes three tone matches a month and does not ask for a card. Unlimited matching starts at $4.99 for a week pass, or $12.99 a month.`,
+        },
+    ];
 }
 
 const badge = (text: string, accent = false) => (
@@ -90,21 +117,43 @@ export default async function ToneDetailPage({ params }: Props) {
                     </div>
                 </div>
 
-                {/* Original rig */}
+                {/* Front-loaded answer. Roughly 44% of AI citations come from the
+                    first third of a page, so the self-contained summary sits here. */}
                 <section className="bg-[#12121A] border border-white/8 rounded-2xl p-6 md:p-8 space-y-3">
-                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">The original rig</h2>
-                    <p className="text-[#A6A29B] leading-relaxed">
-                        {tone.artist} reportedly recorded this with {tone.originalGear.charAt(0).toLowerCase() + tone.originalGear.slice(1)}.
+                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                        What is the {tone.title} guitar tone?
+                    </h2>
+                    <p className="text-[#F2F0ED] leading-relaxed">
+                        The {tone.title} guitar tone is {tone.character.charAt(0).toLowerCase() + tone.character.slice(1)},
+                        heard on {tone.artist}&apos;s {tone.era} {tone.genre.toLowerCase()} recording. It is
+                        a {tone.tone.toLowerCase()} {tone.part.toLowerCase()} tone, and {tone.artist} reportedly
+                        tracked it with {tone.originalGear.charAt(0).toLowerCase() + tone.originalGear.slice(1)}.
                     </p>
                     <p className="text-[#8A8494] text-sm leading-relaxed">
-                        You don't need that exact gear. Tonelify's AI analyzes what makes this tone work — gain structure,
-                        EQ curve, pickup choice, effects — and translates it to the amp and guitar you already own.
+                        You do not need that exact gear. What carries the sound is the gain structure, the EQ curve,
+                        the pickup choice and the effects order, and all four can be rebuilt on a different rig.
+                    </p>
+                </section>
+
+                {/* Original rig */}
+                <section className="bg-[#12121A] border border-white/8 rounded-2xl p-6 md:p-8 space-y-3">
+                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                        What gear did {tone.artist} use on {tone.title}?
+                    </h2>
+                    <p className="text-[#A6A29B] leading-relaxed">
+                        {tone.originalGear}.
+                    </p>
+                    <p className="text-[#8A8494] text-sm leading-relaxed">
+                        Tonelify reads that chain and translates it to the amp and guitar you already own, returning
+                        gain, bass, mids, treble and presence values along with a pickup position.
                     </p>
                 </section>
 
                 {/* How it works */}
                 <section className="space-y-4">
-                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">Get this tone on your gear</h2>
+                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                        How do you get the {tone.title} tone on your own amp?
+                    </h2>
                     <div className="grid sm:grid-cols-3 gap-3">
                         {[
                             { step: "1", text: "Tell us your guitar, amp, and pedals" },
@@ -124,6 +173,22 @@ export default async function ToneDetailPage({ params }: Props) {
                         >
                             Start matching — 3 free matches a month →
                         </Link>
+                    </div>
+                </section>
+
+                {/* FAQ — self-contained question and answer pairs, built only from
+                    library data so nothing here is invented */}
+                <section className="space-y-4">
+                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                        {tone.title} tone questions
+                    </h2>
+                    <div className="space-y-3">
+                        {faqs(tone).map((f) => (
+                            <div key={f.q} className="bg-[#12121A] border border-white/8 rounded-2xl p-5 md:p-6 space-y-2">
+                                <h3 className="font-bold text-[#F2F2F7] text-[0.9375rem] leading-snug">{f.q}</h3>
+                                <p className="text-sm text-[#A6A29B] leading-relaxed">{f.a}</p>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
@@ -151,14 +216,35 @@ export default async function ToneDetailPage({ params }: Props) {
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "BreadcrumbList",
-                        itemListElement: [
-                            { "@type": "ListItem", position: 1, name: "Explore Tones", item: "https://tonelify.com/explore" },
-                            { "@type": "ListItem", position: 2, name: `${tone.title} — ${tone.artist}`, item: `https://tonelify.com/explore/${tone.id}` },
-                        ],
-                    }),
+                    __html: JSON.stringify([
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "BreadcrumbList",
+                            itemListElement: [
+                                { "@type": "ListItem", position: 1, name: "Explore Tones", item: `${SITE_URL}/explore` },
+                                { "@type": "ListItem", position: 2, name: `${tone.title} — ${tone.artist}`, item: `${SITE_URL}/explore/${tone.id}` },
+                            ],
+                        },
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "Article",
+                            headline: `${tone.title} guitar tone: original rig and amp settings`,
+                            description: `How to get the ${tone.title} guitar tone by ${tone.artist} on your own amp and guitar.`,
+                            about: { "@type": "MusicRecording", name: tone.title, byArtist: { "@type": "MusicGroup", name: tone.artist } },
+                            mainEntityOfPage: `${SITE_URL}/explore/${tone.id}`,
+                            publisher: { "@type": "Organization", name: "Tonelify", url: SITE_URL },
+                            dateModified: new Date().toISOString().slice(0, 10),
+                        },
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "FAQPage",
+                            mainEntity: faqs(tone).map((f) => ({
+                                "@type": "Question",
+                                name: f.q,
+                                acceptedAnswer: { "@type": "Answer", text: f.a },
+                            })),
+                        },
+                    ]),
                 }}
             />
         </div>

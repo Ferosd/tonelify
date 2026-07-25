@@ -1,0 +1,39 @@
+# Tonelify
+
+> Tonelify translates a recorded guitar tone into knob settings for the amp and
+> guitar you already own. You name a song and your gear, and it returns gain,
+> bass, mids, treble and presence values, a pickup position, and the effects
+> chain, adapted to your rig rather than the one used on the record.
+
+## What it does
+
+Tonelify is a web app, not a plugin or an amp modeller. It does not process
+audio. It reads the documented signal chain behind a recording and works out
+where to set the controls on different equipment to land in the same place.
+
+## Plans
+
+- Free: 3 tone matches a month, 3 saved tones, no card required
+- Week Pass: $4.99 a week, unlimited matches, no trial, renews weekly
+- Player: $12.99 a month or $59.99 a year, unlimited matches, 3-day free trial
+
+## Main pages
+
+- [Tone library](https://tonelify.com/explore): 24 documented tones, each with the original rig
+- [Tone matcher](https://tonelify.com/tone-match): enter your gear and a song, get settings
+- [Pricing](https://tonelify.com/plans): plan comparison
+- [Request gear](https://tonelify.com/request-gear): ask for equipment to be added
+
+## Example tone pages
+
+- [Master of Puppets, Metallica](https://tonelify.com/explore/master-of-puppets)
+- [November Rain, Guns N' Roses](https://tonelify.com/explore/november-rain)
+- [Comfortably Numb, Pink Floyd](https://tonelify.com/explore/comfortably-numb)
+- [Sultans of Swing, Dire Straits](https://tonelify.com/explore/sultans-of-swing)
+
+## Key facts
+
+- Works with electric guitar and bass
+- Covers any amp and guitar the user names, not a fixed device list
+- Tone pages document the original recording rig, phrased as reported rather than confirmed
+- Reviews on the site come from signed-in accounts and are not seeded
