@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
 // Define routes that should be protected
 const isProtectedRoute = createRouteMatcher([
@@ -16,7 +17,19 @@ const isPublicApiRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
     if (isPublicApiRoute(req)) return
-    if (isProtectedRoute(req)) await auth.protect()
+    if (!isProtectedRoute(req)) return
+
+    const { userId, redirectToSignIn } = await auth()
+    if (userId) return
+
+    // auth.protect() answers signed-out requests with a 404, so tapping
+    // "Collection" while logged out looked like a broken link. Pages now go to
+    // sign-in and come back afterwards; API callers get a JSON 401.
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    return redirectToSignIn({ returnBackUrl: req.url })
 })
 
 export const config = {
