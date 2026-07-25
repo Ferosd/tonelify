@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Pricing } from "@/components/Pricing";
 
 export const metadata: Metadata = {
-    title: "Plans & Pricing — Start Your Free Trial",
-    description: "Choose your Tonelify plan. 7-day free trial included. Match unlimited guitar tones with AI-powered gear adaptation.",
+    title: "Plans & Pricing — Tonelify",
+    description: "Free plan with three matches a month, or unlimited from $4.99 a week. Monthly and yearly plans include a 3-day free trial.",
     openGraph: {
         title: "Plans & Pricing — Tonelify",
-        description: "Choose your plan and start matching legendary guitar tones today. 7-day free trial included.",
+        description: "Free to start. Unlimited tone matching from $4.99 a week.",
     },
     alternates: {
         canonical: "/plans",

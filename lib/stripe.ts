@@ -24,7 +24,7 @@ export const PLANS: Record<string, Plan> = {
         name: "Week Pass",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
-        // No trial: a 7-day trial on a 7-day plan gives the product away
+        // No trial: a free trial on a 7-day plan gives the product away
         trialDays: 0,
         prices: {
             week: process.env.STRIPE_PRICE_WEEK_PASS || "",
@@ -34,7 +34,7 @@ export const PLANS: Record<string, Plan> = {
         name: "Player",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
-        trialDays: 7,
+        trialDays: 3,
         prices: {
             month: process.env.STRIPE_PRICE_PLAYER_MONTHLY || "",
             year: process.env.STRIPE_PRICE_PLAYER_ANNUAL || "",
@@ -47,14 +47,14 @@ export const PLANS: Record<string, Plan> = {
         name: "Beginner",
         matchLimit: 20,
         savedToneLimit: 15,
-        trialDays: 7,
+        trialDays: 3,
         prices: {},
     },
     expert: {
         name: "Expert",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
-        trialDays: 7,
+        trialDays: 3,
         prices: {},
     },
 };

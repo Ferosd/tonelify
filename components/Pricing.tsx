@@ -41,7 +41,7 @@ const paid: Record<Interval, {
         price: "$12.99",
         per: "/month",
         note: "Cancel anytime",
-        cta: "Start 7-day free trial",
+        cta: "Start 3-day free trial",
         trial: true,
     },
     year: {
@@ -50,7 +50,7 @@ const paid: Record<Interval, {
         price: "$59.99",
         per: "/year",
         note: "Works out at $5.00 a month. Save $95.89 against monthly.",
-        cta: "Start 7-day free trial",
+        cta: "Start 3-day free trial",
         trial: true,
     },
 }
@@ -202,7 +202,7 @@ export function Pricing() {
                             </div>
                             {plan.trial && (
                                 <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-                                    7-day free trial
+                                    3-day free trial
                                 </span>
                             )}
                         </div>

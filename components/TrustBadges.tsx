@@ -11,7 +11,7 @@ export function TrustBadges() {
         {
             id: 2,
             icon: RotateCcw,
-            title: "7-Day Free Trial",
+            title: "3-Day Free Trial",
             subtitle: "Cancel anytime"
         },
         {

@@ -57,7 +57,7 @@ export default function TermsPage() {
                         <h3 className="text-lg font-semibold text-[#F2F0ED] mt-4 mb-2">4.2 Paid Subscriptions</h3>
                         <ul className="list-disc pl-6 space-y-1 mt-2">
                             <li>Paid subscriptions are billed on a monthly or annual basis, as selected at the time of purchase.</li>
-                            <li>All subscriptions include a 7-day free trial for new users.</li>
+                            <li>Monthly and yearly subscriptions include a 3-day free trial for new users. The Week Pass has no trial and is charged when you subscribe.</li>
                             <li>Payment is processed securely through Stripe. We do not store your payment card details.</li>
                             <li>Subscriptions automatically renew unless canceled before the renewal date.</li>
                         </ul>

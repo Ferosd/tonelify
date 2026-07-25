@@ -142,7 +142,7 @@ const trustItems = [
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-    title: "7-Day Free Trial", sub: "No card required",
+    title: "3-Day Free Trial", sub: "Cancel before it ends",
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
@@ -1208,7 +1208,7 @@ export default function Home() {
               <div style={{
                 fontFamily: "'General Sans', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
-              }}>{billingCycle === "annual" ? "$59.99 billed yearly · 7-day free trial" : "7-day free trial"}</div>
+              }}>{billingCycle === "annual" ? "$59.99 billed yearly · 3-day free trial" : "3-day free trial"}</div>
               <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
                 {playerFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
@@ -1225,7 +1225,7 @@ export default function Home() {
                 fontFamily: "'General Sans', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
                 borderRadius: "12px", textDecoration: "none",
                 transition: "transform 0.2s, box-shadow 0.2s",
-              }}>Start Free Trial</Link>
+              }}>Start 3-day free trial</Link>
             </div>
 
           </div>
