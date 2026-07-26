@@ -114,7 +114,7 @@ export function ExploreContent({ covers = {} }: { covers?: Record<string, string
                             key={f}
                             onClick={() => setToneFilter(f)}
                             aria-pressed={toneFilter === f}
-                            className={`flex-none h-9 px-4 rounded-full text-xs font-bold border whitespace-nowrap transition-colors ${toneFilter === f
+                            className={`flex-none h-10 md:h-9 px-4 rounded-full text-xs font-bold border whitespace-nowrap transition-colors ${toneFilter === f
                                 ? "bg-[#F5A623] text-[#08080C] border-[#F5A623]"
                                 : "bg-[#12121A] text-[#A6A29B] border-white/8 hover:text-[#F2F2F7] hover:border-[#F5A623]/30"
                                 }`}
@@ -123,13 +123,13 @@ export function ExploreContent({ covers = {} }: { covers?: Record<string, string
                             {f === "All" ? "All tones" : f}
                         </button>
                     ))}
-                    <span aria-hidden="true" className="flex-none w-px h-9 bg-white/8 mx-1" />
+                    <span aria-hidden="true" className="flex-none w-px h-10 md:h-9 bg-white/8 mx-1" />
                     {(["All", "Riff", "Solo"] as PartFilter[]).map((f) => (
                         <button
                             key={`part-${f}`}
                             onClick={() => setPartFilter(f)}
                             aria-pressed={partFilter === f}
-                            className={`flex-none h-9 px-4 rounded-full text-xs font-bold border whitespace-nowrap transition-colors ${partFilter === f
+                            className={`flex-none h-10 md:h-9 px-4 rounded-full text-xs font-bold border whitespace-nowrap transition-colors ${partFilter === f
                                 ? "bg-[#E8712A] text-[#08080C] border-[#E8712A]"
                                 : "bg-[#12121A] text-[#A6A29B] border-white/8 hover:text-[#F2F2F7] hover:border-[#E8712A]/30"
                                 }`}

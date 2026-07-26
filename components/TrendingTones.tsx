@@ -32,8 +32,11 @@ export function TrendingTones({ onSelect }: { onSelect?: (title: string, artist:
                 <p className="text-[#A6A29B] text-[0.8125rem] md:text-sm font-medium">Most researched tones right now</p>
             </div>
 
-            {/* Edge-to-edge rail on mobile: cards snap, and the last one clears the viewport edge */}
-            <div className="flex overflow-x-auto pb-2 gap-3 md:gap-4 -mx-4 px-4 snap-x snap-mandatory md:mx-0 md:px-0 md:flex-wrap md:justify-center md:overflow-x-visible md:snap-none scrollbar-hide">
+            {/* Edge-to-edge rail on mobile: cards snap, and the last one clears the viewport edge.
+                The negative margin has to match the parent's phone padding, which is px-3.
+                At -mx-4 the rail hung 4px past each edge and the whole page scrolled
+                sideways on every phone width. */}
+            <div className="flex overflow-x-auto pb-2 gap-3 md:gap-4 -mx-3 px-3 snap-x snap-mandatory md:mx-0 md:px-0 md:flex-wrap md:justify-center md:overflow-x-visible md:snap-none scrollbar-hide">
                 {trendingTones.map((tone, i) => (
                     <button
                         key={tone.rank}
