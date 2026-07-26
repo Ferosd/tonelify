@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LandingTestimonials } from "@/components/LandingTestimonials"
 import { Reviews } from "@/components/Reviews"
 import { ToneProof, TONE_COUNT } from "@/components/ToneProof"
+import { TONE_LIBRARY } from "@/lib/tone-library"
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,12 @@ const features = [
 ]
 
 const pills = ["Frequency Analysis", "Harmonic Matching", "Gear Compensation"]
+
+// Read off the library rather than hand-listed, so a renamed or removed tone
+// cannot leave a 404 sitting in the footer.
+const FOOTER_TONES = TONE_LIBRARY.slice(0, 12).map(
+  (t) => [`${t.title} tone`, `/explore/${t.id}`] as const
+)
 
 const ampSettings = [
   { label: "GAIN",     value: 7.5 },
@@ -665,9 +672,12 @@ export default function Home() {
           }}>Tonelify</span>
         </Link>
         <div className="tn-nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+          {/* Explore replaces Collection and Settings here: both of those bounce a
+              signed-out visitor to sign-in, and the tone library is the only part
+              of the site a first-time visitor (or a crawler) can actually read */}
+          <Link href="/explore"    className="tn-nav-link">Explore Tones</Link>
           <Link href="/tone-match" className="tn-nav-link">Match Tones</Link>
-          <Link href="/collection" className="tn-nav-link">Collection</Link>
-          <Link href="/settings"   className="tn-nav-link">Settings</Link>
+          <Link href="/faq"        className="tn-nav-link">FAQ</Link>
           <Link href="/plans"      className="tn-nav-link">Plans</Link>
         </div>
         <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
@@ -690,9 +700,9 @@ export default function Home() {
             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </button>
+        <Link href="/explore"    onClick={() => setMobileMenuOpen(false)}>Explore Tones</Link>
         <Link href="/tone-match" onClick={() => setMobileMenuOpen(false)}>Match Tones</Link>
-        <Link href="/collection" onClick={() => setMobileMenuOpen(false)}>Collection</Link>
-        <Link href="/settings"   onClick={() => setMobileMenuOpen(false)}>Settings</Link>
+        <Link href="/faq"        onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
         <Link href="/plans"      onClick={() => setMobileMenuOpen(false)}>Plans</Link>
         <Link href="/sign-in"    onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
       </div>
@@ -744,7 +754,10 @@ export default function Home() {
               lineHeight: 1.65, color: "#A6A6AF",
               maxWidth: "380px", margin: "0 0 32px",
             }}>
-              Match any legendary tone to your exact gear. Precise amp settings in seconds.
+              {/* The H1 is a brand line and carries no keyword, so the first
+                  paragraph has to name what the page is about */}
+              Match any legendary guitar tone to the amp, guitar and pickups you already
+              own. Exact knob settings in seconds.
             </p>
             <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap", pointerEvents: "auto" }}>
               <Link href="/tone-match" className="cta-btn">Start Matching Tones</Link>
@@ -1360,7 +1373,11 @@ export default function Home() {
               <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Quick Links
               </h4>
-              {([["Home", "/"], ["Match Tones", "/tone-match"], ["Collection", "/collection"], ["Plans", "/plans"], ["Dashboard", "/dashboard"], ["Settings", "/settings"]] as const).map(([text, href]) => (
+              {/* Collection, Dashboard and Settings used to sit here. They are
+                  noindex and blocked in robots.txt, so every one of those links
+                  spent a footer slot on a page no visitor could open without an
+                  account and no crawler was allowed to fetch. */}
+              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Request Gear", "/request-gear"]] as const).map(([text, href]) => (
                 <div key={href} style={{ marginBottom: "12px" }}>
                   <Link href={href} style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                     {text}
@@ -1394,6 +1411,25 @@ export default function Home() {
             </div>
 
           </div>
+
+          {/* The tone pages are the part of the site with real search demand, and
+              until now the only route to any of them was the /explore grid. A flat
+              link row gives each one a path from the highest-authority page. */}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "28px" }}>
+            <h4 style={{ fontFamily: "'General Sans', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 16px" }}>
+              Popular tone settings
+            </h4>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 20px" }}>
+              {FOOTER_TONES.map(([text, href]) => (
+                <Link key={href} href={href} style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.55 }}>
+                  {text}
+                </Link>
+              ))}
+              <Link href="/explore" style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.8125rem", color: "#F5A623", textDecoration: "none", fontWeight: 600 }}>
+                All {TONE_COUNT} tones →
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
 
@@ -1409,9 +1445,10 @@ export default function Home() {
             "description": "AI-powered tone matching that adapts legendary guitar tones to your specific amp, guitar, and pickups.",
             "url": "https://tonelify.com",
             "offers": [
-              { "@type": "Offer", "price": "0", "priceCurrency": "USD", "name": "Free" },
-              { "@type": "Offer", "price": "4.99", "priceCurrency": "USD", "name": "Week Pass" },
-              { "@type": "Offer", "price": "12.99", "priceCurrency": "USD", "name": "Player" },
+              { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Week Pass", "price": "4.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Player (Monthly)", "price": "12.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Player (Yearly)", "price": "59.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
             ],
           }),
         }}

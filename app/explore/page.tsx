@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExploreContent } from "@/components/ExploreContent";
 import { getLibraryArtwork } from "@/lib/artwork";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
 
@@ -37,6 +38,19 @@ export default async function ExplorePage() {
                 </p>
             </div>
             <ExploreContent covers={covers} />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "BreadcrumbList",
+                        itemListElement: [
+                            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                            { "@type": "ListItem", position: 2, name: "Explore Tones", item: `${SITE_URL}/explore` },
+                        ],
+                    }),
+                }}
+            />
         </div>
     );
 }

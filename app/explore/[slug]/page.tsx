@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TONE_LIBRARY, getToneBySlug, getRelatedTones, type LibraryTone } from "@/lib/tone-library";
+import { TONE_LIBRARY, getToneBySlug, getRelatedTones, LIBRARY_UPDATED, type LibraryTone } from "@/lib/tone-library";
 import { getArtwork } from "@/lib/artwork";
 import { SITE_URL } from "@/lib/site";
 
@@ -21,12 +21,44 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!tone) return {};
     const title = `${tone.title} by ${tone.artist} — Guitar Tone Settings`;
     const description = `How to get the ${tone.title} guitar tone on your own amp: ${tone.character.toLowerCase()}. Original rig, tone character, and AI-adapted settings for your exact gear.`;
+    const url = `${SITE_URL}/explore/${tone.id}`;
+    const artwork = await getArtwork(tone.title, tone.artist);
+    const images = artwork ? [artwork] : ["/og-image.png"];
+
     return {
         title,
         description,
         alternates: { canonical: `/explore/${tone.id}` },
-        openGraph: { title, description },
+        openGraph: { title, description, url, type: "article", siteName: "Tonelify", images },
+        // Without this the root layout's generic Twitter tags win, so every one
+        // of the 24 pages shared as the homepage blurb
+        twitter: { card: "summary_large_image", title, description, images },
     };
+}
+
+/**
+ * A genre-specific sentence so the 24 pages do not read as one template with
+ * the nouns swapped. Keyed on data already in the library, and each line states
+ * only what is true of that style in general, not invented detail about the take.
+ */
+function toneShape(tone: LibraryTone): string {
+    const byGenre: Record<string, string> = {
+        "Thrash Metal": "Tones in this style live or die on tight low end and a scooped midrange, with the picking hand doing as much of the work as the amp.",
+        "Groove Metal": "The character here comes from a hard upper-midrange attack and a fast note decay, which is why solid-state rigs suit it better than most players expect.",
+        "Metalcore": "Modern high-gain sits on a tighter low end than vintage crunch, so the gain control matters less than where the bass and the noise gate sit.",
+        "Metal": "The weight comes from layered takes and controlled low end rather than from raw gain, which is the part most players overshoot.",
+        "Metal Ballad": "Clean tones at this level depend on headroom and modulation width, not on gain, so the amp needs room before it starts to break up.",
+        "Alt Metal": "Detuned parts need the bass control pulled back further than feels right, or the low strings turn to mud as soon as the gain rises.",
+        "Hard Rock": "This is a mid-forward sound rather than a scooped one, and it usually sits closer to the edge of breakup than to full saturation.",
+        "Rock": "Much of this character comes from an amp worked hard rather than from a pedal, so master volume and pickup output matter more than the gain knob.",
+        "Prog Rock": "Sustain and ambience carry these parts, so the delay and modulation settings shape the sound as much as the amp does.",
+        "Psychedelic Rock": "The snarl comes from a fuzz circuit interacting with a cranked amp, which is why fuzz into a clean channel rarely gets there on its own.",
+        "Blues Rock": "This lives right on the edge of breakup, where the volume knob on the guitar does the real work between clean and dirty.",
+        "Alt Rock": "The sound depends on compression and pick attack more than on gain, so a lightly driven amp with the tone rolled back gets closer than a high-gain setting.",
+        "Grunge": "The point here is a raw, barely controlled tone, so cleaning it up too much moves it away from the record rather than towards it.",
+        "Instrumental Rock": "Smooth legato leads need sustain without harshness, which usually means moderate gain into a bright amp rather than maximum saturation.",
+    };
+    return byGenre[tone.genre] ?? "The balance between gain, midrange and pickup position defines this sound more than any single piece of equipment.";
 }
 
 /**
@@ -80,11 +112,17 @@ export default async function ToneDetailPage({ params }: Props) {
             <div className="container max-w-4xl px-4 py-8 md:py-12 mx-auto space-y-10">
 
                 {/* Breadcrumb */}
-                <nav className="text-xs text-[#8A8494] font-medium">
-                    <Link href="/explore" className="hover:text-[#F5A623] transition-colors">Explore</Link>
-                    <span className="mx-2">/</span>
-                    <span className="text-[#A6A29B]">{tone.title}</span>
-                </nav>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <nav className="text-xs text-[#8A8494] font-medium">
+                        {/* py-2 is what lifts a 15px-tall text link to a tappable box */}
+                        <Link href="/explore" className="inline-block py-2 hover:text-[#F5A623] transition-colors">Explore</Link>
+                        <span className="mx-2">/</span>
+                        <span className="text-[#A6A29B]">{tone.title}</span>
+                    </nav>
+                    <span className="font-mono text-[11px] text-[#8A8494]">
+                        Reviewed <time dateTime={LIBRARY_UPDATED}>{LIBRARY_UPDATED}</time>
+                    </span>
+                </div>
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row gap-6 md:gap-8 items-start">
@@ -128,10 +166,15 @@ export default async function ToneDetailPage({ params }: Props) {
                         heard on {tone.artist}&apos;s {tone.era} {tone.genre.toLowerCase()} recording. It is
                         a {tone.tone.toLowerCase()} {tone.part.toLowerCase()} tone, and {tone.artist} reportedly
                         tracked it with {tone.originalGear.charAt(0).toLowerCase() + tone.originalGear.slice(1)}.
+                        {" "}{toneShape(tone)}
                     </p>
                     <p className="text-[#8A8494] text-sm leading-relaxed">
-                        You do not need that exact gear. What carries the sound is the gain structure, the EQ curve,
-                        the pickup choice and the effects order, and all four can be rebuilt on a different rig.
+                        You do not need that exact gear to land in the same place. What carries this sound is the
+                        gain structure, the EQ curve, the pickup choice and the order of the effects, and all four
+                        can be rebuilt on equipment that costs a fraction of the original. The numbers change from
+                        amp to amp, because a {tone.tone === "Clean" ? "clean channel on a modelling combo" : "high-gain head"} and
+                        a small practice amp reach the same voicing from different knob positions. That translation
+                        is what Tonelify works out for the rig you actually own.
                     </p>
                 </section>
 
@@ -169,7 +212,7 @@ export default async function ToneDetailPage({ params }: Props) {
                     <div className="pt-2">
                         <Link
                             href={adaptHref}
-                            className="inline-flex items-center gap-2 text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors"
+                            className="inline-flex items-center gap-2 min-h-11 text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors"
                         >
                             Start matching — 3 free matches a month →
                         </Link>
@@ -233,7 +276,10 @@ export default async function ToneDetailPage({ params }: Props) {
                             about: { "@type": "MusicRecording", name: tone.title, byArtist: { "@type": "MusicGroup", name: tone.artist } },
                             mainEntityOfPage: `${SITE_URL}/explore/${tone.id}`,
                             publisher: { "@type": "Organization", name: "Tonelify", url: SITE_URL },
-                            dateModified: new Date().toISOString().slice(0, 10),
+                            datePublished: "2026-07-05",
+                            dateModified: LIBRARY_UPDATED,
+                            ...(artwork ? { image: artwork } : {}),
+                            author: { "@type": "Organization", name: "Tonelify", url: SITE_URL },
                         },
                         {
                             "@context": "https://schema.org",

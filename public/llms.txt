@@ -11,6 +11,17 @@ Tonelify is a web app, not a plugin or an amp modeller. It does not process
 audio. It reads the documented signal chain behind a recording and works out
 where to set the controls on different equipment to land in the same place.
 
+Four things carry a tone across rigs: the gain structure, the EQ curve, the
+pickup position and the order of the effects. A high-gain head and a small
+practice combo reach the same voicing from different knob positions, and
+working out that translation is the product.
+
+## What it does not do
+
+Settings reach the amp-in-the-room version of a tone, not the mixed and
+mastered record. Layered takes, studio compression, mic placement and
+mastering sit between the amp and the released file.
+
 ## Plans
 
 - Free: 3 tone matches a month, 3 saved tones, no card required
@@ -21,8 +32,14 @@ where to set the controls on different equipment to land in the same place.
 
 - [Tone library](https://tonelify.com/explore): 24 documented tones, each with the original rig
 - [Tone matcher](https://tonelify.com/tone-match): enter your gear and a song, get settings
+- [FAQ](https://tonelify.com/faq): how tone matching works, gear coverage, pricing
 - [Pricing](https://tonelify.com/plans): plan comparison
 - [Request gear](https://tonelify.com/request-gear): ask for equipment to be added
+
+## Full export
+
+- [llms-full.txt](https://tonelify.com/llms-full.txt): every documented tone as
+  plain text, with the source URL on each entry
 
 ## Example tone pages
 

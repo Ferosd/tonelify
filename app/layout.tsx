@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalSiteHeader } from "@/components/ConditionalSiteHeader";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import Script from 'next/script';
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
@@ -67,10 +68,31 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
+    // Without this, an iOS home-screen shortcut screenshots the page instead of
+    // using the mark
+    apple: "/logo.png",
   },
   verification: {
     google: 'mK5vHmwQWzTryoCTW-e1lxdyjd6Cm5cjmyEqRju1eyI',
   },
+};
+
+/**
+ * The page was shipping with only Next's default viewport tag, so mobile
+ * browsers painted their chrome white above a #08080A page and the hero's
+ * 100dvh sticky section stopped short of the notch. viewportFit: "cover" is
+ * what makes the env(safe-area-inset-*) padding in the tab bar mean anything.
+ *
+ * maximumScale is left at 5 rather than 1: locking zoom is a WCAG 1.4.4 failure
+ * and Safari ignores it anyway.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  colorScheme: "dark",
+  themeColor: "#08080A",
 };
 
 export default function RootLayout({
@@ -130,6 +152,56 @@ export default function RootLayout({
               `}
             </Script>
           )}
+          {/* Sitewide entity. sameAs is deliberately absent until real profile
+              URLs exist; placeholders would be worse than nothing. */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify([
+                {
+                  "@context": "https://schema.org",
+                  "@type": "Organization",
+                  // Stable @id so the site's other blocks point at one entity
+                  // instead of describing an unrelated Organization each time
+                  "@id": `${SITE_URL}/#organization`,
+                  name: "Tonelify",
+                  url: SITE_URL,
+                  logo: {
+                    "@type": "ImageObject",
+                    url: `${SITE_URL}/logo.png`,
+                    width: 500,
+                    height: 500,
+                  },
+                  email: "contact@tonelify.com",
+                  description:
+                    "Tone matching that adapts recorded guitar tones to the amp, guitar and pickups you already own.",
+                  knowsAbout: [
+                    "guitar tone",
+                    "amp settings",
+                    "guitar amplifiers",
+                    "guitar pickups",
+                    "guitar effects pedals",
+                    "signal chain",
+                  ],
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    contactType: "customer support",
+                    email: "contact@tonelify.com",
+                    availableLanguage: "English",
+                  },
+                },
+                {
+                  "@context": "https://schema.org",
+                  "@type": "WebSite",
+                  "@id": `${SITE_URL}/#website`,
+                  name: "Tonelify",
+                  url: SITE_URL,
+                  inLanguage: "en",
+                  publisher: { "@id": `${SITE_URL}/#organization` },
+                },
+              ]),
+            }}
+          />
         </head>
         <body>
           <ThemeProvider

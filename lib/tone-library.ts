@@ -15,6 +15,11 @@ export type LibraryTone = {
     originalGear: string
 }
 
+// Real edit date for the library copy, bumped by hand when entries change.
+// Used for Article dateModified and the visible "reviewed" line, so freshness
+// reflects actual edits instead of regenerating to "today" on every rebuild.
+export const LIBRARY_UPDATED = "2026-07-26";
+
 export const TONE_LIBRARY: LibraryTone[] = [
     { id: "master-of-puppets", title: "Master of Puppets", artist: "Metallica", genre: "Thrash Metal", era: "1980s", tone: "Distorted", part: "Riff", character: "Scooped mids, razor-tight palm-muted chug", originalGear: "ESP Explorer-style guitars into a Mesa/Boogie Mark IIC+ — the definitive scooped thrash stack" },
     { id: "november-rain", title: "November Rain", artist: "Guns N' Roses", genre: "Hard Rock", era: "1990s", tone: "Distorted", part: "Solo", character: "Singing neck-pickup lead with silky sustain", originalGear: "Kris Derrig '59 Les Paul replica into a Marshall Silver Jubilee 2555 head" },

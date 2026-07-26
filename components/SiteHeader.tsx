@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass } from "lucide-react";
+import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass, HelpCircle } from "lucide-react";
 import { useState } from "react";
 
 const routes = [
@@ -13,6 +13,7 @@ const routes = [
   { href: "/collection",    label: "Collection",   icon: Bookmark },
   { href: "/settings",      label: "Settings",     icon: Settings },
   { href: "/plans",         label: "Plans",        icon: Sparkles },
+  { href: "/faq",           label: "FAQ",          icon: HelpCircle },
   { href: "/request-gear",  label: "Request Gear", icon: MessageSquare },
 ];
 
@@ -40,7 +41,9 @@ export function SiteHeader() {
             <button
               aria-label="Open menu"
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--tn-text-secondary)" }}
-              className="flex items-center -ml-1 p-2 md:hidden"
+              // 36x36 before: the icon is 20px and p-2 added 8 either side, which
+              // is under every touch-target guideline. The box grows, the icon doesn't.
+              className="flex items-center justify-center -ml-2 h-11 w-11 lg:hidden"
             >
               <Menu size={20} />
             </button>
@@ -122,9 +125,11 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav. Held back to lg: seven labels plus the wordmark and the
+            account button do not fit across a 768px tablet, and the row was
+            wrapping into the logo before the drawer took over. */}
         <nav
-          className="hidden md:flex"
+          className="hidden lg:flex"
           style={{ flex: 1, justifyContent: "center", gap: "8px" }}
         >
           {routes.map(route => (
