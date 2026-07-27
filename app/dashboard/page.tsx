@@ -6,10 +6,12 @@ import Link from "next/link";
 import { PlusCircle, Music, Settings } from "lucide-react";
 import { MatchList } from "@/components/MatchList";
 import { EquipmentList } from "@/components/EquipmentList";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getUserSubscription } from "@/lib/subscription";
+import { PLANS } from "@/lib/stripe";
 
 export const metadata: Metadata = {
     title: "Collection: Your Saved Tones & Equipment",
@@ -104,36 +106,15 @@ export default async function Dashboard() {
                     </Card>
 
                     {/* Stats / Subscription Card */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Subscription</CardTitle>
-                            <CardDescription>Current plan usage</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Plan</span>
-                                    <span className="font-semibold text-primary capitalize">{subscription.plan}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span>Matches Used</span>
-                                    <span>
-                                        {subscription.matchesUsed} / {subscription.matchLimit === -1 ? "∞" : subscription.matchLimit}
-                                    </span>
-                                </div>
-                                {subscription.plan === "free" && (
-                                    <Link href="/plans" className="w-full mt-4 block">
-                                        <Button variant="outline" className="w-full">Upgrade Plan</Button>
-                                    </Link>
-                                )}
-                                {subscription.plan !== "free" && (
-                                    <div className="text-xs text-muted-foreground mt-4 text-center">
-                                        {subscription.cancelAtPeriodEnd ? "Cancels at end of period" : "Auto-renews"}
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <SubscriptionCard
+                        plan={subscription.plan}
+                        planName={PLANS[subscription.plan]?.name || "Free"}
+                        status={subscription.status}
+                        matchesUsed={subscription.matchesUsed}
+                        matchLimit={subscription.matchLimit}
+                        currentPeriodEnd={subscription.currentPeriodEnd}
+                        cancelAtPeriodEnd={subscription.cancelAtPeriodEnd}
+                    />
                 </div>
             </main>
         </div>

@@ -21,6 +21,7 @@ const requestSchema = z.object({
         goingDirect: z.boolean().optional().default(false),
         effects: z.array(z.string().trim().max(80)).max(20).optional().default([]),
         effectsType: z.string().max(20).optional(),
+        multiFxUnit: z.string().trim().max(120).optional().default(""),
     }),
 });
 
@@ -127,12 +128,26 @@ export async function POST(req: NextRequest) {
       `;
         }
 
+        const usesMultiFx = userGear.effectsType === "multi" && !!userGear.multiFxUnit;
+
         prompt += `
     User's Available Equipment:
     - Guitar: ${userGear.guitarModel} (Pickups: ${userGear.pickupType})
     - Amp: ${userGear.ampModel}${userGear.goingDirect ? " (Going direct / no physical amp)" : ""}
-    - Effects: ${userGear.effects ? userGear.effects.join(", ") : "None/Unknown"}
+    - ${usesMultiFx ? `Multi FX unit: ${userGear.multiFxUnit}` : "Effects"}: ${userGear.effects && userGear.effects.length > 0 ? userGear.effects.join(", ") : usesMultiFx ? "No specific blocks named — pick suitable ones from that unit" : "None/Unknown"}
+`;
 
+        if (usesMultiFx) {
+            prompt += `
+    IMPORTANT — the user is running a "${userGear.multiFxUnit}" multi FX processor, not individual pedals.
+    Name the actual amp/cab models and effect blocks as they appear in THAT unit's menus, and give
+    the block parameters by their real on-unit names. In the "pedals" array, return one entry per
+    block in signal-chain order (name = the unit's block name, settings = its parameter values).
+    Do not tell them to buy standalone pedals they don't need.
+`;
+        }
+
+        prompt += `
     Task:
     Provide the exact settings to replicate the "${songTitle}" tone using the USER'S equipment.
     Do NOT suggest buying new gear unless absolutely necessary (emphasize tweaking current gear).

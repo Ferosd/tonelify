@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { GearDialog, type GearItem, type GearType } from "@/components/GearDialog"
 
 // ───────────── Types ─────────────
 
@@ -51,11 +52,12 @@ const emptyStates: Record<TabId, EmptyStateConfig> = {
     presets: {
         icon: <Settings className="h-8 w-8 text-[#E8712A]" />,
         iconBg: "bg-[#E8712A]/10",
-        title: "Unlock Gear Presets",
-        description: "Save your favorite guitar and amp combinations for instant access during tone matching.",
-        buttonText: "View Plans",
-        buttonHref: "/plans",
+        title: "No gear presets yet",
+        description: "Save a guitar and amp pairing once, then load it into any tone match with a single tap.",
+        buttonText: "+ Add Your First Rig",
         buttonStyle: "bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C]",
+        sectionTitle: "My Rigs",
+        sectionSubtitle: "Guitar and amp presets you can load straight into a tone match",
     },
     tones: {
         icon: <Music className="h-8 w-8 text-[#E8712A]" />,
@@ -280,23 +282,103 @@ function ToneDetail({ tone }: { tone: SavedTone }) {
 
 // ───────────── Component ─────────────
 
-export function CollectionContent({ savedTones }: { savedTones: SavedTone[] }) {
+// Which gear rows each tab is responsible for. "tones" holds saved matches, not gear.
+const gearTypeForTab: Record<TabId, GearType | null> = {
+    presets: "rig",
+    tones: null,
+    multifx: "multifx",
+    pedals: "pedal",
+}
+
+const addLabel: Record<TabId, string> = {
+    presets: "Add Rig",
+    tones: "",
+    multifx: "Add Multi FX",
+    pedals: "Add Pedal",
+}
+
+function GearCard({ item, onDelete, deleting }: { item: GearItem; onDelete: (id: string) => void; deleting: boolean }) {
+    const subtitle = item.type === "rig"
+        ? [item.guitar_model, item.amp_model].filter(Boolean).join("  +  ")
+        : [item.brand, item.category].filter(Boolean).join("  ·  ")
+
+    const Icon = item.type === "rig" ? GuitarIcon : item.type === "multifx" ? Cpu : SlidersHorizontal
+
+    return (
+        <div className="group bg-[#0E0E14] border border-white/8 rounded-2xl p-5 flex items-start gap-4 hover:border-[#E8712A]/40 transition-colors">
+            <div className="h-10 w-10 shrink-0 rounded-xl bg-[#E8712A]/10 text-[#E8712A] flex items-center justify-center">
+                <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="font-bold text-[#F2F0ED] truncate">{item.name}</div>
+                {subtitle && <div className="text-sm text-[#8A8494] truncate mt-0.5">{subtitle}</div>}
+                {item.pickup_type && <div className="text-xs text-[#8A8494] mt-1">Pickups: {item.pickup_type}</div>}
+                {item.notes && <div className="text-xs text-[#8A8494] mt-1 italic">{item.notes}</div>}
+            </div>
+            <Button
+                onClick={() => onDelete(item.id)}
+                disabled={deleting}
+                className="h-9 w-9 p-0 shrink-0 bg-[#12121A] hover:bg-red-500/10 border border-white/8 hover:border-red-500/30 rounded-lg"
+                aria-label={`Delete ${item.name}`}
+            >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin text-[#8A8494]" /> : <Trash2 className="h-4 w-4 text-red-400" />}
+            </Button>
+        </div>
+    )
+}
+
+export function CollectionContent({ savedTones, equipment = [] }: { savedTones: SavedTone[]; equipment?: GearItem[] }) {
     const [activeTab, setActiveTab] = useState<TabId>("tones")
     const [tones, setTones] = useState<SavedTone[]>(savedTones)
+    const [gear, setGear] = useState<GearItem[]>(equipment)
     const [selected, setSelected] = useState<SavedTone | null>(null)
     const [deleting, setDeleting] = useState<string | null>(null)
+    const [dialogType, setDialogType] = useState<GearType | null>(null)
     const router = useRouter()
 
+    const rigs = gear.filter((g) => g.type === "rig")
+    const pedals = gear.filter((g) => g.type === "pedal")
+    const multifx = gear.filter((g) => g.type === "multifx")
+
     const tabs: Tab[] = [
-        { id: "presets", label: "Presets", icon: <Settings className="h-[18px] w-[18px]" />, badge: 0 },
+        { id: "presets", label: "Presets", icon: <Settings className="h-[18px] w-[18px]" />, badge: rigs.length },
         { id: "tones", label: "Tones", icon: <Music className="h-[18px] w-[18px]" />, badge: tones.length },
-        { id: "multifx", label: "Multi FX", icon: <Cpu className="h-[18px] w-[18px]" /> },
-        { id: "pedals", label: "Pedals", icon: <SlidersHorizontal className="h-[18px] w-[18px]" /> },
+        { id: "multifx", label: "Multi FX", icon: <Cpu className="h-[18px] w-[18px]" />, badge: multifx.length },
+        { id: "pedals", label: "Pedals", icon: <SlidersHorizontal className="h-[18px] w-[18px]" />, badge: pedals.length },
     ]
 
     const currentEmpty = emptyStates[activeTab]
-    const showAddButton = activeTab === "multifx" || activeTab === "pedals"
+    const currentGearType = gearTypeForTab[activeTab]
+    const currentGear = activeTab === "presets" ? rigs : activeTab === "pedals" ? pedals : activeTab === "multifx" ? multifx : []
+
+    const showAddButton = currentGearType !== null && currentGear.length > 0
     const showTonesList = activeTab === "tones" && tones.length > 0
+    const showGearList = currentGearType !== null && currentGear.length > 0
+
+    const openAddDialog = () => {
+        if (currentGearType) setDialogType(currentGearType)
+    }
+
+    const handleGearSaved = (item: GearItem) => {
+        setGear((prev) => [item, ...prev])
+        router.refresh()
+    }
+
+    const handleGearDelete = async (id: string) => {
+        if (!confirm("Remove this from your collection?")) return
+        setDeleting(id)
+        try {
+            const res = await fetch(`/api/equipment/${id}`, { method: "DELETE" })
+            if (!res.ok) throw new Error("Failed to delete")
+            setGear((prev) => prev.filter((g) => g.id !== id))
+            router.refresh()
+        } catch (e) {
+            console.error(e)
+            alert("Failed to delete")
+        } finally {
+            setDeleting(null)
+        }
+    }
 
     const handleDelete = async (id: string) => {
         if (!confirm("Delete this saved tone?")) return
@@ -354,16 +436,19 @@ export function CollectionContent({ savedTones }: { savedTones: SavedTone[] }) {
                     ))}
                 </div>
 
-                {/* Section Header + Add Button (for Multi FX / Pedals) */}
+                {/* Section Header + Add Button (Rigs / Multi FX / Pedals) */}
                 {showAddButton && currentEmpty.sectionTitle && (
-                    <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-start justify-between gap-4 mb-6">
                         <div>
                             <h2 className="text-lg font-bold text-[#F2F0ED]">{currentEmpty.sectionTitle}</h2>
                             <p className="text-sm text-[#8A8494] mt-0.5">{currentEmpty.sectionSubtitle}</p>
                         </div>
-                        <Button className="bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-semibold rounded-lg shadow-sm text-sm">
+                        <Button
+                            onClick={openAddDialog}
+                            className="shrink-0 bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-semibold rounded-lg shadow-sm text-sm"
+                        >
                             <Plus className="h-4 w-4 mr-1.5" />
-                            {activeTab === "multifx" ? "Add Multi FX" : "Add Pedal"}
+                            {addLabel[activeTab]}
                         </Button>
                     </div>
                 )}
@@ -377,7 +462,19 @@ export function CollectionContent({ savedTones }: { savedTones: SavedTone[] }) {
                         exit={{ opacity: 0, y: -12 }}
                         transition={{ duration: 0.2 }}
                     >
-                        {showTonesList ? (
+                        {showGearList ? (
+                            /* Saved gear grid */
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {currentGear.map((item) => (
+                                    <GearCard
+                                        key={item.id}
+                                        item={item}
+                                        onDelete={handleGearDelete}
+                                        deleting={deleting === item.id}
+                                    />
+                                ))}
+                            </div>
+                        ) : showTonesList ? (
                             /* Saved tones grid */
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {tones.map((tone) => {
@@ -440,7 +537,10 @@ export function CollectionContent({ savedTones }: { savedTones: SavedTone[] }) {
                                             </Button>
                                         </Link>
                                     ) : (
-                                        <Button className={cn("px-6 py-2.5 h-11 rounded-lg text-[15px] font-semibold shadow-sm hover:opacity-90 transition-opacity", currentEmpty.buttonStyle)}>
+                                        <Button
+                                            onClick={openAddDialog}
+                                            className={cn("px-6 py-2.5 h-11 rounded-lg text-[15px] font-semibold shadow-sm hover:opacity-90 transition-opacity", currentEmpty.buttonStyle)}
+                                        >
                                             {currentEmpty.buttonText}
                                         </Button>
                                     )}
@@ -450,6 +550,16 @@ export function CollectionContent({ savedTones }: { savedTones: SavedTone[] }) {
                     </motion.div>
                 </AnimatePresence>
             </div>
+
+            {/* Add gear dialog */}
+            {dialogType && (
+                <GearDialog
+                    type={dialogType}
+                    open={!!dialogType}
+                    onOpenChange={(open) => !open && setDialogType(null)}
+                    onSaved={handleGearSaved}
+                />
+            )}
 
             {/* Detail dialog */}
             <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>

@@ -13,6 +13,16 @@ import { TrendingTones } from "@/components/TrendingTones"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useEffect } from "react"
 
+// The effects field asks for a signal chain ("Tuner > Tube Screamer > Delay"),
+// so commas alone would send the whole chain across as one 80-char-capped string.
+function parseEffects(raw: string): string[] {
+    return raw
+        .split(/[,\n>→]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 20)
+}
+
 // ───────────── Visual amp knob (rotary dial) ─────────────
 
 function parseKnob(v: any): number | null {
@@ -62,13 +72,14 @@ export default function ToneMatchPage() {
             .catch(() => { })
     }, [user])
 
-    // Fetch the user's saved gear rigs so presets reflect their real equipment
+    // Fetch the user's saved gear so presets, pedals and multi FX all reflect
+    // what they actually own (added from /collection)
     useEffect(() => {
         if (!user) return
         fetch("/api/equipment")
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
-                if (Array.isArray(d)) setSavedRigs(d)
+                if (Array.isArray(d)) setSavedGear(d)
             })
             .catch(() => { })
     }, [user])
@@ -80,12 +91,18 @@ export default function ToneMatchPage() {
 
     // Step 1: Gear State
     const [preset, setPreset] = useState("manual")
-    const [savedRigs, setSavedRigs] = useState<any[]>([])
+    const [savedGear, setSavedGear] = useState<any[]>([])
     const [userGuitar, setUserGuitar] = useState("")
     const [userAmp, setUserAmp] = useState("")
     const [goingDirect, setGoingDirect] = useState(false)
     const [userEffects, setUserEffects] = useState("")
     const [effectsType, setEffectsType] = useState<"pedals" | "multi">("pedals")
+    const [multiFxUnit, setMultiFxUnit] = useState("")
+
+    // Gear rows written before the type migration have no `type`; they are rigs
+    const savedRigs = savedGear.filter((g) => (g.type || "rig") === "rig")
+    const savedPedals = savedGear.filter((g) => g.type === "pedal")
+    const savedMultiFx = savedGear.filter((g) => g.type === "multifx")
 
     // Step 2: Song Details State
     const [partType, setPartType] = useState<"riff" | "solo">("riff")
@@ -131,6 +148,7 @@ export default function ToneMatchPage() {
                 setGoingDirect(parsed.goingDirect || false);
                 setUserEffects(parsed.userEffects || "");
                 setEffectsType(parsed.effectsType || "pedals");
+                setMultiFxUnit(parsed.multiFxUnit || "");
                 setPartType(parsed.partType || "riff");
                 setToneType(parsed.toneType || "auto");
             } catch (e) {
@@ -154,11 +172,12 @@ export default function ToneMatchPage() {
             goingDirect,
             userEffects,
             effectsType,
+            multiFxUnit,
             partType,
             toneType
         };
         localStorage.setItem("toneMatchState", JSON.stringify(stateToSave));
-    }, [songTitle, artist, instrument, preset, userGuitar, userAmp, goingDirect, userEffects, effectsType, partType, toneType]);
+    }, [songTitle, artist, instrument, preset, userGuitar, userAmp, goingDirect, userEffects, effectsType, multiFxUnit, partType, toneType]);
 
     useEffect(() => {
         async function search() {
@@ -225,8 +244,9 @@ export default function ToneMatchPage() {
                         guitarModel: userGuitar,
                         ampModel: userAmp,
                         goingDirect,
-                        effects: userEffects.split(",").map(s => s.trim()).filter(Boolean),
-                        effectsType
+                        effects: parseEffects(userEffects),
+                        effectsType,
+                        multiFxUnit: effectsType === "multi" ? multiFxUnit : ""
                     }
                 }),
             })
@@ -260,7 +280,7 @@ export default function ToneMatchPage() {
                     userGear: {
                         guitarModel: userGuitar,
                         ampModel: userAmp,
-                        effects: userEffects.split(",").map(s => s.trim()).filter(Boolean)
+                        effects: parseEffects(userEffects)
                     },
                     settings: result
                 })
@@ -546,30 +566,107 @@ export default function ToneMatchPage() {
                                     </div>
 
                                     {effectsType === 'pedals' && (
-                                        <div className="relative">
-                                            <Textarea
-                                                placeholder="List your pedals in order (e.g. Tuner > Tube Screamer > Chorus > Delay)"
-                                                value={userEffects}
-                                                onChange={(e) => setUserEffects(e.target.value)}
-                                                className="resize-none min-h-[120px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
-                                                disabled={!userAmp && !goingDirect}
-                                            />
-                                            <div className="absolute bottom-3 right-3 text-[#8A8494]">
-                                                <Target className="h-4 w-4" />
+                                        <div className="space-y-3">
+                                            {savedPedals.length > 0 && (
+                                                <div className="space-y-2">
+                                                    <p className="text-[11px] font-bold text-[#8A8494] uppercase tracking-widest">
+                                                        Tap to add from your board
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {savedPedals.map((pedal) => {
+                                                            const label = [pedal.brand, pedal.name].filter(Boolean).join(" ")
+                                                            const already = parseEffects(userEffects).some(
+                                                                (e) => e.toLowerCase() === label.toLowerCase()
+                                                            )
+                                                            return (
+                                                                <button
+                                                                    key={pedal.id}
+                                                                    type="button"
+                                                                    disabled={already || (!userAmp && !goingDirect)}
+                                                                    onClick={() =>
+                                                                        setUserEffects((prev) =>
+                                                                            prev.trim() ? `${prev.trim()} > ${label}` : label
+                                                                        )
+                                                                    }
+                                                                    className={`text-xs font-semibold px-3 py-2 rounded-lg border transition-colors ${already
+                                                                        ? "bg-[#E8712A]/10 border-[#E8712A]/30 text-[#E8712A] cursor-default"
+                                                                        : "bg-[#12121A] border-white/8 text-[#F2F0ED] hover:border-[#E8712A]/50 hover:text-[#E8712A] disabled:opacity-40"
+                                                                        }`}
+                                                                >
+                                                                    {already ? "✓ " : "+ "}{label}
+                                                                    {pedal.category && (
+                                                                        <span className="text-[#8A8494] font-normal ml-1.5">{pedal.category}</span>
+                                                                    )}
+                                                                </button>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="relative">
+                                                <Textarea
+                                                    placeholder="List your pedals in order (e.g. Tuner > Tube Screamer > Chorus > Delay)"
+                                                    value={userEffects}
+                                                    onChange={(e) => setUserEffects(e.target.value)}
+                                                    className="resize-none min-h-[120px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
+                                                    disabled={!userAmp && !goingDirect}
+                                                />
+                                                <div className="absolute bottom-3 right-3 text-[#8A8494]">
+                                                    <Target className="h-4 w-4" />
+                                                </div>
                                             </div>
+
+                                            {user && savedPedals.length === 0 && (
+                                                <p className="text-xs text-[#8A8494] font-medium">
+                                                    Save your pedals once in <Link href="/collection" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Collection</Link> and add them here in one tap.
+                                                </p>
+                                            )}
                                         </div>
                                     )}
                                     {effectsType === 'multi' && (
-                                        <div className="p-6 bg-[#F5A623]/5 border border-[#F5A623]/20 rounded-xl flex items-start gap-4">
-                                            <div className="bg-[#F5A623]/10 p-2 rounded-lg text-[#F5A623]">
-                                                <Sparkles className="h-5 w-5" />
+                                        <div className="space-y-3">
+                                            <div className="relative group">
+                                                <select
+                                                    value={multiFxUnit}
+                                                    onChange={(e) => setMultiFxUnit(e.target.value)}
+                                                    disabled={!userAmp && !goingDirect}
+                                                    className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#E8712A]/40 disabled:opacity-40"
+                                                >
+                                                    <option value="">
+                                                        {savedMultiFx.length > 0 ? "Select your unit..." : "Type your unit below..."}
+                                                    </option>
+                                                    {savedMultiFx.map((unit) => {
+                                                        const label = [unit.brand, unit.name].filter(Boolean).join(" ")
+                                                        return <option key={unit.id} value={label}>{label}</option>
+                                                    })}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8A8494] group-hover:text-[#E8712A] transition-colors">
+                                                    <ArrowLeft className="h-4 w-4 -rotate-90" />
+                                                </div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <h4 className="font-bold text-[#F2F0ED] text-sm">Using a Multi-FX Unit?</h4>
-                                                <p className="text-sm text-[#8A8494] leading-relaxed">
-                                                    For best results with Helix, Kemper, or Axe-FX, we recommend adding your specific unit in <Link href="/settings" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Account Settings</Link>.
+
+                                            <input
+                                                placeholder="Or type it: Line 6 HX Stomp, Boss GT-1000, Kemper Profiler..."
+                                                value={multiFxUnit}
+                                                onChange={(e) => setMultiFxUnit(e.target.value)}
+                                                disabled={!userAmp && !goingDirect}
+                                                className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED] disabled:opacity-40"
+                                            />
+
+                                            <Textarea
+                                                placeholder="Blocks or amp model you want to build around (optional) — e.g. US Deluxe Nrm > Scream 808 > Simple Delay"
+                                                value={userEffects}
+                                                onChange={(e) => setUserEffects(e.target.value)}
+                                                disabled={!userAmp && !goingDirect}
+                                                className="resize-none min-h-[90px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
+                                            />
+
+                                            {user && savedMultiFx.length === 0 && (
+                                                <p className="text-xs text-[#8A8494] font-medium">
+                                                    Save your processor in <Link href="/collection" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Collection</Link> so it's one tap next time.
                                                 </p>
-                                            </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

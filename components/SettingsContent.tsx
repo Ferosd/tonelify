@@ -14,9 +14,16 @@ import { UserSubscription } from "@/lib/subscription";
 
 interface SettingsContentProps {
     subscription: UserSubscription;
+    planName: string;
+    counts: {
+        presets: number;
+        savedTones: number;
+        pedals: number;
+        multifx: number;
+    };
 }
 
-export function SettingsContent({ subscription }: SettingsContentProps) {
+export function SettingsContent({ subscription, planName, counts }: SettingsContentProps) {
     const { user, isLoaded } = useUser();
     const { openUserProfile, signOut } = useClerk();
     const [activeTab, setActiveTab] = useState("settings");
@@ -43,7 +50,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                             <h1 className="text-xl md:text-2xl font-bold">{user.username || user.fullName}</h1>
                             <p className="text-white/70 text-sm mb-2">{user.primaryEmailAddress?.emailAddress}</p>
                             <Badge className="w-fit bg-white/20 hover:bg-white/20 text-white border-0 capitalize">
-                                {subscription.plan === 'free' ? 'Free Account' : `${subscription.plan} Plan`}
+                                {subscription.plan === 'free' ? 'Free Account' : `${planName} Plan`}
                             </Badge>
                         </div>
                     </div>
@@ -88,7 +95,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                 </div>
 
                 <p className="text-sm text-[#8A8494] ml-1">
-                    Looking for your saved gear? Visit your <Link href="/dashboard" className="text-[#E8712A] font-semibold hover:underline">Collection</Link>
+                    Looking for your saved gear? Visit your <Link href="/collection" className="text-[#E8712A] font-semibold hover:underline">Collection</Link>
                 </p>
 
                 {/* Settings Tab */}
@@ -96,10 +103,10 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                     <>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
-                                { label: "Presets", value: 0 },
-                                { label: "Saved Tones", value: 0 },
-                                { label: "Activities", value: subscription.matchesUsed },
-                                { label: "Adaptations", value: 0 },
+                                { label: "Presets", value: counts.presets },
+                                { label: "Saved Tones", value: counts.savedTones },
+                                { label: "Pedals", value: counts.pedals },
+                                { label: "Multi FX", value: counts.multifx },
                             ].map((stat, i) => (
                                 <Card key={i} className="flex flex-col items-center justify-center py-6 bg-[#12121A] border-white/8">
                                     <span className="text-2xl font-bold text-[#F2F0ED]">{stat.value}</span>
@@ -119,7 +126,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                                             </div>
                                             <div className="text-left">
                                                 <h3 className="font-bold text-[#F2F0ED]">Subscription</h3>
-                                                <p className="text-xs text-[#8A8494] capitalize">{subscription.plan} Plan</p>
+                                                <p className="text-xs text-[#8A8494]">{planName} Plan</p>
                                             </div>
                                         </div>
                                     </AccordionTrigger>
@@ -127,7 +134,7 @@ export function SettingsContent({ subscription }: SettingsContentProps) {
                                         <div className="grid md:grid-cols-2 gap-8 mb-6">
                                             <div>
                                                 <p className="text-xs font-bold text-[#8A8494] uppercase mb-1">PLAN</p>
-                                                <p className="font-semibold text-[#F2F0ED] capitalize">{subscription.plan}</p>
+                                                <p className="font-semibold text-[#F2F0ED]">{planName}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs font-bold text-[#8A8494] uppercase mb-1">STATUS</p>

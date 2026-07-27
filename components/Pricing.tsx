@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Check, Sparkles, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
@@ -75,10 +75,43 @@ const freeFeatures = [
 export function Pricing() {
     const [interval, setInterval] = useState<Interval>("month")
     const [loading, setLoading] = useState(false)
+    const [portalLoading, setPortalLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [currentPlan, setCurrentPlan] = useState<string | null>(null)
     const { isSignedIn } = useUser()
 
     const plan = paid[interval]
+
+    // Subscribers shouldn't be sold a plan they already pay for
+    useEffect(() => {
+        if (!isSignedIn) {
+            setCurrentPlan(null)
+            return
+        }
+        fetch("/api/subscription")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (d && typeof d.plan === "string") setCurrentPlan(d.plan)
+            })
+            .catch(() => { })
+    }, [isSignedIn])
+
+    const isSubscribed = !!currentPlan && currentPlan !== "free"
+
+    const openPortal = async () => {
+        setPortalLoading(true)
+        setError(null)
+        try {
+            const res = await fetch("/api/stripe/portal", { method: "POST" })
+            const data = await res.json()
+            if (data.url) window.location.href = data.url
+            else setError(data.error || "Couldn't open the billing portal. Try again in a moment.")
+        } catch {
+            setError("Couldn't open the billing portal. Check your connection and try again.")
+        } finally {
+            setPortalLoading(false)
+        }
+    }
 
     const handleCheckout = async () => {
         if (!isSignedIn) {
@@ -202,7 +235,7 @@ export function Pricing() {
                                 <h3 className="text-2xl font-bold text-[#F2F0ED]">{plan.name}</h3>
                                 <p className="text-sm text-[#8A8494] font-medium mt-0.5">Everything, no caps</p>
                             </div>
-                            {plan.trial && (
+                            {plan.trial && !isSubscribed && (
                                 <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                                     3-day free trial
                                 </span>
@@ -228,14 +261,30 @@ export function Pricing() {
                             <p role="alert" className="text-sm text-red-400 mb-3">{error}</p>
                         )}
 
-                        <button
-                            onClick={handleCheckout}
-                            disabled={loading}
-                            className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
-                            style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
-                        >
-                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
-                        </button>
+                        {isSubscribed ? (
+                            <div className="space-y-3">
+                                <div className="w-full h-12 rounded-xl bg-[#E8712A]/10 border border-[#E8712A]/30 text-[#E8712A] font-bold flex items-center justify-center gap-2">
+                                    <Check className="h-5 w-5" />
+                                    You're on this plan
+                                </div>
+                                <button
+                                    onClick={openPortal}
+                                    disabled={portalLoading}
+                                    className="w-full h-11 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center gap-2 hover:border-[#E8712A] disabled:opacity-60 transition-colors"
+                                >
+                                    {portalLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Manage billing"}
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleCheckout}
+                                disabled={loading}
+                                className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+                                style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
+                            >
+                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
+                            </button>
+                        )}
                     </motion.div>
                 </div>
 
