@@ -9,7 +9,7 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "Tonelify — Guitar Tone Matching",
+        name: "Tonelify: Guitar Tone Matching",
         short_name: "Tonelify",
         description:
             "Turn any recorded guitar tone into knob settings for the amp and guitar you already own.",
@@ -21,8 +21,11 @@ export default function manifest(): MetadataRoute.Manifest {
         theme_color: "#08080A",
         categories: ["music", "utilities", "education"],
         icons: [
-            { src: "/logo.png", sizes: "500x500", type: "image/png", purpose: "any" },
-            { src: "/logo.png", sizes: "500x500", type: "image/png", purpose: "maskable" },
+            { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+            // The maskable copy is padded into the safe zone; pointing a launcher
+            // at the full-bleed mark got its rounded corners cropped off
+            { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
     };
 }

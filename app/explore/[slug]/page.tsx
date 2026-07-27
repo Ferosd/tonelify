@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     const tone = getToneBySlug(slug);
     if (!tone) return {};
-    const title = `${tone.title} by ${tone.artist} — Guitar Tone Settings`;
+    const title = `${tone.title} by ${tone.artist}: Guitar Tone Settings`;
     const description = `How to get the ${tone.title} guitar tone on your own amp: ${tone.character.toLowerCase()}. Original rig, tone character, and AI-adapted settings for your exact gear.`;
     const url = `${SITE_URL}/explore/${tone.id}`;
     const artwork = await getArtwork(tone.title, tone.artist);

@@ -6,11 +6,11 @@ import { SITE_URL } from "@/lib/site";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-    title: "Explore Tones — Iconic Guitar Tones Library",
+    title: "Explore Tones: Iconic Guitar Tones Library",
     description:
         "Browse a curated library of iconic guitar tones — from Master of Puppets to Sultans of Swing — and adapt any of them to your own amp and guitar in one tap.",
     openGraph: {
-        title: "Explore Tones — Tonelify",
+        title: "Explore Tones | Tonelify",
         description:
             "Browse iconic guitar tones and adapt them to your own gear in one tap.",
     },

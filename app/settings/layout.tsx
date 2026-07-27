@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Settings — Manage Your Account",
+    title: "Settings: Manage Your Account",
     description:
         "Manage your Tonelify profile, subscription, equipment presets, and account settings.",
     openGraph: {
-        title: "Settings — Tonelify Account",
+        title: "Settings | Tonelify Account",
         description: "Manage your Tonelify profile and subscription.",
     },
     alternates: {

@@ -4,12 +4,12 @@ import { TONE_LIBRARY } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-    title: "Guitar Tone Matching FAQ — How Tonelify Works",
+    title: "Guitar Tone Matching FAQ: How Tonelify Works",
     description:
         "How tone matching works, what Tonelify needs from your rig, which amps and guitars it covers, what the free plan includes, and where the settings come from.",
     alternates: { canonical: "/faq" },
     openGraph: {
-        title: "Guitar Tone Matching FAQ — Tonelify",
+        title: "Guitar Tone Matching FAQ | Tonelify",
         description:
             "How tone matching works, which gear it covers, and what the free plan includes.",
         url: `${SITE_URL}/faq`,

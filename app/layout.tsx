@@ -9,7 +9,9 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
-    default: "Tonelify — Match Any Guitar Tone to Your Gear",
+    // Keyword first, brand last, one separator — the same shape the template
+    // gives every other page, so no tab reads differently from its neighbours
+    default: "Match Any Guitar Tone to Your Gear | Tonelify",
     template: "%s | Tonelify",
   },
   description:
@@ -33,7 +35,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Tonelify",
-    title: "Tonelify — Match Any Guitar Tone to Your Gear",
+    title: "Match Any Guitar Tone to Your Gear | Tonelify",
     description:
       "Dial in legendary guitar tones for your exact amp, guitar, and pickups.",
     images: [
@@ -47,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tonelify — Match Any Guitar Tone",
+    title: "Match Any Guitar Tone to Your Gear | Tonelify",
     description:
       "Dial in legendary tones for your specific gear. Perfect settings in seconds.",
     images: ["/og-image.png"],
@@ -66,12 +68,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: "/favicon.ico",
-    // Without this, an iOS home-screen shortcut screenshots the page instead of
-    // using the mark
-    apple: "/logo.png",
-  },
+  // Icons come from the app/ file conventions (favicon.ico, icon.png,
+  // apple-icon.png) rather than being listed here. Next fingerprints the URLs it
+  // emits for those, which is what finally pushed the stale default icon out of
+  // browser caches — a hand-written "/favicon.ico" never changes URL.
   verification: {
     google: 'mK5vHmwQWzTryoCTW-e1lxdyjd6Cm5cjmyEqRju1eyI',
   },
@@ -169,8 +169,8 @@ export default function RootLayout({
                   logo: {
                     "@type": "ImageObject",
                     url: `${SITE_URL}/logo.png`,
-                    width: 500,
-                    height: 500,
+                    width: 512,
+                    height: 512,
                   },
                   email: "contact@tonelify.com",
                   description:
