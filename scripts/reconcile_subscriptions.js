@@ -29,11 +29,21 @@ const supabase = createClient(
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Mirrors lib/stripe.ts. Kept as ids only — this script never needs the limits.
+// Only useful when the price ids for this Stripe mode are in the environment;
+// checkout stamps the plan into subscription metadata, so that comes first.
 const PRICE_TO_PLAN = {
     [process.env.STRIPE_PRICE_WEEK_PASS]: "weekly",
     [process.env.STRIPE_PRICE_PLAYER_MONTHLY]: "player",
     [process.env.STRIPE_PRICE_PLAYER_ANNUAL]: "player",
 };
+
+const KNOWN_PLANS = ["weekly", "player", "beginner", "expert"];
+
+function planFor(sub, priceId, currentPlan) {
+    const fromMetadata = sub?.metadata?.planId;
+    if (KNOWN_PLANS.includes(fromMetadata)) return fromMetadata;
+    return PRICE_TO_PLAN[priceId] || currentPlan;
+}
 
 const ACTIVE = ["active", "trialing", "past_due", "unpaid"];
 
@@ -70,7 +80,7 @@ async function main() {
         const live = ACTIVE.includes(sub.status);
         // A subscription Stripe no longer considers live drops to free, whatever
         // the row says. An active one keeps the plan its current price maps to.
-        const plan = live ? (PRICE_TO_PLAN[priceId] || row.plan) : "free";
+        const plan = live ? planFor(sub, priceId, row.plan) : "free";
         const status = live ? (sub.status === "trialing" ? "active" : sub.status) : sub.status;
 
         const update = {
