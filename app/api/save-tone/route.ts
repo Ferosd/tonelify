@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { canUserSaveTone } from "@/lib/subscription";
+import { ensureProfile } from "@/lib/profile";
 
 
 export async function POST(req: NextRequest) {
@@ -11,20 +12,6 @@ export async function POST(req: NextRequest) {
 
         if (!userId || !user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Enforce the plan's saved-tone limit
-        const { allowed, limit, used } = await canUserSaveTone(userId);
-        if (!allowed) {
-            return NextResponse.json(
-                {
-                    error: "Saved tone limit reached",
-                    limit,
-                    used,
-                    message: `You've saved ${used} of ${limit} tones on your plan. Upgrade to save more.`,
-                },
-                { status: 403 }
-            );
         }
 
         const { songTitle, artist, userGear, settings } = await req.json();
@@ -37,32 +24,16 @@ export async function POST(req: NextRequest) {
         }
 
         // 1. Ensure User Profile Exists
-        // Since we use Clerk, we need to sync user to our profiles table if not exists
-        const { data: profile, error: profileError } = await getSupabaseAdmin()
-            .from("profiles")
-            .select("id")
-            .eq("id", userId)
-            .single();
-
-        if (!profile) {
-            // Create profile
-            const { error: createProfileError } = await getSupabaseAdmin()
-                .from("profiles")
-                .insert({
-                    id: userId,
-                    email: user.emailAddresses[0]?.emailAddress,
-                    full_name: `${user.firstName} ${user.lastName}`.trim(),
-                });
-
-            if (createProfileError) {
-                console.error("Error creating profile:", createProfileError);
-                // Continue anyway, maybe FK will fail or maybe it worked despite error
-            }
+        // tone_matches.user_id references profiles(id), and Clerk doesn't
+        // populate that table for us.
+        if (!await ensureProfile(userId)) {
+            return NextResponse.json({ error: "Could not set up your account" }, { status: 500 });
         }
 
-        // 2. Ideally we should link to 'songs' table, but for now we might just want to save the raw data
-        // If 'song_id' is required, we need to find or create the song.
-        // Let's check if song exists
+        // 2. Link the match to a row in `songs`, creating one if this is the
+        // first time anybody saved this track. genre/year stay null rather than
+        // getting placeholder values — "Unknown / 2026" was showing up as real
+        // metadata in the library.
         let songId = null;
         const { data: songData } = await getSupabaseAdmin()
             .from("songs")
@@ -74,34 +45,56 @@ export async function POST(req: NextRequest) {
         if (songData) {
             songId = songData.id;
         } else {
-            // Create new song entry
-            const { data: newSong, error: newSongError } = await getSupabaseAdmin()
+            const { data: newSong } = await getSupabaseAdmin()
                 .from("songs")
-                .insert({
-                    title: songTitle,
-                    artist: artist,
-                    genre: "Unknown", // Placeholder
-                    year: new Date().getFullYear() // Placeholder
-                })
+                .insert({ title: songTitle, artist: artist })
                 .select()
                 .single();
 
             if (newSong) songId = newSong.id;
         }
 
-        // 3. Save the Tone Match
-        const { data, error } = await getSupabaseAdmin()
-            .from("tone_matches")
-            .insert({
-                user_id: userId,
-                song_id: songId, // Can be null if FK allows, but our schema allows null? Let's check schema.
-                // Actually schema says: song_id UUID REFERENCES public.songs(id)
-                // It doesn't say NOT NULL, so it can be null. But better to valid song.
-                settings: settings,
-                // We are storing the whole settings JSON.
-                // We could also store user_equipment_id if we managed that table, but for now we skip it.
-            })
-            .select();
+        // 3. Save the Tone Match.
+        // One row per song per user: re-saving the same track overwrites its
+        // settings instead of stacking another copy. Collections were filling
+        // up with the same song three times over from repeated taps on Save.
+        const { data: existingMatch } = songId
+            ? await getSupabaseAdmin()
+                .from("tone_matches")
+                .select("id")
+                .eq("user_id", userId)
+                .eq("song_id", songId)
+                .maybeSingle()
+            : { data: null };
+
+        // The plan's saved-tone limit only applies to new rows. Someone at their
+        // limit can still re-save a track they already own — that adds nothing
+        // to their collection.
+        if (!existingMatch) {
+            const { allowed, limit, used } = await canUserSaveTone(userId);
+            if (!allowed) {
+                return NextResponse.json(
+                    {
+                        error: "Saved tone limit reached",
+                        limit,
+                        used,
+                        message: `You've saved ${used} of ${limit} tones on your plan. Upgrade to save more.`,
+                    },
+                    { status: 403 }
+                );
+            }
+        }
+
+        const { data, error } = existingMatch
+            ? await getSupabaseAdmin()
+                .from("tone_matches")
+                .update({ settings, created_at: new Date().toISOString() })
+                .eq("id", existingMatch.id)
+                .select()
+            : await getSupabaseAdmin()
+                .from("tone_matches")
+                .insert({ user_id: userId, song_id: songId, settings })
+                .select();
 
         if (error) {
             console.error("Error saving tone match:", error);

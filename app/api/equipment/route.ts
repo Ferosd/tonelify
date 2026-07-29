@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { ensureProfile } from "@/lib/profile";
 import { NextResponse } from "next/server";
 
 const GEAR_TYPES = ["rig", "pedal", "multifx"] as const;
@@ -68,6 +69,11 @@ export async function POST(req: Request) {
         const name = trim(body?.name, 120);
         if (!name) {
             return NextResponse.json({ error: "Name is required" }, { status: 400 });
+        }
+
+        // user_equipment.user_id references profiles(id)
+        if (!await ensureProfile(userId)) {
+            return NextResponse.json({ error: "Could not set up your account" }, { status: 500 });
         }
 
         const row: Record<string, unknown> = { user_id: userId, name, type };

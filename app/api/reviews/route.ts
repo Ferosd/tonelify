@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+// Signing in is cheap, so the review form needs its own ceiling per account.
+const REVIEWS_PER_DAY = 3;
 
 
 export async function GET() {
@@ -32,6 +36,14 @@ export async function POST(req: NextRequest) {
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { allowed } = await checkRateLimit("reviews", userId, REVIEWS_PER_DAY, 60 * 60 * 24);
+        if (!allowed) {
+            return NextResponse.json(
+                { error: "You've posted enough reviews for today." },
+                { status: 429 }
+            );
         }
 
         const { rating, comment, name } = await req.json();

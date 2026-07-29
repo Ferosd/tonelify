@@ -2,10 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { auth } from '@clerk/nextjs/server';
 import { gearRequestSchema } from '@/lib/validations/gear';
+import { checkRateLimit, callerIp } from '@/lib/rate-limit';
+import { ensureProfile } from '@/lib/profile';
+
+// The form is open to signed-out visitors on purpose, so the only thing
+// standing between it and a scripted flood is this counter.
+const REQUESTS_PER_HOUR = 5;
 
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();
+
+        const { allowed } = await checkRateLimit(
+            'gear-requests',
+            userId || callerIp(request),
+            REQUESTS_PER_HOUR,
+            60 * 60
+        );
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429 }
+            );
+        }
+
         const body = await request.json();
 
         // Validation with Zod
@@ -20,11 +40,15 @@ export async function POST(request: NextRequest) {
 
         const { equipment_type, equipment_name, additional_info, email } = result.data;
 
+        // gear_requests.user_id references profiles(id); signed-out visitors
+        // store null there, which the foreign key allows.
+        const requestUserId = userId && await ensureProfile(userId) ? userId : null;
+
         // Insert into Supabase
         const { data, error } = await getSupabaseAdmin()
             .from('gear_requests')
             .insert({
-                user_id: userId || null,
+                user_id: requestUserId,
                 equipment_type,
                 equipment_name: equipment_name || null,
                 additional_info: additional_info || null,

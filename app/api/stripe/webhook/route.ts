@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, getPlanByPriceId } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import {
+    subscriptionPeriodEnd,
+    periodEndFromPrice,
+    invoiceSubscriptionId,
+    idOf,
+} from "@/lib/stripe-events";
 
 export async function POST(req: NextRequest) {
     const body = await req.text();
@@ -36,8 +42,8 @@ export async function POST(req: NextRequest) {
         if (eventType === "checkout.session.completed") {
             const userId = obj?.metadata?.userId;
             const planId = obj?.metadata?.planId;
-            const subscriptionId = obj?.subscription;
-            const customerId = obj?.customer;
+            const subscriptionId = idOf(obj?.subscription);
+            const customerId = idOf(obj?.customer);
 
             console.log(`[Webhook] userId: ${userId}, planId: ${planId}, subId: ${subscriptionId}`);
 
@@ -46,18 +52,24 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ received: true, skipped: "missing metadata" });
             }
 
-            let periodEnd = new Date();
-            periodEnd.setMonth(periodEnd.getMonth() + 1);
+            // Access has to end when the customer stopped paying for it. Guessing
+            // a month here is what handed a Week Pass four weeks of the product.
+            let periodEnd: Date | null = null;
 
             if (subscriptionId) {
                 try {
                     const sub: any = await stripe.subscriptions.retrieve(subscriptionId);
-                    if (sub.current_period_end) {
-                        periodEnd = new Date(sub.current_period_end * 1000);
-                    }
+                    periodEnd = subscriptionPeriodEnd(sub) ?? periodEndFromPrice(sub);
                 } catch (subErr: any) {
                     console.error("[Webhook] Failed to retrieve subscription:", subErr.message);
                 }
+            }
+
+            if (!periodEnd) {
+                // Nothing to go on. Retry rather than write a made-up period —
+                // Stripe redelivers, and the row stays absent until we know.
+                console.error(`[Webhook] No period end for ${userId} / sub ${subscriptionId}`);
+                return NextResponse.json({ error: "Could not determine billing period" }, { status: 500 });
             }
 
             const { error: dbError } = await getSupabaseAdmin()
@@ -82,39 +94,47 @@ export async function POST(req: NextRequest) {
         }
 
         else if (eventType === "invoice.payment_succeeded") {
-            const subscriptionId = obj?.subscription;
+            // This is the handler that keeps a paying subscriber's access alive.
+            // It read obj.subscription, which Stripe moved under obj.parent, so
+            // it returned early on every renewal and nobody's period was extended.
+            const subscriptionId = invoiceSubscriptionId(obj);
             if (!subscriptionId) {
+                // A genuine one-off invoice, not a subscription renewal.
                 return NextResponse.json({ received: true });
             }
 
-            try {
-                const sub: any = await stripe.subscriptions.retrieve(subscriptionId);
-                const userId = sub.metadata?.userId;
-                const planId = sub.metadata?.planId;
+            const sub: any = await stripe.subscriptions.retrieve(subscriptionId);
+            const userId = sub.metadata?.userId;
+            const planId = sub.metadata?.planId;
 
-                if (userId && planId) {
-                    const periodEnd = sub.current_period_end
-                        ? new Date(sub.current_period_end * 1000)
-                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-                    await getSupabaseAdmin()
-                        .from("user_subscriptions")
-                        .upsert({
-                            user_id: userId,
-                            stripe_customer_id: obj.customer || null,
-                            stripe_subscription_id: subscriptionId,
-                            plan: planId,
-                            status: "active",
-                            current_period_end: periodEnd.toISOString(),
-                            cancel_at_period_end: false,
-                            updated_at: new Date().toISOString(),
-                        }, { onConflict: "user_id" });
-
-                    console.log(`[Webhook] ✅ Renewed: ${userId} → ${planId}`);
-                }
-            } catch (err: any) {
-                console.error("[Webhook] invoice error:", err.message);
+            if (!userId || !planId) {
+                console.error(`[Webhook] Renewal for ${subscriptionId} has no userId/planId metadata`);
+                return NextResponse.json({ received: true, skipped: "missing metadata" });
             }
+
+            const periodEnd = subscriptionPeriodEnd(sub) ?? periodEndFromPrice(sub);
+
+            const { error: renewError } = await getSupabaseAdmin()
+                .from("user_subscriptions")
+                .upsert({
+                    user_id: userId,
+                    stripe_customer_id: idOf(obj?.customer),
+                    stripe_subscription_id: subscriptionId,
+                    plan: planId,
+                    status: "active",
+                    current_period_end: periodEnd.toISOString(),
+                    cancel_at_period_end: !!sub.cancel_at_period_end,
+                    updated_at: new Date().toISOString(),
+                }, { onConflict: "user_id" });
+
+            if (renewError) {
+                // 500 so Stripe redelivers. Swallowing this used to drop a paid
+                // renewal on any transient database error.
+                console.error("[Webhook] Renewal DB error:", renewError);
+                return NextResponse.json({ error: "Database error" }, { status: 500 });
+            }
+
+            console.log(`[Webhook] ✅ Renewed: ${userId} → ${planId} until ${periodEnd.toISOString()}`);
         }
 
         else if (eventType === "customer.subscription.updated") {
@@ -129,31 +149,51 @@ export async function POST(req: NextRequest) {
                 updated_at: new Date().toISOString(),
             };
             if (match) update.plan = match.planId;
-            if (obj?.current_period_end) {
-                update.current_period_end = new Date(obj.current_period_end * 1000).toISOString();
-            }
-            if (obj?.status === "active" || obj?.status === "trialing") {
-                update.status = "active";
+
+            const updatedEnd = subscriptionPeriodEnd(obj);
+            if (updatedEnd) {
+                update.current_period_end = updatedEnd.toISOString();
             }
 
-            await getSupabaseAdmin()
+            // past_due and unpaid are recorded as themselves: getUserSubscription
+            // expires anything that isn't "active" the moment the period ends,
+            // instead of extending it the three-day grace a live sub gets.
+            if (obj?.status === "active" || obj?.status === "trialing") {
+                update.status = "active";
+            } else if (obj?.status) {
+                update.status = obj.status;
+            }
+
+            const { error: syncError } = await getSupabaseAdmin()
                 .from("user_subscriptions")
                 .update(update)
                 .eq("stripe_subscription_id", obj.id);
+
+            if (syncError) {
+                console.error("[Webhook] Subscription sync DB error:", syncError);
+                return NextResponse.json({ error: "Database error" }, { status: 500 });
+            }
 
             if (match) console.log(`[Webhook] ✅ Plan synced: sub ${obj.id} → ${match.planId}`);
         }
 
         else if (eventType === "customer.subscription.deleted") {
-            await getSupabaseAdmin()
+            const { error: cancelError } = await getSupabaseAdmin()
                 .from("user_subscriptions")
                 .update({ plan: "free", status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
                 .eq("stripe_subscription_id", obj.id);
+
+            if (cancelError) {
+                console.error("[Webhook] Cancellation DB error:", cancelError);
+                return NextResponse.json({ error: "Database error" }, { status: 500 });
+            }
         }
 
     } catch (error: any) {
+        // 200 here told Stripe the event was handled, so a failed write was never
+        // redelivered — the payment went through and the account never saw it.
         console.error("[Webhook] Error:", error.message);
-        return NextResponse.json({ received: true, error: error.message });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ received: true });
