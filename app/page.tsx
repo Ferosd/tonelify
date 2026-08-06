@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs"
+import { SignOutButton, useUser } from "@clerk/nextjs"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LandingTestimonials } from "@/components/LandingTestimonials"
@@ -197,6 +197,10 @@ export default function Home() {
   const stepRefs          = useRef<(HTMLDivElement | null)[]>([])
   const ampCardRefs       = useRef<(HTMLDivElement | null)[]>([])
   const ampValueRefs      = useRef<(HTMLSpanElement | null)[]>([])
+
+  // Stays false through the prerender, so the signed-out markup is what ships in
+  // the static HTML and the signed-in nav swaps in once Clerk resolves
+  const { isSignedIn } = useUser()
 
   const [billingCycle, setBillingCycle]     = useState<"monthly" | "annual">("monthly")
   const [mounted, setMounted]               = useState(false)
@@ -683,13 +687,14 @@ export default function Home() {
         </div>
         {/* The landing nav used to hard-code "Sign In", so a signed-in visitor who
             clicked the wordmark landed back here and read it as being logged out.
-            Clerk decides which control renders now. */}
-        <SignedOut>
-          <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
-        </SignedOut>
-        <SignedIn>
+            Written against useUser rather than <SignedIn>/<SignedOut> on purpose:
+            this page is statically prerendered, and Clerk's components render
+            nothing at all server-side, which would empty the nav in the HTML. */}
+        {isSignedIn ? (
           <Link href="/collection" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>My Collection</Link>
-        </SignedIn>
+        ) : (
+          <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
+        )}
         <button
           className="tn-hamburger"
           aria-label="Open navigation menu"
@@ -713,10 +718,11 @@ export default function Home() {
         <Link href="/tone-match" onClick={() => setMobileMenuOpen(false)}>Match Tones</Link>
         <Link href="/faq"        onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
         <Link href="/plans"      onClick={() => setMobileMenuOpen(false)}>Plans</Link>
-        <SignedOut>
+        {!isSignedIn && (
           <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
-        </SignedOut>
-        <SignedIn>
+        )}
+        {isSignedIn && (
+          <>
           <Link href="/collection" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>My Collection</Link>
           <SignOutButton redirectUrl="/">
             <button
@@ -729,7 +735,8 @@ export default function Home() {
               Sign Out
             </button>
           </SignOutButton>
-        </SignedIn>
+          </>
+        )}
       </div>
 
       {/* Grain overlay */}
@@ -1087,16 +1094,18 @@ export default function Home() {
               flexWrap: "wrap", justifyContent: "center", pointerEvents: "auto",
             }}>
               {/* Sending an existing member to sign-up is a dead end — Clerk just
-                  tells them they are already signed in */}
-              <SignedOut>
-                <Link href="/sign-up" className="cta-btn">Try It Free</Link>
-                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#A6A6AF" }}>
-                  No credit card required
-                </span>
-              </SignedOut>
-              <SignedIn>
+                  tells them they are already signed in. The signed-out copy is the
+                  server-rendered default so it stays in the crawled HTML. */}
+              {isSignedIn ? (
                 <Link href="/tone-match" className="cta-btn">Match a Tone</Link>
-              </SignedIn>
+              ) : (
+                <>
+                  <Link href="/sign-up" className="cta-btn">Try It Free</Link>
+                  <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#A6A6AF" }}>
+                    No credit card required
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
