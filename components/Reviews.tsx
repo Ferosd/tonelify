@@ -138,7 +138,9 @@ export function Reviews() {
                                         <CardContent className="p-6">
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex text-[#E8712A] text-xs">
-                                                    {Array.from({ length: review.rating }).map((_, i) => (
+                                                    {/* Clamped: the row length comes from stored data, and one
+                                                        bad row should not be able to render a million stars */}
+                                                    {Array.from({ length: Math.max(0, Math.min(5, Math.round(review.rating) || 0)) }).map((_, i) => (
                                                         <Star key={i} className="w-4 h-4 fill-current" />
                                                     ))}
                                                 </div>

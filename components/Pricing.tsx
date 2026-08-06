@@ -115,7 +115,9 @@ export function Pricing() {
 
     const handleCheckout = async () => {
         if (!isSignedIn) {
-            window.location.href = "/sign-up"
+            // Come back to pricing after signing up, otherwise the checkout
+            // intent is lost on Clerk's default landing page
+            window.location.href = `/sign-up?redirect_url=${encodeURIComponent("/plans")}`
             return
         }
 

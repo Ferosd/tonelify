@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LandingTestimonials } from "@/components/LandingTestimonials"
@@ -680,7 +681,15 @@ export default function Home() {
           <Link href="/faq"        className="tn-nav-link">FAQ</Link>
           <Link href="/plans"      className="tn-nav-link">Plans</Link>
         </div>
-        <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
+        {/* The landing nav used to hard-code "Sign In", so a signed-in visitor who
+            clicked the wordmark landed back here and read it as being logged out.
+            Clerk decides which control renders now. */}
+        <SignedOut>
+          <Link href="/sign-in" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>Sign In</Link>
+        </SignedOut>
+        <SignedIn>
+          <Link href="/collection" className="ghost-btn tn-sign-in-btn" style={{ padding: "10px 24px", fontSize: "0.875rem" }}>My Collection</Link>
+        </SignedIn>
         <button
           className="tn-hamburger"
           aria-label="Open navigation menu"
@@ -704,7 +713,23 @@ export default function Home() {
         <Link href="/tone-match" onClick={() => setMobileMenuOpen(false)}>Match Tones</Link>
         <Link href="/faq"        onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
         <Link href="/plans"      onClick={() => setMobileMenuOpen(false)}>Plans</Link>
-        <Link href="/sign-in"    onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
+        <SignedOut>
+          <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
+        </SignedOut>
+        <SignedIn>
+          <Link href="/collection" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>My Collection</Link>
+          <SignOutButton redirectUrl="/">
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                font: "inherit", fontSize: "1.25rem", color: "#A6A6AF", padding: 0,
+              }}
+            >
+              Sign Out
+            </button>
+          </SignOutButton>
+        </SignedIn>
       </div>
 
       {/* Grain overlay */}
@@ -1061,10 +1086,17 @@ export default function Home() {
               display: "flex", alignItems: "center", gap: "24px",
               flexWrap: "wrap", justifyContent: "center", pointerEvents: "auto",
             }}>
-              <Link href="/sign-up" className="cta-btn">Try It Free</Link>
-              <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#A6A6AF" }}>
-                No credit card required
-              </span>
+              {/* Sending an existing member to sign-up is a dead end — Clerk just
+                  tells them they are already signed in */}
+              <SignedOut>
+                <Link href="/sign-up" className="cta-btn">Try It Free</Link>
+                <span style={{ fontFamily: "'General Sans', sans-serif", fontSize: "0.875rem", color: "#A6A6AF" }}>
+                  No credit card required
+                </span>
+              </SignedOut>
+              <SignedIn>
+                <Link href="/tone-match" className="cta-btn">Match a Tone</Link>
+              </SignedIn>
             </div>
           </div>
 

@@ -216,6 +216,16 @@ export default function ToneMatchPage() {
         }
     }
 
+    // The API rejects an empty song, artist or guitar with a flat "Missing or
+    // invalid fields", which read as a broken button. Name what is missing here
+    // instead of letting the request go out and fail.
+    const missingFields = [
+        !songTitle.trim() && "the song",
+        !artist.trim() && "the artist",
+        !userGuitar.trim() && (instrument === "bass" ? "your bass" : "your guitar"),
+    ].filter(Boolean) as string[]
+    const canResearch = missingFields.length === 0
+
     // Actual API Call
     const runResearch = async () => {
         // Signed-out visitors hit a protected API — send them to sign-up with their
@@ -253,7 +263,9 @@ export default function ToneMatchPage() {
 
             if (!response.ok) {
                 const data = await response.json()
-                throw new Error(data.error || "Something went wrong")
+                // Limit responses carry the readable sentence in `message`;
+                // `error` alone is the bare code ("Match limit reached")
+                throw new Error(data.message || data.error || "Something went wrong")
             }
 
             const data = await response.json()
@@ -979,10 +991,10 @@ export default function ToneMatchPage() {
 
                 {/* ==================== RUN RESEARCH BUTTON ==================== */}
                 <div className="w-full space-y-6">
-                    <div className="flex justify-center">
+                    <div className="flex flex-col items-center">
                         <Button
                             onClick={runResearch}
-                            disabled={isLoading}
+                            disabled={isLoading || (!!user && !canResearch)}
                             className="h-14 px-8 text-lg bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold shadow-lg shadow-[#E8712A]/20 rounded-lg flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 w-full max-w-sm"
                         >
                             {isLoading ? (
@@ -997,10 +1009,10 @@ export default function ToneMatchPage() {
                                 </>
                             )}
                         </Button>
-                        {instrument === 'bass' && (
-                            <p className="text-xs text-[#8A8494] flex items-center gap-1.5 mt-2">
+                        {!!user && !canResearch && (
+                            <p className="text-xs text-[#8A8494] flex items-center gap-1.5 mt-2 text-center">
                                 <span className="text-[#8A8494]">ⓘ</span>
-                                Select your bass and amp above to enable research
+                                Add {missingFields.join(" and ")} above to run the research
                             </p>
                         )}
                     </div>

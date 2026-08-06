@@ -48,17 +48,26 @@ export async function POST(req: NextRequest) {
 
         const { rating, comment, name } = await req.json();
 
-        if (!rating || !comment) {
+        // The rating drives `Array.from({ length: review.rating })` on the
+        // reviews list, so an out-of-range number posted straight at this
+        // endpoint would try to render that many stars for every visitor.
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            return NextResponse.json({ error: "Rating must be a whole number from 1 to 5" }, { status: 400 });
+        }
+        if (typeof comment !== "string" || !comment.trim()) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+        if (name !== undefined && name !== null && typeof name !== "string") {
+            return NextResponse.json({ error: "Invalid name" }, { status: 400 });
         }
 
         const { data, error } = await getSupabaseAdmin()
             .from("reviews")
             .insert({
                 user_id: userId,
-                name: name || "Anonymous",
+                name: (typeof name === "string" && name.trim().slice(0, 60)) || "Anonymous",
                 rating,
-                comment,
+                comment: comment.trim().slice(0, 1000),
             })
             .select()
             .single();

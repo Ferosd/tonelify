@@ -88,7 +88,10 @@ export function SiteHeader() {
 
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <SignedIn>
-                <SignOutButton>
+                {/* Without a target, signing out on a protected page leaves you on
+                that page and middleware bounces you into sign-in — which reads
+                as the sign-out having failed */}
+            <SignOutButton redirectUrl="/">
                   <button style={{
                     display: "flex", alignItems: "center", gap: "10px",
                     background: "none", border: "none", cursor: "pointer",
@@ -171,7 +174,10 @@ export function SiteHeader() {
           </SignedOut>
           <SignedIn>
             {/* Sign out lives in the drawer on phones — the bar stays quiet */}
-            <SignOutButton>
+            {/* Without a target, signing out on a protected page leaves you on
+                that page and middleware bounces you into sign-in — which reads
+                as the sign-out having failed */}
+            <SignOutButton redirectUrl="/">
               <button className="ghost-btn hidden md:inline-flex text-[0.9375rem] px-5 py-2 whitespace-nowrap border border-white/12 hover:border-[#E8712A] transition-colors">
                 Sign out
               </button>
