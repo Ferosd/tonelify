@@ -154,9 +154,9 @@ export function SettingsContent({ subscription, planName, counts }: SettingsCont
                                                         const response = await fetch("/api/stripe/portal", {
                                                             method: "POST",
                                                         });
-                                                        const data = await response.json();
-                                                        if (data.url) window.location.href = data.url;
-                                                        else alert("Failed to load portal");
+                                                        const data = await response.json().catch(() => null);
+                                                        if (data?.url) window.location.href = data.url;
+                                                        else alert(data?.error || "Couldn't open the billing portal. Try again in a moment.");
                                                     } catch (error) {
                                                         console.error("Error:", error);
                                                         alert("Something went wrong");

@@ -4,8 +4,12 @@ import { notFound } from "next/navigation";
 import { TONE_LIBRARY, getToneBySlug, getRelatedTones, LIBRARY_UPDATED, type LibraryTone } from "@/lib/tone-library";
 import { getArtwork } from "@/lib/artwork";
 import { SITE_URL } from "@/lib/site";
+import { confirmationLine } from "@/lib/tone-feedback";
+import { getFeedbackCounts } from "@/lib/tone-feedback-server";
 
-export const revalidate = 86400;
+// Six hours. The page content is a fixed library entry, but the confirmation
+// count under the title moves, and a day-old number reads as a stale page.
+export const revalidate = 21600;
 // The library is a fixed in-code list — unknown slugs should be hard 404s, not soft ones
 export const dynamicParams = false;
 
@@ -105,6 +109,11 @@ export default async function ToneDetailPage({ params }: Props) {
     if (!tone) notFound();
 
     const [artwork, related] = [await getArtwork(tone.title, tone.artist), getRelatedTones(tone)];
+    // Real players reporting whether the settings held up. Nothing else on this
+    // page is unique to Tonelify: the rig history is documented all over the
+    // web, but this number exists nowhere else, which is exactly what an answer
+    // engine has a reason to cite.
+    const confirmations = confirmationLine(await getFeedbackCounts(tone.title, tone.artist));
     const adaptHref = `/tone-match?song=${encodeURIComponent(tone.title)}&artist=${encodeURIComponent(tone.artist)}`;
 
     return (
@@ -141,11 +150,16 @@ export default async function ToneDetailPage({ params }: Props) {
                             {badge(tone.genre)}
                             {badge(tone.era)}
                         </div>
-                        <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
+                        <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.015em" }}>
                             {tone.title}
                         </h1>
                         <p className="text-lg text-[#A6A29B] font-medium">{tone.artist}</p>
                         <p className="text-[#8A8494] leading-relaxed">{tone.character}.</p>
+                        {confirmations && (
+                            <p className="text-sm font-semibold text-[#FFD700]">
+                                {confirmations}
+                            </p>
+                        )}
                         <Link
                             href={adaptHref}
                             className="inline-flex items-center gap-2 h-12 px-8 rounded-full bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold text-sm shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105"
@@ -214,7 +228,7 @@ export default async function ToneDetailPage({ params }: Props) {
                             href={adaptHref}
                             className="inline-flex items-center gap-2 min-h-11 text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors"
                         >
-                            Start matching — 3 free matches a month →
+                            Start matching, 3 free matches a month →
                         </Link>
                     </div>
                 </section>
@@ -265,7 +279,7 @@ export default async function ToneDetailPage({ params }: Props) {
                             "@type": "BreadcrumbList",
                             itemListElement: [
                                 { "@type": "ListItem", position: 1, name: "Explore Tones", item: `${SITE_URL}/explore` },
-                                { "@type": "ListItem", position: 2, name: `${tone.title} — ${tone.artist}`, item: `${SITE_URL}/explore/${tone.id}` },
+                                { "@type": "ListItem", position: 2, name: `${tone.title} by ${tone.artist}`, item: `${SITE_URL}/explore/${tone.id}` },
                             ],
                         },
                         {

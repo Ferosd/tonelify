@@ -46,9 +46,9 @@ export function SubscriptionCard({
         setError(null)
         try {
             const res = await fetch("/api/stripe/portal", { method: "POST" })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-            else setError(data.error || "Couldn't open the billing portal. Try again in a moment.")
+            const data = await res.json().catch(() => null)
+            if (data?.url) window.location.href = data.url
+            else setError(data?.error || "Couldn't open the billing portal. Try again in a moment.")
         } catch {
             setError("Couldn't open the billing portal. Check your connection and try again.")
         } finally {

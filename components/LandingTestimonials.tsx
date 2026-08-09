@@ -49,8 +49,11 @@ function Stars({ count }: { count: number }) {
  * signed-in accounts through /api/reviews. Nothing here is seeded or written
  * on the product's behalf: until real reviews land, the section says so.
  */
-export function LandingTestimonials() {
-    const [reviews, setReviews] = useState<Review[] | null>(null)
+export function LandingTestimonials({ initialReviews }: { initialReviews?: Review[] }) {
+    // Seeded from the server render. Without it the first paint here is the
+    // aria-hidden spacer below, which is what a crawler that skips JavaScript
+    // would have taken for the whole section.
+    const [reviews, setReviews] = useState<Review[] | null>(initialReviews ?? null)
 
     useEffect(() => {
         let cancelled = false
@@ -77,7 +80,7 @@ export function LandingTestimonials() {
             <div style={{ ...cardStyle, flex: "1 1 100%", maxWidth: 680 }}>
                 <p
                     style={{
-                        fontFamily: "'General Sans', sans-serif",
+                        fontFamily: "'Satoshi', sans-serif",
                         fontSize: "1.0625rem",
                         lineHeight: 1.65,
                         color: "#F2F0ED",
@@ -88,7 +91,7 @@ export function LandingTestimonials() {
                 </p>
                 <p
                     style={{
-                        fontFamily: "'General Sans', sans-serif",
+                        fontFamily: "'Satoshi', sans-serif",
                         fontSize: "0.95rem",
                         lineHeight: 1.65,
                         color: "#A6A6AF",
@@ -96,7 +99,7 @@ export function LandingTestimonials() {
                     }}
                 >
                     Every review on this page is written by someone with an account, and posted
-                    under their own name. Run a match on the free plan — three a month, no card —
+                    under their own name. Run a match on the free plan, three a month with no card,
                     and tell us whether the settings held up on your rig.
                 </p>
                 <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
@@ -137,7 +140,7 @@ export function LandingTestimonials() {
                         <Stars count={review.rating} />
                         <p
                             style={{
-                                fontFamily: "'General Sans', sans-serif",
+                                fontFamily: "'Satoshi', sans-serif",
                                 fontWeight: 400,
                                 fontSize: "0.95rem",
                                 color: "#F2F0ED",
@@ -158,7 +161,7 @@ export function LandingTestimonials() {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    fontFamily: "'General Sans', sans-serif",
+                                    fontFamily: "'Satoshi', sans-serif",
                                     fontWeight: 600,
                                     fontSize: "15px",
                                     color: "#FFFFFF",
@@ -169,7 +172,7 @@ export function LandingTestimonials() {
                             <div>
                                 <div
                                     style={{
-                                        fontFamily: "'General Sans', sans-serif",
+                                        fontFamily: "'Satoshi', sans-serif",
                                         fontWeight: 600,
                                         fontSize: "0.9rem",
                                         color: "#FFFFFF",

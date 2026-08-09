@@ -66,7 +66,9 @@ function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
                     {tone.title}
                 </h3>
                 <p className="text-[0.75rem] text-[#A6A29B] font-medium truncate">{tone.artist}</p>
-                <p className="text-[11px] text-[#8A8494] leading-snug line-clamp-2 mt-1">{tone.character}</p>
+                {/* Running prose, not a chip: 11px reads as "text too small"
+                    on a phone, so it sits at 12px with the lighter token */}
+                <p className="text-[12px] text-[#A6A29B] leading-snug line-clamp-2 mt-1">{tone.character}</p>
                 <div className="hidden md:flex items-center gap-1.5 mt-auto pt-3">
                     <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.genre}</span>
                     <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.era}</span>
@@ -166,7 +168,9 @@ export function ExploreContent({ covers = {} }: { covers?: Record<string, string
                 <div className="text-center pt-2 pb-6">
                     <p className="text-sm text-[#A6A29B]">
                         Don&apos;t see your song?{" "}
-                        <Link href="/tone-match" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">
+                        {/* The exit route out of a fruitless search, so the tap
+                            area gets padding rather than a 17px line box */}
+                        <Link href="/tone-match" className="inline-block py-3 font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">
                             Match any tone to your gear
                         </Link>
                     </p>

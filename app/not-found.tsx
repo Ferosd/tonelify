@@ -13,12 +13,11 @@ export default function NotFound() {
       textAlign: "center",
     }}>
       <style>{`
-        @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap');
       `}</style>
 
       <div style={{
-        fontFamily: "'Clash Display', sans-serif",
+        fontFamily: "'Fraunces', Georgia, serif",
         fontWeight: 700,
         fontSize: "clamp(6rem, 20vw, 10rem)",
         lineHeight: 1,
@@ -33,18 +32,18 @@ export default function NotFound() {
       </div>
 
       <h1 style={{
-        fontFamily: "'Clash Display', sans-serif",
+        fontFamily: "'Fraunces', Georgia, serif",
         fontWeight: 600,
         fontSize: "clamp(1.5rem, 4vw, 2rem)",
         color: "#F2F2F7",
-        letterSpacing: "-0.02em",
+        letterSpacing: "-0.01em",
         marginBottom: "12px",
       }}>
         Page not found
       </h1>
 
       <p style={{
-        fontFamily: "'General Sans', sans-serif",
+        fontFamily: "'Satoshi', sans-serif",
         fontSize: "1rem",
         color: "#8E8E93",
         lineHeight: 1.6,
@@ -61,7 +60,7 @@ export default function NotFound() {
         padding: "14px 32px",
         background: "linear-gradient(135deg, #F5A623 0%, #FF6B35 50%, #E8912D 100%)",
         color: "#08080A",
-        fontFamily: "'General Sans', sans-serif",
+        fontFamily: "'Satoshi', sans-serif",
         fontWeight: 600,
         fontSize: "0.9375rem",
         borderRadius: "12px",

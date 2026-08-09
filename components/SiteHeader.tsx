@@ -120,8 +120,8 @@ export function SiteHeader() {
           <span
             className="text-[1.0625rem] md:text-[1.35rem] leading-none"
             style={{
-              fontFamily: "'Clash Display', sans-serif", fontWeight: 700,
-              color: "#F5A623", letterSpacing: "-0.02em",
+              fontFamily: "'Fraunces', Georgia, serif", fontWeight: 700,
+              color: "#F5A623", letterSpacing: "-0.01em",
             }}
           >
             Tonelify

@@ -8,7 +8,7 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
     title: "Explore Tones: Iconic Guitar Tones Library",
     description:
-        "Browse a curated library of iconic guitar tones — from Master of Puppets to Sultans of Swing — and adapt any of them to your own amp and guitar in one tap.",
+        "Browse a curated library of iconic guitar tones, from Master of Puppets to Sultans of Swing, and adapt any of them to your own amp and guitar in one tap.",
     openGraph: {
         title: "Explore Tones | Tonelify",
         description:
@@ -30,7 +30,7 @@ export default async function ExplorePage() {
                 <div className="hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8712A]/10 border border-[#E8712A]/20 text-[#E8712A] text-[11px] font-bold uppercase tracking-[0.08em]">
                     Curated tone library
                 </div>
-                <h1 className="font-display text-[1.625rem] leading-[1.1] md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
+                <h1 className="font-display text-[1.625rem] leading-[1.1] md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.015em" }}>
                     Explore <span className="text-[#F5A623]">legendary tones</span>
                 </h1>
                 <p className="text-[#A6A29B] text-[0.875rem] md:text-lg max-w-2xl mx-auto">

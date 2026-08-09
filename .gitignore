@@ -45,3 +45,6 @@ tonelify/
 
 # Keep the documented template in version control
 !.env.example
+
+# Raw Seedance sources — processed into public/frames and public/videos
+raw-video/

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap, RefreshCw, ThumbsUp, ThumbsDown } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
+import { AnalyzingTone } from "@/components/AnalyzingTone"
+import { ToneSources } from "@/components/ToneSources"
+import { GearCombobox } from "@/components/GearCombobox"
+import { confirmationLine, type FeedbackCounts } from "@/lib/tone-feedback"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useEffect } from "react"
 
@@ -23,6 +27,21 @@ function parseEffects(raw: string): string[] {
         .slice(0, 20)
 }
 
+// A failed request doesn't always carry JSON — a gateway timeout or a proxy
+// error page would make `response.json()` throw and bury the real status behind
+// "Unexpected token <".
+async function readError(response: Response, fallback: string): Promise<string> {
+    try {
+        const data = await response.json()
+        return data.message || data.error || fallback
+    } catch {
+        if (response.status === 401) return "Please sign in again to continue."
+        if (response.status === 429) return "Too many requests right now. Give it a minute."
+        if (response.status >= 500) return "The server had a problem. Please try again in a moment."
+        return fallback
+    }
+}
+
 // ───────────── Visual amp knob (rotary dial) ─────────────
 
 function parseKnob(v: any): number | null {
@@ -33,7 +52,7 @@ function parseKnob(v: any): number | null {
 
 function AmpKnob({ label, value, accent = false, color }: { label: string; value: any; accent?: boolean; color?: string }) {
     const num = parseKnob(value)
-    const display = value === null || value === undefined || value === "" ? "—" : String(value)
+    const display = value === null || value === undefined || value === "" ? "n/a" : String(value)
     const clamped = num === null ? 0 : Math.max(0, Math.min(10, num))
     const angle = -135 + (clamped / 10) * 270 // 0..10 → sweep 270°
     const accentColor = color || (accent ? "#FFD700" : "#E8712A")
@@ -114,12 +133,36 @@ export default function ToneMatchPage() {
     const [error, setError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+    const [saveError, setSaveError] = useState<string | null>(null)
+    const [saveErrorIsLimit, setSaveErrorIsLimit] = useState(false)
     const [feedback, setFeedback] = useState<"up" | "down" | null>(null)
+    const [feedbackCounts, setFeedbackCounts] = useState<FeedbackCounts | null>(null)
 
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [isSearching, setIsSearching] = useState(false)
     const debouncedSongTitle = useDebounce(songTitle, 500)
+    const searchBoxRef = useRef<HTMLDivElement>(null)
+
+    // The suggestion list had no way to close: tapping elsewhere left it
+    // covering the Artist field underneath it.
+    useEffect(() => {
+        if (!isSearching) return
+        const dismiss = (e: MouseEvent | TouchEvent) => {
+            if (!searchBoxRef.current?.contains(e.target as Node)) setIsSearching(false)
+        }
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsSearching(false)
+        }
+        document.addEventListener("mousedown", dismiss)
+        document.addEventListener("touchstart", dismiss)
+        document.addEventListener("keydown", onKey)
+        return () => {
+            document.removeEventListener("mousedown", dismiss)
+            document.removeEventListener("touchstart", dismiss)
+            document.removeEventListener("keydown", onKey)
+        }
+    }, [isSearching])
 
     // Prefill song/artist from a tone card, scroll to the form
     const selectTone = (title: string, toneArtist: string) => {
@@ -135,6 +178,10 @@ export default function ToneMatchPage() {
         const params = new URLSearchParams(window.location.search);
         const urlSong = params.get("song");
         const urlArtist = params.get("artist");
+        // The gear pages link in with the rig already chosen, so arriving from
+        // /gear/marshall-dsl40cr should not make you type the amp again.
+        const urlGuitar = params.get("guitar");
+        const urlAmp = params.get("amp");
         const savedState = localStorage.getItem("toneMatchState");
         if (savedState) {
             try {
@@ -143,8 +190,8 @@ export default function ToneMatchPage() {
                 setArtist(urlArtist || parsed.artist || "");
                 setInstrument(parsed.instrument || "guitar");
                 setPreset(parsed.preset || "manual");
-                setUserGuitar(parsed.userGuitar || "");
-                setUserAmp(parsed.userAmp || "");
+                setUserGuitar(urlGuitar || parsed.userGuitar || "");
+                setUserAmp(urlAmp || parsed.userAmp || "");
                 setGoingDirect(parsed.goingDirect || false);
                 setUserEffects(parsed.userEffects || "");
                 setEffectsType(parsed.effectsType || "pedals");
@@ -157,6 +204,8 @@ export default function ToneMatchPage() {
         } else {
             if (urlSong) setSongTitle(urlSong);
             if (urlArtist) setArtist(urlArtist);
+            if (urlGuitar) setUserGuitar(urlGuitar);
+            if (urlAmp) setUserAmp(urlAmp);
         }
     }, []);
 
@@ -238,7 +287,10 @@ export default function ToneMatchPage() {
         setError(null)
         setResult(null)
         setIsSaved(false)
+        setSaveError(null)
+        setSaveErrorIsLimit(false)
         setFeedback(null)
+        setFeedbackCounts(null)
 
         try {
             const response = await fetch("/api/tone-match", {
@@ -262,15 +314,22 @@ export default function ToneMatchPage() {
             })
 
             if (!response.ok) {
-                const data = await response.json()
                 // Limit responses carry the readable sentence in `message`;
                 // `error` alone is the bare code ("Match limit reached")
-                throw new Error(data.message || data.error || "Something went wrong")
+                throw new Error(await readError(response, "Something went wrong"))
             }
 
             const data = await response.json()
             setResult(data)
             setCredits((c) => (c !== null && c > 0 ? c - 1 : c))
+
+            // How many other players got this one working. Fired separately so
+            // a failed counter read cannot cost the user the match they just
+            // paid a credit for.
+            fetch(`/api/tone-feedback?song=${encodeURIComponent(songTitle)}&artist=${encodeURIComponent(artist)}`)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (d?.counts) setFeedbackCounts(d.counts) })
+                .catch(() => { })
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -281,6 +340,7 @@ export default function ToneMatchPage() {
     const handleSave = async () => {
         if (!result) return
         setIsSaving(true)
+        setSaveError(null)
         try {
             const response = await fetch("/api/save-tone", {
                 method: "POST",
@@ -298,10 +358,17 @@ export default function ToneMatchPage() {
                 })
             })
 
-            if (!response.ok) throw new Error("Failed to save")
+            // A full library or a dropped connection used to leave the button
+            // sitting back at "Save to Tone Library" with nothing said, so the
+            // tone looked saved until the user checked Collection.
+            if (!response.ok) {
+                setSaveErrorIsLimit(response.status === 403)
+                throw new Error(await readError(response, "Couldn't save this tone. Please try again."))
+            }
             setIsSaved(true)
-        } catch (err) {
+        } catch (err: any) {
             console.error(err)
+            setSaveError(err?.message || "Couldn't save this tone. Please try again.")
         } finally {
             setIsSaving(false)
         }
@@ -315,10 +382,10 @@ export default function ToneMatchPage() {
         const match = typeof result.confidenceScore === "number" ? ` · ${Math.round(result.confidenceScore)}% match` : ""
         const modeChannel = [a.mode ? `Mode ${a.mode}` : "", a.channel ? `Channel ${a.channel}` : ""].filter(Boolean).join(" · ")
         return [
-            `🎸 ${songTitle || "Tone"}${artist ? " – " + artist : ""} (via Tonelify${match})`,
+            `🎸 ${songTitle || "Tone"}${artist ? " by " + artist : ""} (via Tonelify${match})`,
             ``,
-            `AMP — ${modeChannel ? modeChannel + " · " : ""}Gain ${a.gain} · Bass ${a.bass} · Mids ${mids} · Treble ${a.treble} · Presence ${a.presence ?? "-"} · Reverb ${a.reverb ?? "-"}`,
-            `GUITAR — Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
+            `AMP · ${modeChannel ? modeChannel + " · " : ""}Gain ${a.gain} · Bass ${a.bass} · Mids ${mids} · Treble ${a.treble} · Presence ${a.presence ?? "n/a"} · Reverb ${a.reverb ?? "n/a"}`,
+            `GUITAR · Pickup ${g.pickupSelector} · Vol ${g.volume} · Tone ${g.tone}`,
             ``,
             userGuitar || userAmp ? `Dialed for: ${[userGuitar, userAmp].filter(Boolean).join(" + ")}` : "",
             ``,
@@ -336,7 +403,9 @@ export default function ToneMatchPage() {
         }
     }
 
-    const handleFeedback = (value: "up" | "down") => {
+    const handleFeedback = async (value: "up" | "down") => {
+        // Set first: the click should feel instant, and a failed write is not
+        // worth undoing the acknowledgement in front of the user.
         setFeedback(value)
         if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
             ; (window as any).gtag("event", "tone_feedback", {
@@ -344,6 +413,30 @@ export default function ToneMatchPage() {
                 song: songTitle,
                 artist,
             })
+        }
+
+        // The analytics event above was the only place this went, so the
+        // answer never came back to the product. Persist it: it feeds the
+        // confirmation counts on the tone pages and tells us which recordings
+        // are worth verifying by hand.
+        try {
+            const res = await fetch("/api/tone-feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    songTitle,
+                    artist,
+                    verdict: value,
+                    guitarModel: userGuitar,
+                    ampModel: userAmp,
+                }),
+            })
+            if (res.ok) {
+                const data = await res.json()
+                if (data?.counts) setFeedbackCounts(data.counts)
+            }
+        } catch (err) {
+            console.error(err)
         }
     }
 
@@ -372,7 +465,7 @@ export default function ToneMatchPage() {
 
                 <div className="flex items-start justify-between gap-3 md:block">
                     <div className="min-w-0 md:space-y-4">
-                        <h1 className="font-display text-[1.625rem] leading-[1.1] md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.03em" }}>
+                        <h1 className="font-display text-[1.625rem] leading-[1.1] md:text-5xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.015em" }}>
                             Dial in <span className="text-[#F5A623]">any tone</span>
                         </h1>
                         <p className="text-[#A6A29B] text-[0.875rem] md:text-lg max-w-2xl mx-auto mt-1 md:mt-0">
@@ -429,7 +522,7 @@ export default function ToneMatchPage() {
                     <div className="flex md:justify-center animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5A623]/10 text-[#FFD700] text-[11px] md:text-xs font-semibold border border-[#F5A623]/20">
                             <span className="font-bold">NEW</span>
-                            <span className="opacity-80">Bass adaptation is brand new — results may vary</span>
+                            <span className="opacity-80">Bass adaptation is brand new, so results may vary</span>
                         </div>
                     </div>
                 )}
@@ -507,11 +600,12 @@ export default function ToneMatchPage() {
                                             <GuitarIcon className="h-4 w-4 text-[#8A8494] group-focus-within:text-[#E8712A] transition-colors" />
                                             <Label htmlFor="guitar" className="text-xs font-bold text-[#8A8494] uppercase tracking-wide group-focus-within:text-[#E8712A] transition-colors">Guitar Model</Label>
                                         </div>
-                                        <input
+                                        <GearCombobox
                                             id="guitar"
                                             placeholder="e.g. Fender Stratocaster"
                                             value={userGuitar}
-                                            onChange={(e) => setUserGuitar(e.target.value)}
+                                            onChange={setUserGuitar}
+                                            types={["guitar", "bass"]}
                                             className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED]"
                                         />
                                         <p className="text-[10px] text-[#8A8494] cursor-pointer hover:text-[#E8712A] transition-colors font-medium pl-1">
@@ -540,11 +634,12 @@ export default function ToneMatchPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <input
+                                        <GearCombobox
                                             id="amp"
-                                            placeholder="e.g. Fender Twin Reverb"
+                                            placeholder="e.g. Fender Blues Junior IV"
                                             value={userAmp}
-                                            onChange={(e) => setUserAmp(e.target.value)}
+                                            onChange={setUserAmp}
+                                            types={["amp", "bass-amp"]}
                                             className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm disabled:opacity-40 disabled:bg-[#0E0E14] text-[#F2F0ED]"
                                             disabled={goingDirect}
                                         />
@@ -658,16 +753,18 @@ export default function ToneMatchPage() {
                                                 </div>
                                             </div>
 
-                                            <input
+                                            <GearCombobox
                                                 placeholder="Or type it: Line 6 HX Stomp, Boss GT-1000, Kemper Profiler..."
                                                 value={multiFxUnit}
-                                                onChange={(e) => setMultiFxUnit(e.target.value)}
+                                                onChange={setMultiFxUnit}
+                                                types={["multifx"]}
+                                                ariaLabel="Multi FX unit"
                                                 disabled={!userAmp && !goingDirect}
                                                 className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED] disabled:opacity-40"
                                             />
 
                                             <Textarea
-                                                placeholder="Blocks or amp model you want to build around (optional) — e.g. US Deluxe Nrm > Scream 808 > Simple Delay"
+                                                placeholder="Blocks or amp model you want to build around (optional). For example: US Deluxe Nrm > Scream 808 > Simple Delay"
                                                 value={userEffects}
                                                 onChange={(e) => setUserEffects(e.target.value)}
                                                 disabled={!userAmp && !goingDirect}
@@ -763,7 +860,7 @@ export default function ToneMatchPage() {
                         <div className="space-y-10">
 
                             {/* Song Search */}
-                            <div className="space-y-4 relative">
+                            <div ref={searchBoxRef} className="space-y-4 relative">
                                 <div className="flex items-center gap-2">
                                     <Music2 className="h-4 w-4 text-[#E8712A]" />
                                     <Label htmlFor="song" className="text-xs font-extrabold text-[#8A8494] uppercase tracking-widest">Target Song</Label>
@@ -971,7 +1068,7 @@ export default function ToneMatchPage() {
                         <div className="space-y-2 relative z-10 max-w-xl">
                             <span className="text-xs font-bold text-[#8A8494] uppercase tracking-widest">New here?</span>
                             <h3 className="text-2xl font-bold text-[#F2F0ED] leading-tight">
-                                Try Tonelify free — 3 tone matches a month
+                                Try Tonelify free with 3 tone matches a month
                             </h3>
                             <p className="text-[#FFD700] font-medium text-sm">
                                 Create a free account, no credit card required. Upgrade anytime for unlimited adaptations.
@@ -1063,7 +1160,9 @@ export default function ToneMatchPage() {
                             </div>
                         )}
 
-                        {!result ? (
+                        {isLoading && !result ? (
+                            <AnalyzingTone gear={[userGuitar, userAmp].filter(Boolean).join(" into ") || undefined} />
+                        ) : !result ? (
                             // Empty State (Pre-computation)
                             <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                                 {/* Original Tone Placeholder */}
@@ -1148,8 +1247,16 @@ export default function ToneMatchPage() {
                                         <h3 className="font-bold text-2xl flex items-center gap-3 text-[#F2F0ED]">
                                             <span className="bg-[#F5A623]/10 text-[#F5A623] p-2 rounded-lg"><Music2 className="h-6 w-6" /></span>
                                             Original Tone
+                                            {/* "Verified" on its own said nothing about what was
+                                                verified or by whom. The rig is the checked part;
+                                                the adaptation below it is always calculated. */}
                                             {result.original.verified && (
-                                                <span className="text-[10px] font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/20 px-2 py-1 rounded-full uppercase tracking-wide">Verified</span>
+                                                <span
+                                                    title="This rig is stored in our gear database, not generated for this request."
+                                                    className="text-[10px] font-bold text-[#FFD700] bg-[#F5A623]/10 border border-[#F5A623]/20 px-2 py-1 rounded-full uppercase tracking-wide"
+                                                >
+                                                    Verified rig
+                                                </span>
                                             )}
                                         </h3>
                                         <div className="bg-[#12121A] border border-white/8 rounded-2xl p-6 space-y-6">
@@ -1196,6 +1303,13 @@ export default function ToneMatchPage() {
                                         </div>
                                     </div>
                                 )}
+
+                                <ToneSources
+                                    sources={result.sources}
+                                    provenance={result.provenance}
+                                    song={songTitle}
+                                    artist={artist}
+                                />
 
                                 {/* YOUR ADAPTATION */}
                                 <div className="flex items-center gap-3 pt-2">
@@ -1370,6 +1484,18 @@ export default function ToneMatchPage() {
                                 </div>
 
                                 {/* SOUNDING RIGHT? FEEDBACK */}
+                                {/* Shown above the buttons so the reader sees what other
+                                    players reported before being asked for their own answer.
+                                    Hidden below three votes, see MIN_VISIBLE_CONFIRMATIONS. */}
+                                {confirmationLine(feedbackCounts) && (
+                                    <div className="flex items-center justify-center gap-2 pt-2">
+                                        <ThumbsUp className="h-4 w-4 text-[#FFD700]" />
+                                        <span className="text-sm font-semibold text-[#A6A29B]">
+                                            {confirmationLine(feedbackCounts)}
+                                        </span>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-center gap-3 pt-1">
                                     {feedback === null ? (
                                         <>
@@ -1397,13 +1523,13 @@ export default function ToneMatchPage() {
                                         </span>
                                     ) : (
                                         <span className="text-sm font-semibold text-[#A6A29B] flex items-center gap-2 animate-in fade-in duration-300">
-                                            <RefreshCw className="h-4 w-4 text-[#E8712A]" /> Thanks — try Regenerate for a fresh take on this tone.
+                                            <RefreshCw className="h-4 w-4 text-[#E8712A]" /> Thanks. Try Regenerate for a fresh take on this tone.
                                         </span>
                                     )}
                                 </div>
 
                                 {user && (
-                                    <div className="flex justify-center pt-8">
+                                    <div className="flex flex-col items-center gap-3 pt-8">
                                         <Button
                                             onClick={handleSave}
                                             disabled={isSaving || isSaved}
@@ -1423,6 +1549,19 @@ export default function ToneMatchPage() {
                                                 </>
                                             )}
                                         </Button>
+                                        {saveError && (
+                                            <div className="max-w-md text-center px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300">
+                                                {saveError}
+                                                {saveErrorIsLimit && (
+                                                    <>
+                                                        {" "}
+                                                        <Link href="/plans" className="font-bold text-[#FFD700] underline underline-offset-2">
+                                                            See plans
+                                                        </Link>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

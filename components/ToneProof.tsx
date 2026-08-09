@@ -13,7 +13,7 @@ const featured = FEATURED_IDS
     .filter((t): t is NonNullable<typeof t> => Boolean(t))
 
 const label: React.CSSProperties = {
-    fontFamily: "'General Sans', sans-serif",
+    fontFamily: "'Satoshi', sans-serif",
     fontWeight: 500,
     fontSize: "0.6875rem",
     textTransform: "uppercase",
@@ -100,7 +100,7 @@ export function ToneProof() {
                         <div style={{ minWidth: 0 }}>
                             <div
                                 style={{
-                                    fontFamily: "'General Sans', sans-serif",
+                                    fontFamily: "'Satoshi', sans-serif",
                                     fontWeight: 600,
                                     fontSize: "0.95rem",
                                     color: "#FFFFFF",
@@ -111,7 +111,7 @@ export function ToneProof() {
                             </div>
                             <div
                                 style={{
-                                    fontFamily: "'General Sans', sans-serif",
+                                    fontFamily: "'Satoshi', sans-serif",
                                     fontSize: "0.8rem",
                                     color: "#A6A6AF",
                                     marginTop: 2,
@@ -138,7 +138,7 @@ export function ToneProof() {
                         <span style={label}>The sound</span>
                         <p
                             style={{
-                                fontFamily: "'General Sans', sans-serif",
+                                fontFamily: "'Satoshi', sans-serif",
                                 fontSize: "0.9rem",
                                 lineHeight: 1.6,
                                 color: "#F2F0ED",
@@ -154,7 +154,7 @@ export function ToneProof() {
                         <span style={label}>The rig behind it</span>
                         <p
                             style={{
-                                fontFamily: "'General Sans', sans-serif",
+                                fontFamily: "'Satoshi', sans-serif",
                                 fontSize: "0.875rem",
                                 lineHeight: 1.6,
                                 color: "#A6A6AF",
@@ -169,11 +169,14 @@ export function ToneProof() {
                         href={`/tone-match?song=${encodeURIComponent(tone.title)}&artist=${encodeURIComponent(tone.artist)}`}
                         style={{
                             marginTop: "auto",
-                            fontFamily: "'General Sans', sans-serif",
+                            fontFamily: "'Satoshi', sans-serif",
                             fontWeight: 600,
                             fontSize: "0.85rem",
                             color: "#F5A623",
                             textDecoration: "none",
+                            // The only action on the card, and it was a 20px
+                            // line box before this
+                            display: "inline-flex", alignItems: "center", minHeight: "44px",
                         }}
                     >
                         Adapt it to your gear →

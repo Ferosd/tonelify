@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Terms of Service",
-    description: "Tonelify Terms of Service — rules and guidelines for using our platform.",
+    description: "Tonelify Terms of Service. Rules and guidelines for using our platform.",
     alternates: {
         canonical: "/terms",
     },
@@ -162,7 +162,7 @@ export default function TermsPage() {
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-white/8">
-                    <Link href="/" className="text-sm text-[#E8712A] hover:underline font-medium">
+                    <Link href="/" className="inline-flex items-center min-h-11 text-sm text-[#E8712A] hover:underline font-medium">
                         ← Back to Home
                     </Link>
                 </div>

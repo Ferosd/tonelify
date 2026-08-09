@@ -16,11 +16,17 @@ export async function getArtwork(
     size = 600
 ): Promise<string | null> {
     try {
+        // Without a deadline this fetch has no upper bound, and getLibraryArtwork
+        // fires 24 of them at once against an API with an undocumented rate
+        // limit. One slow reply used to hold the whole /explore response open
+        // for minutes; a crawler gives up long before that and the page simply
+        // goes unindexed. A missing cover is a far cheaper failure, and that
+        // fallback already exists below.
         const res = await fetch(
             `https://itunes.apple.com/search?term=${encodeURIComponent(
                 `${title} ${artist}`
             )}&media=music&entity=song&limit=1`,
-            { next: { revalidate: DAY } }
+            { next: { revalidate: DAY }, signal: AbortSignal.timeout(3000) }
         );
         if (!res.ok) return null;
         const data = await res.json();

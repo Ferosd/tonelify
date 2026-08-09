@@ -16,12 +16,27 @@ export async function POST(req: NextRequest) {
 
         const { songTitle, artist, userGear, settings } = await req.json();
 
-        if (!settings) {
+        if (!settings || typeof settings !== "object") {
             return NextResponse.json({ error: "Missing settings data" }, { status: 400 });
         }
-        if (typeof songTitle !== "string" || songTitle.length > 200 || (artist && (typeof artist !== "string" || artist.length > 120))) {
+        // `settings` is stored as-is, so nothing stopped a caller posting a
+        // multi-megabyte blob straight into the table. A real match payload is
+        // a few kilobytes.
+        if (JSON.stringify(settings).length > 100_000) {
+            return NextResponse.json({ error: "Settings payload is too large" }, { status: 413 });
+        }
+        if (!songTitle || typeof songTitle !== "string" || !songTitle.trim()) {
+            return NextResponse.json({ error: "Missing song title" }, { status: 400 });
+        }
+        if (songTitle.length > 200 || (artist && (typeof artist !== "string" || artist.length > 120))) {
             return NextResponse.json({ error: "Invalid song or artist" }, { status: 400 });
         }
+
+        // An absent artist used to reach PostgREST as the literal string
+        // "undefined" in the ilike filter, so the lookup never matched and a
+        // duplicate song row was written each time.
+        const artistName = typeof artist === "string" && artist.trim() ? artist.trim() : "Unknown artist";
+        const title = songTitle.trim();
 
         // 1. Ensure User Profile Exists
         // tone_matches.user_id references profiles(id), and Clerk doesn't
@@ -38,8 +53,8 @@ export async function POST(req: NextRequest) {
         const { data: songData } = await getSupabaseAdmin()
             .from("songs")
             .select("id")
-            .ilike("title", songTitle)
-            .ilike("artist", artist)
+            .ilike("title", title)
+            .ilike("artist", artistName)
             .maybeSingle();
 
         if (songData) {
@@ -47,7 +62,7 @@ export async function POST(req: NextRequest) {
         } else {
             const { data: newSong } = await getSupabaseAdmin()
                 .from("songs")
-                .insert({ title: songTitle, artist: artist })
+                .insert({ title, artist: artistName })
                 .select()
                 .single();
 

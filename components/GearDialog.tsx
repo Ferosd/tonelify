@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { GearCombobox } from "@/components/GearCombobox"
 import { Loader2 } from "lucide-react"
 
 export type GearType = "rig" | "pedal" | "multifx"
@@ -71,6 +72,11 @@ const copy: Record<GearType, { title: string; description: string; nameLabel: st
 
 const inputClass =
     "h-11 bg-[#0E0E14] border-white/8 text-[#F2F0ED] placeholder:text-[#8A8494] focus-visible:ring-[#E8712A]/30"
+
+// The combobox renders a bare input rather than the ui/input component, so the
+// base styling that Input would have contributed has to be spelled out here.
+const comboClass =
+    "w-full h-11 px-3 rounded-md border bg-[#0E0E14] border-white/8 text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/30"
 
 interface GearDialogProps {
     type: GearType
@@ -168,14 +174,40 @@ export function GearDialog({ type, open, onOpenChange, onSaved }: GearDialogProp
 
                     <div className="grid gap-2">
                         <Label htmlFor="gear-name" className="text-[#F2F0ED]">{t.nameLabel} <span className="text-[#E8712A]">*</span></Label>
-                        <Input
-                            id="gear-name"
-                            placeholder={t.namePlaceholder}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className={inputClass}
-                        />
+                        {type === "rig" ? (
+                            // A rig is the player's own nickname for a setup, so
+                            // there is nothing in the catalog to suggest.
+                            <Input
+                                id="gear-name"
+                                placeholder={t.namePlaceholder}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                className={inputClass}
+                            />
+                        ) : (
+                            <GearCombobox
+                                id="gear-name"
+                                placeholder={t.namePlaceholder}
+                                value={name}
+                                onChange={setName}
+                                types={type === "pedal" ? ["pedal"] : ["multifx"]}
+                                onSelect={(entry) => {
+                                    // The dialog keeps brand and model apart, so a
+                                    // catalog pick fills the brand field too rather
+                                    // than leaving "Boss" duplicated in the name.
+                                    setName(entry.model)
+                                    setBrand(entry.brand)
+                                    // Guarded: the catalog's category vocabulary is
+                                    // wider than this select, and assigning a value
+                                    // with no matching option blanks the field.
+                                    if (entry.category && PEDAL_CATEGORIES.includes(entry.category)) {
+                                        setCategory(entry.category)
+                                    }
+                                }}
+                                className={comboClass}
+                            />
+                        )}
                     </div>
 
                     {type === "pedal" && (
@@ -198,22 +230,30 @@ export function GearDialog({ type, open, onOpenChange, onSaved }: GearDialogProp
                         <>
                             <div className="grid gap-2">
                                 <Label htmlFor="gear-guitar" className="text-[#F2F0ED]">Guitar model</Label>
-                                <Input
+                                <GearCombobox
                                     id="gear-guitar"
                                     placeholder="Fender Stratocaster"
                                     value={guitarModel}
-                                    onChange={(e) => setGuitarModel(e.target.value)}
-                                    className={inputClass}
+                                    onChange={setGuitarModel}
+                                    types={["guitar", "bass"]}
+                                    // Filling an empty pickup field from the catalog
+                                    // saves a step and is more likely to be right
+                                    // than what gets typed from memory.
+                                    onSelect={(entry) => {
+                                        if (entry.pickups && !pickupType.trim()) setPickupType(entry.pickups)
+                                    }}
+                                    className={comboClass}
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="gear-amp" className="text-[#F2F0ED]">Amp model</Label>
-                                <Input
+                                <GearCombobox
                                     id="gear-amp"
-                                    placeholder="Fender Blues Jr"
+                                    placeholder="Fender Blues Junior IV"
                                     value={ampModel}
-                                    onChange={(e) => setAmpModel(e.target.value)}
-                                    className={inputClass}
+                                    onChange={setAmpModel}
+                                    types={["amp", "bass-amp"]}
+                                    className={comboClass}
                                 />
                             </div>
                             <div className="grid gap-2">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { SITE_URL } from "@/lib/site";
 
 export async function POST(req: NextRequest) {
     try {
@@ -18,11 +19,15 @@ export async function POST(req: NextRequest) {
             .single();
 
         if (!sub?.stripe_customer_id) {
-            return NextResponse.json({ error: "No subscription found" }, { status: 404 });
+            return NextResponse.json(
+                { error: "We can't find a billing record for this account. If you've just paid, give it a minute — otherwise email contact@tonelify.com." },
+                { status: 404 }
+            );
         }
 
-        // Determine return URL
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin") || "http://localhost:3000";
+        // SITE_URL strips the trailing slash the production value carries, which
+        // otherwise sent customers back to "https://tonelify.com//settings"
+        const baseUrl = SITE_URL || req.headers.get("origin") || "http://localhost:3000";
         const returnUrl = `${baseUrl}/settings`;
 
         // Create billing portal session

@@ -93,7 +93,7 @@ const emptyStates: Record<TabId, EmptyStateConfig> = {
 // ───────────── Helpers ─────────────
 
 function val(v: any): string {
-    return v === null || v === undefined || v === "" ? "—" : String(v)
+    return v === null || v === undefined || v === "" ? "n/a" : String(v)
 }
 
 // ───────────── Saved tone detail (null-safe, rich) ─────────────
@@ -565,7 +565,7 @@ export function CollectionContent({ savedTones, equipment = [] }: { savedTones: 
             <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
                 <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-[#0E0E14] border border-white/8 text-[#F2F0ED]">
                     <DialogHeader>
-                        <DialogTitle className="text-[#F2F0ED]">{selected?.songs?.title || "Saved tone"}{selected?.songs?.artist ? ` — ${selected.songs.artist}` : ""}</DialogTitle>
+                        <DialogTitle className="text-[#F2F0ED]">{selected?.songs?.title || "Saved tone"}{selected?.songs?.artist ? ` by ${selected.songs.artist}` : ""}</DialogTitle>
                         <DialogDescription className="text-[#8A8494]">AI-adapted settings for your gear</DialogDescription>
                     </DialogHeader>
                     {selected && <ToneDetail tone={selected} />}

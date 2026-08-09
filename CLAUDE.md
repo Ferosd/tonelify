@@ -6,12 +6,15 @@
 - Koyu ara-section zeminleri sıcak tonlara çekildi: #100D0B / #1A100C
 - İkincil metin kontrastı yükseltildi: #A6A6AF (landing) / #A6A29B (app token)
 - Yeşil/emerald vurgular amber ailesine dönüştürüldü (#F5A623 / #FFD700)
-- Wordmark her yerde Clash Display 700, #F5A623
+- Wordmark her yerde Fraunces 700, #F5A623
 
 ## Marka Kimliği
-- Clash Display başlıklar (https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&display=swap)
-- General Sans body (https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600&display=swap)
+- Fraunces başlıklar, SOFT/WONK eksenleri sabitlenmiş
+  (https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,1&display=swap)
+- Satoshi body ve tüm UI metni (https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap)
 - JetBrains Mono teknik değerler
+- Not: Satoshi Fontshare'de, Fraunces Google Fonts'ta. Karıştırma, yanlış kaynaktan
+  istenen font 404 verir ve sayfa sistem fontuna düşer.
 - Ana vurgu: Amber/altın (#F5A623)
 - Parlak vurgu: #FFD700
 - Arka plan: #08080A (void), #0D0D10 (primary), #141418 (elevated), #1A1A20 (surface)
@@ -21,12 +24,14 @@
 - CTA gradient: linear-gradient(135deg, #F5A623 0%, #FF6B35 50%, #E8912D 100%)
 - Glow efekti: rgba(245, 166, 35, 0.15)
 
-## Tipografi
-- Hero başlık: Clash Display 700, line-height 0.95, letter-spacing -0.03em
-- Section başlık: Clash Display 600, line-height 1.1, letter-spacing -0.02em
-- Body: General Sans 400, 1.125rem, line-height 1.65, color #8E8E93
-- Label/üst başlık: General Sans 500, 0.8125rem, uppercase, letter-spacing 0.08em, color #F5A623
+## Tipografi (2026-08 güncellemesi)
+- Hero başlık: Fraunces 700, clamp(2.6rem, 5.5vw, 5.25rem), line-height 1.0, letter-spacing -0.015em
+- Section başlık: Fraunces 600/700, line-height 1.1, letter-spacing -0.01em
+- Body: Satoshi 400, 1.0625rem, line-height 1.65, color #A6A6AF
+- Label/üst başlık: Satoshi 500, 0.8125rem, uppercase, letter-spacing 0.08em, color #F5A623
 - Amp değerleri: JetBrains Mono 500, color #FFD700
+- Fraunces serif olduğu için eski sans'a göre belirgin geniş set eder. Yeni bir
+  başlık eklerken punto ve letter-spacing'i satır kırılmasına göre doğrula.
 
 ## Butonlar
 - Primary: gradient arka plan, color #08080A, border-radius 12px, padding 14px 32px
@@ -35,7 +40,9 @@
 
 ## Yasaklar
 - transition-all kullanma, spesifik property belirt
-- Inter, Roboto, Arial, system font kullanma
+- Inter, Inter Tight, Space Grotesk, Roboto, Arial, system font kullanma
+- Kullanıcıya görünen metinde em dash (—) ve en dash (–) kullanma. Cümleyi
+  virgülle, iki nokta ile ya da ayrı cümleyle kur.
 - Teal, yeşil, mavi, mor vurgu rengi kullanma
 - Lorem ipsum kullanma
 - AI buzzword kullanma (leverage, seamlessly, cutting-edge)

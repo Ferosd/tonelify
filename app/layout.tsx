@@ -121,15 +121,20 @@ export default function RootLayout({
     >
       <html lang="en" suppressHydrationWarning>
         <head>
+          {/* Satoshi carries every piece of running text and UI label */}
           <link rel="preconnect" href="https://api.fontshare.com" />
           <link
-            href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&f[]=general-sans@400,500,600&display=swap"
+            href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
             rel="stylesheet"
           />
+          {/* Fraunces is the display face. The SOFT and WONK axes are pinned in
+              the request so the softened terminals and the slanted leg come
+              baked into the delivered instance instead of relying on a
+              font-variation-settings rule reaching every headline. */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link
-            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&family=Inter+Tight:wght@400;500&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,1&family=JetBrains+Mono:wght@500&display=swap"
             rel="stylesheet"
           />
           <Script src="https://www.googletagmanager.com/gtag/js?id=G-SRFVYDD4WH" strategy="afterInteractive" />

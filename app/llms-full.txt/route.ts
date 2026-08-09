@@ -19,7 +19,7 @@ export const revalidate = 86400;
 function toneBlock(tone: (typeof TONE_LIBRARY)[number]): string {
     const url = `${SITE_URL}/explore/${tone.id}`;
     return [
-        `### ${tone.title} — ${tone.artist}`,
+        `### ${tone.title} by ${tone.artist}`,
         ``,
         `- Source: ${url}`,
         `- Genre: ${tone.genre}`,
@@ -35,7 +35,7 @@ function toneBlock(tone: (typeof TONE_LIBRARY)[number]): string {
 }
 
 export function GET() {
-    const body = `# Tonelify — full content export
+    const body = `# Tonelify full content export
 
 > Tonelify translates a recorded guitar tone into knob settings for the amp and
 > guitar you already own. You name a song and your gear, and it returns gain,
@@ -84,12 +84,12 @@ Cancelling stops the next renewal and access runs to the end of the paid period.
 
 ## Pages
 
-- ${SITE_URL}/ — what the product does
-- ${SITE_URL}/explore — the tone library, ${TONE_LIBRARY.length} documented tones
-- ${SITE_URL}/tone-match — enter your gear and a song, get settings
-- ${SITE_URL}/faq — how tone matching works, gear coverage, pricing
-- ${SITE_URL}/plans — plan comparison
-- ${SITE_URL}/request-gear — ask for equipment to be added
+- ${SITE_URL}/ : what the product does
+- ${SITE_URL}/explore : the tone library, ${TONE_LIBRARY.length} documented tones
+- ${SITE_URL}/tone-match : enter your gear and a song, get settings
+- ${SITE_URL}/faq : how tone matching works, gear coverage, pricing
+- ${SITE_URL}/plans : plan comparison
+- ${SITE_URL}/request-gear : ask for equipment to be added
 
 ## Tone library
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Privacy Policy",
-    description: "Tonelify Privacy Policy — how we collect, use, and protect your data.",
+    description: "Tonelify Privacy Policy. How we collect, use, and protect your data.",
     alternates: {
         canonical: "/privacy",
     },
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
                         <ul className="list-disc pl-6 space-y-1 mt-2">
                             <li>Name and email address (via Clerk authentication)</li>
                             <li>Profile picture (if provided through your authentication provider)</li>
-                            <li>Payment information (processed securely through Stripe — we do not store card details)</li>
+                            <li>Payment information (processed securely through Stripe, so we do not store card details)</li>
                         </ul>
 
                         <h3 className="text-lg font-semibold text-[#F2F0ED] mt-4 mb-2">2.2 Usage Data</h3>
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-white/8">
-                    <Link href="/" className="text-sm text-[#E8712A] hover:underline font-medium">
+                    <Link href="/" className="inline-flex items-center min-h-11 text-sm text-[#E8712A] hover:underline font-medium">
                         ← Back to Home
                     </Link>
                 </div>

@@ -7,6 +7,8 @@ import { PlusCircle, Music, Settings } from "lucide-react";
 import { MatchList } from "@/components/MatchList";
 import { EquipmentList } from "@/components/EquipmentList";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { CheckoutSuccessBanner } from "@/components/CheckoutSuccessBanner";
+import { Suspense } from "react";
 
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -63,6 +65,9 @@ export default async function Dashboard() {
             {/* Dashboard Header Removed - using global SiteHeader */}
 
             <main className="container p-4 md:p-8 space-y-6 md:space-y-8">
+                <Suspense fallback={null}>
+                    <CheckoutSuccessBanner />
+                </Suspense>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>

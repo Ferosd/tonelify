@@ -10,17 +10,20 @@ import { useUser } from "@clerk/nextjs";
 // import { toast } from "sonner" // Removed to fix build error
 
 interface Review {
-    id: string;
-    name: string;
+    id: string | number;
+    name: string | null;
     rating: number;
     comment: string;
     created_at: string;
 }
 
-export function Reviews() {
+export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
     const { user, isLoaded, isSignedIn } = useUser();
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Seeded from the server render so the list is in the HTML before any
+    // JavaScript runs. That also means no spinner on first paint when the
+    // reviews are already known.
+    const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
+    const [isLoading, setIsLoading] = useState(!initialReviews?.length);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form State
@@ -60,6 +63,7 @@ export function Reviews() {
         try {
             const res = await fetch("/api/reviews", {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     rating,
                     comment,
@@ -67,7 +71,13 @@ export function Reviews() {
                 }),
             });
 
-            if (!res.ok) throw new Error("Failed to submit");
+            // The daily cap and the rating checks both explain themselves in
+            // the response body; "Failed to save review." told the user nothing
+            // about what to change.
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                throw new Error(data?.error || "Failed to submit");
+            }
 
             setComment("");
             fetchReviews(); // Refresh list
@@ -75,7 +85,7 @@ export function Reviews() {
 
         } catch (error) {
             console.error(error);
-            alert("Failed to save review.");
+            alert(error instanceof Error ? error.message : "Failed to save review.");
         } finally {
             setIsSubmitting(false);
         }
@@ -89,7 +99,7 @@ export function Reviews() {
         <section className="py-20 md:py-24 border-t border-white/8 bg-[#0B0A09]" id="reviews">
             <div className="container px-4 md:px-6 mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                    <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.02em" }}>
+                    <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#F2F2F7]" style={{ letterSpacing: "-0.01em" }}>
                         Reviews
                     </h2>
                     <p className="text-[#A6A29B] mt-2">
@@ -144,13 +154,17 @@ export function Reviews() {
                                                         <Star key={i} className="w-4 h-4 fill-current" />
                                                     ))}
                                                 </div>
+                                                {/* Pinned to a fixed locale and UTC: the list is
+                                                    rendered on the server now, and a date that
+                                                    formats one way there and another way in the
+                                                    reader's browser is a hydration mismatch. */}
                                                 <span className="font-mono text-xs text-[#8A8494]">
-                                                    {new Date(review.created_at).toLocaleDateString()}
+                                                    {new Date(review.created_at).toLocaleDateString("en-US", { timeZone: "UTC" })}
                                                 </span>
                                             </div>
                                             <h4 className="font-bold text-[#F2F2F7] text-sm mb-2 flex items-center gap-2">
                                                 <User className="h-3 w-3 text-[#8A8494]" />
-                                                {review.name}
+                                                {review.name?.trim() || "Anonymous"}
                                             </h4>
                                             <p className="text-[#A6A29B] text-sm leading-relaxed">
                                                 {review.comment}
@@ -168,7 +182,7 @@ export function Reviews() {
                             <CardHeader>
                                 <CardTitle className="font-display text-xl font-bold text-[#F2F2F7]">Leave a review</CardTitle>
                                 <CardDescription className="text-[#A6A29B]">
-                                    Name the song, the guitar, and the amp — that&apos;s what other players need to know.
+                                    Name the song, the guitar, and the amp. That&apos;s what other players need to know.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -204,7 +218,7 @@ export function Reviews() {
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-[#F2F0ED]">Your review</label>
                                         <Textarea
-                                            placeholder="Sultans of Swing on a Squier Strat into a Blues Junior — the neck-pickup tone finally sat right."
+                                            placeholder="Sultans of Swing on a Squier Strat into a Blues Junior. The neck pickup tone finally sat right."
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                             rows={5}

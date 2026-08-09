@@ -6,6 +6,22 @@ import { redis } from "@/lib/redis";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { canUserMatch, incrementMatchUsage } from "@/lib/subscription";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { curatedSource, sanitizeModelSources } from "@/lib/sources";
+import { findGear, gearPromptFacts } from "@/lib/gear-catalog";
+
+// One gpt-4o call takes 10-25s under load. The platform default cuts the
+// function off before that on a slow day, which the browser sees as a failed
+// fetch with no message at all.
+export const maxDuration = 60;
+
+// Plan quotas meter a month; this meters a minute. Unlimited plans have no
+// monthly ceiling at all, so without it one account (or one stuck retry loop)
+// can run up the OpenAI bill unchecked.
+const MATCHES_PER_MINUTE = 8;
+
+// Leaves ~10s of the function budget for Supabase writes and the response.
+const OPENAI_TIMEOUT_MS = 45_000;
 
 // Input validation: length caps keep prompt size (and OpenAI cost) bounded
 const requestSchema = z.object({
@@ -31,6 +47,14 @@ export async function POST(req: NextRequest) {
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const burst = await checkRateLimit("tone-match", userId, MATCHES_PER_MINUTE, 60);
+        if (!burst.allowed) {
+            return NextResponse.json(
+                { error: "Too fast", message: "That's a lot of matches at once — give it a minute and try again." },
+                { status: 429, headers: { "Retry-After": String(burst.retryAfter) } }
+            );
         }
 
         // Check match limit
@@ -71,8 +95,10 @@ export async function POST(req: NextRequest) {
             part: playPart,
             tone: playTone
         });
-        // Hash keeps Redis keys bounded regardless of input length
-        const cacheKey = `tone-match:v4:${createHash("sha256").update(cachePayload).digest("hex")}`;
+        // Hash keeps Redis keys bounded regardless of input length.
+        // v5: the payload gained `sources` and `provenance`, and a v4 entry
+        // would replay without them for a week.
+        const cacheKey = `tone-match:v5:${createHash("sha256").update(cachePayload).digest("hex")}`;
 
         const cachedResult = await redis.get(cacheKey);
         if (cachedResult) {
@@ -137,6 +163,32 @@ export async function POST(req: NextRequest) {
     - ${usesMultiFx ? `Multi FX unit: ${userGear.multiFxUnit}` : "Effects"}: ${userGear.effects && userGear.effects.length > 0 ? userGear.effects.join(", ") : usesMultiFx ? "No specific blocks named — pick suitable ones from that unit" : "None/Unknown"}
 `;
 
+        // Known gear facts, looked up server-side rather than trusted from the
+        // request body. The panel list is the point: the most damaging failure
+        // this product has is telling somebody to set a presence knob on an amp
+        // that does not have one, because the player is looking straight at the
+        // amp and can see we are wrong.
+        const gearFacts = [
+            findGear(userGear.guitarModel, playInstrument === "bass" ? ["bass", "guitar"] : ["guitar", "bass"]),
+            userGear.ampModel ? findGear(userGear.ampModel, ["amp", "bass-amp"]) : undefined,
+            usesMultiFx && userGear.multiFxUnit ? findGear(userGear.multiFxUnit, ["multifx"]) : undefined,
+        ]
+            .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+            .map(gearPromptFacts)
+            .filter(Boolean);
+
+        if (gearFacts.length > 0) {
+            prompt += `
+    Known specifications for the user's gear (these are correct, prefer them over your own recollection):
+    ${gearFacts.map((f) => `- ${f}`).join("\n    ")}
+
+    Where a control list is given it is exhaustive. Do not return a value for a
+    control that is not on that list; omit the field or set it to null instead.
+    If the original tone needs something the user's amp has no control for, say
+    so in missingEffects or playingTips rather than inventing the knob.
+`;
+        }
+
         if (usesMultiFx) {
             prompt += `
     IMPORTANT — the user is running a "${userGear.multiFxUnit}" multi FX processor, not individual pedals.
@@ -152,6 +204,13 @@ export async function POST(req: NextRequest) {
     Provide the exact settings to replicate the "${songTitle}" tone using the USER'S equipment.
     Do NOT suggest buying new gear unless absolutely necessary (emphasize tweaking current gear).
     Also document the ORIGINAL artist's rig and settings (use the verified gear above if provided, otherwise your best knowledge), classify the tone, list any effects the original used that the user's gear lacks (with practical alternatives), and give concrete playing tips.
+
+    Sources: name where the ORIGINAL rig information comes from, up to 4 entries, most
+    specific first. Give the publication or programme and what it established.
+    Do NOT output URLs; they are ignored. If you are working from general knowledge
+    rather than a specific documented source, say so with kind "model-knowledge"
+    instead of naming a publication you are not sure about. An honest
+    "model-knowledge" entry is better than a confident wrong citation.
 
     Response Format (JSON only):
     {
@@ -207,26 +266,79 @@ export async function POST(req: NextRequest) {
         "Tip 2",
         "Tip 3"
       ],
+      "sources": [
+        {
+          "title": "Publication or programme, e.g. 'Premier Guitar Rig Rundown' or 'Guitar World interview, 1991'",
+          "kind": "rig-rundown | interview | manufacturer | forum | documentary | album-credits | model-knowledge",
+          "detail": "One short sentence on what this source establishes about the rig"
+        }
+      ],
       "confidenceScore": 0-100
     }
     `;
 
         // 3. Call OpenAI
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o", // Or gpt-3.5-turbo if cost is a concern
-            messages: [
+        let completion;
+        try {
+            completion = await openai.chat.completions.create(
                 {
-                    role: "system",
-                    content: "You are a helpful AI guitar tech assistant. Output valid JSON only.",
+                    model: "gpt-4o", // Or gpt-3.5-turbo if cost is a concern
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are a helpful AI guitar tech assistant. Output valid JSON only.",
+                        },
+                        { role: "user", content: prompt },
+                    ],
+                    response_format: { type: "json_object" },
                 },
-                { role: "user", content: prompt },
-            ],
-            response_format: { type: "json_object" },
-        });
+                { timeout: OPENAI_TIMEOUT_MS, maxRetries: 1 }
+            );
+        } catch (aiError: any) {
+            // A model outage used to surface as a bare 500 "Internal Server
+            // Error", which reads as the site being broken rather than one
+            // slow dependency. Say what happened and that a retry is free.
+            console.error("OpenAI error:", aiError?.message || aiError);
+            return NextResponse.json(
+                {
+                    error: "Tone engine unavailable",
+                    message: "The tone engine took too long to answer. Nothing was counted against your matches — hit Run Research again.",
+                },
+                { status: 503 }
+            );
+        }
 
-        const aiResponse = JSON.parse(completion.choices[0].message.content || "{}");
+        let aiResponse: any;
+        try {
+            aiResponse = JSON.parse(completion.choices[0]?.message?.content || "{}");
+        } catch {
+            aiResponse = {};
+        }
 
-        // 3b. If we have verified gear data from our DB, trust it over the AI's guess
+        // An empty or shapeless answer would render as a card full of blanks and
+        // still burn a match. Treat it as a failed call instead.
+        if (!aiResponse?.suggestedSettings?.amp && !aiResponse?.suggestedSettings?.guitar) {
+            console.error("OpenAI returned an unusable tone payload for", songTitle, artist);
+            return NextResponse.json(
+                {
+                    error: "Tone engine unavailable",
+                    message: "The tone engine returned an incomplete answer. Nothing was counted — please try again.",
+                },
+                { status: 502 }
+            );
+        }
+
+        // 3b. Provenance.
+        //
+        // The model is allowed to name where it got the rig from, but it is not
+        // allowed to produce a link: an invented URL that 404s costs more trust
+        // than showing no link at all. sanitizeModelSources drops any url field
+        // and types the rest. Curated rows are the only path to a real href,
+        // because a person opened that page before it was stored.
+        aiResponse.sources = sanitizeModelSources(aiResponse.sources);
+        aiResponse.provenance = "model";
+
+        // If we have verified gear data from our DB, trust it over the AI's guess
         if (songGearData) {
             aiResponse.original = {
                 ...(aiResponse.original || {}),
@@ -236,6 +348,19 @@ export async function POST(req: NextRequest) {
                 effects: songGearData.effects ?? aiResponse.original?.effects,
                 verified: true,
             };
+            aiResponse.provenance = "verified";
+
+            // scripts/sql/add_source_columns.sql may not have been run yet, so
+            // these are read defensively; a verified row with no stored source
+            // still shows the badge, just without the citation.
+            const curated = curatedSource(
+                songGearData.source_title,
+                songGearData.source_url,
+                songGearData.source_detail
+            );
+            if (curated) {
+                aiResponse.sources = [curated, ...aiResponse.sources].slice(0, 4);
+            }
         }
 
         // 4. Cache the result for 7 days

@@ -13,7 +13,7 @@ const features = [
     },
     {
         name: "Instant Results",
-        description: "Get amp settings, pickup recommendations, and playing tips in seconds — ready to dial in and play. Designed around real amps and realistic limitations.",
+        description: "Get amp settings, pickup recommendations, and playing tips in seconds, ready to dial in and play. Designed around real amps and realistic limitations.",
         icon: Zap,
     },
 ]

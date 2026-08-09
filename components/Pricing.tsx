@@ -103,9 +103,9 @@ export function Pricing() {
         setError(null)
         try {
             const res = await fetch("/api/stripe/portal", { method: "POST" })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-            else setError(data.error || "Couldn't open the billing portal. Try again in a moment.")
+            const data = await res.json().catch(() => null)
+            if (data?.url) window.location.href = data.url
+            else setError(data?.error || "Couldn't open the billing portal. Try again in a moment.")
         } catch {
             setError("Couldn't open the billing portal. Check your connection and try again.")
         } finally {
@@ -130,11 +130,14 @@ export function Pricing() {
                 body: JSON.stringify({ planId: plan.planId, interval }),
             })
 
-            const data = await response.json()
-            if (data.url) {
+            // A 500 from the platform comes back as an HTML page, and parsing
+            // that threw before the error state could be set — the button just
+            // went quiet.
+            const data = await response.json().catch(() => null)
+            if (data?.url) {
                 window.location.href = data.url
             } else {
-                setError(data.error || "Checkout didn't open. Try again in a moment.")
+                setError(data?.error || "Checkout didn't open. Try again in a moment, or email contact@tonelify.com.")
             }
         } catch {
             setError("Checkout didn't open. Check your connection and try again.")
@@ -184,6 +187,8 @@ export function Pricing() {
                     </div>
                 </div>
 
+                {/* On phones the paid plan is ordered first: stacked in source
+                    order, the Free card pushed it entirely below the fold. */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
 
                     {/* Free */}
@@ -192,7 +197,7 @@ export function Pricing() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4 }}
-                        className="relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-white/8"
+                        className="order-2 md:order-1 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-white/8"
                     >
                         <h3 className="text-2xl font-bold text-[#F2F0ED]">Free</h3>
                         <p className="text-sm text-[#8A8494] font-medium mt-0.5">For trying it out</p>
@@ -224,7 +229,7 @@ export function Pricing() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: 0.1 }}
-                        className="relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                        className="order-1 md:order-2 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
                     >
                         {interval === "year" && (
                             <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-[#E8712A] text-[#08080C] text-xs font-bold tracking-wide shadow-lg">

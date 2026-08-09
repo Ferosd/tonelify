@@ -70,14 +70,14 @@ const GROUPS: Group[] = [
             {
                 q: "Which amps and guitars does Tonelify support?",
                 a: [
-                    "Any amp and guitar you can name. There is no fixed device list to pick from — you type what you own, including the model, the channel and the pickup configuration, and the settings come back adapted to it.",
+                    "Any amp and guitar you can name. There is no fixed device list to pick from. You type what you own, including the model, the channel and the pickup configuration, and the settings come back adapted to it.",
                     "That covers tube heads, solid-state combos, modelling amps and practice amps, along with electric guitar and bass.",
                 ],
             },
             {
                 q: "What do I need to enter to get a match?",
                 a: [
-                    "Your guitar model, your amp model, and the tone you are chasing — either a song, an artist, or a plain description of the sound. Pedals and multi-effects units are optional, and adding them changes where the gain and EQ land.",
+                    "Your guitar model, your amp model, and the tone you are chasing: either a song, an artist, or a plain description of the sound. Pedals and multi-effects units are optional, and adding them changes where the gain and EQ land.",
                     "The more specific the gear entry, the tighter the result. \"Squier Affinity Strat, SSS pickups\" gives a better answer than \"Strat\".",
                 ],
             },
@@ -123,7 +123,7 @@ const GROUPS: Group[] = [
             {
                 q: "Can I cancel at any time?",
                 a: [
-                    "Yes. Subscriptions are managed through Stripe and can be cancelled from your account settings, and cancelling stops the next renewal rather than ending access immediately — you keep the plan until the period you already paid for runs out.",
+                    "Yes. Subscriptions are managed through Stripe and can be cancelled from your account settings, and cancelling stops the next renewal rather than ending access immediately, so you keep the plan until the period you already paid for runs out.",
                 ],
             },
         ],
@@ -154,7 +154,7 @@ export default function FaqPage() {
                 <header className="space-y-4">
                     <h1
                         className="font-display text-3xl md:text-5xl font-bold tracking-tight text-[#F2F2F7]"
-                        style={{ letterSpacing: "-0.03em" }}
+                        style={{ letterSpacing: "-0.015em" }}
                     >
                         Guitar tone matching, answered
                     </h1>
@@ -224,7 +224,7 @@ export default function FaqPage() {
                             </Link>
                         ))}
                     </div>
-                    <Link href="/explore" className="inline-block text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors">
+                    <Link href="/explore" className="inline-flex items-center min-h-11 text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors">
                         Browse the full tone library →
                     </Link>
                 </section>
