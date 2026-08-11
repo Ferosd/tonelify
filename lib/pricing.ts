@@ -21,17 +21,33 @@
  * $14.99/mo, $39.99/yr. Ultimate Guitar Pro, the anchor every guitarist
  * already has a feel for, is $39.99/yr.
  *
- * Against that, these prices have the ladder upside down: the week pass is the
- * cheapest in the category at $4.99 while the yearly plan, the one worth
- * selling, is the most expensive anywhere at $59.99. The plan people should buy
- * costs the most and the plan they should not costs the least. Correcting that
- * is waiting on the matching Stripe prices, because a figure changed here while
- * the environment still points at the old price id would advertise one amount
- * and charge another.
+ * The week pass was the cheapest in a category that charges $5.99 to $9.99 for
+ * the same thing, and it is the one plan bought on impulse for a specific
+ * weekend, which is the least price-sensitive purchase on the page. $6.99.
+ *
+ * The yearly plan goes the other way, to $89.99, and that is a deliberate break
+ * with the category. Everyone else discounts annual by 60% to 78%, which reads
+ * as a bargain but quietly says the monthly price was never real, and it caps
+ * what a subscriber is worth at three or four dollars a month. A 42% discount
+ * is the kind a customer believes, and it leaves the yearly plan worth $7.26 a
+ * month net instead of $3.62, which halves how many subscribers a given revenue
+ * target needs.
+ *
+ * The cost is real and worth writing down: at $89.99 this is roughly twice
+ * ToneAdapt's $49.99, so anyone who arrives already comparing the two is lost
+ * on the number they compare. The bet is that they mostly do not arrive that
+ * way. Acquisition here is organic search from queries like "master of puppets
+ * amp settings", where the visitor has no price anchor in mind and no rival
+ * listing one scroll away, which is the opposite of an App Store shelf.
+ *
+ * If that bet is wrong it shows up as a fall in the yearly share of checkouts,
+ * not as anything subtle. Watch the plan mix in Stripe.
+ *
+ * Monthly stays at $12.99, between the $10.99 and $14.99 charged elsewhere.
  */
-const WEEK_PASS = 4.99;
+const WEEK_PASS = 6.99;
 const PLAYER_MONTHLY = 12.99;
-const PLAYER_YEARLY = 59.99;
+const PLAYER_YEARLY = 89.99;
 
 /**
  * Matches and saved tones a free account gets each calendar month.
