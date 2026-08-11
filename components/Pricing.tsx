@@ -2,70 +2,41 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Check, Sparkles, Loader2 } from "lucide-react"
+import { Check, Lock, Sparkles, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
+import { PRICING_FAQ } from "@/lib/pricing-faq"
 
 type Interval = "week" | "month" | "year"
+/** Only the Player plan is sold on two intervals, so the toggle is binary. */
+type Billing = "month" | "year"
 
-// The yearly badge is the whole reason the toggle exists, so it sits on the
-// tab itself rather than only appearing once yearly is already selected.
-const intervals: { id: Interval; label: string; badge?: string }[] = [
-    { id: "week", label: "Weekly" },
-    { id: "month", label: "Monthly" },
-    { id: "year", label: "Yearly", badge: "SAVE 62%" },
-]
-
-// Mirrors the Stripe prices. Amounts here are display only; checkout always
-// resolves the real price id on the server.
-const paid: Record<Interval, {
-    planId: "weekly" | "player"
-    name: string
-    /** Headline number. Yearly is shown per month so the three tabs compare. */
+// Everything below is display only. Checkout posts the plan id and interval and
+// the server resolves the real Stripe price, so these strings can never put a
+// customer on a price they didn't see.
+const PLAYER_BILLING: Record<Billing, {
+    /** Headline number, always per month so the two options compare directly. */
     price: string
-    per: string
-    /** What Stripe actually charges, spelled out under the headline number. */
+    /** What Stripe actually charges, spelled out under the headline. */
     billed: string
     /** Struck-through anchor. Only set where the comparison is a real one. */
     compare?: string
     off?: string
     /** Line under the button, pointing at the cheaper way to buy. */
     footnote: string
-    cta: string
-    trial: boolean
 }> = {
-    week: {
-        planId: "weekly",
-        name: "Week Pass",
-        price: "$4.99",
-        per: "/week",
-        billed: "Renews every week until you cancel",
-        footnote: "Built for one song or one gig. A full year of renewals is $259.48, against $59.99 yearly.",
-        cta: "Get the week pass",
-        trial: false,
-    },
     month: {
-        planId: "player",
-        name: "Player",
         price: "$12.99",
-        per: "/month",
         billed: "Billed monthly, cancel anytime",
         footnote: "Pay yearly instead and this drops to $5.00 a month.",
-        cta: "Start 3-day free trial",
-        trial: true,
     },
     year: {
-        planId: "player",
-        name: "Player",
         price: "$5.00",
-        per: "/month",
         billed: "$59.99 billed once a year",
         compare: "$155.88",
         off: "62% OFF",
         footnote: "You save $95.89 a year against paying month to month.",
-        cta: "Start 3-day free trial",
-        trial: true,
     },
 }
 
@@ -86,15 +57,24 @@ const freeFeatures = [
     "No card required",
 ]
 
+// Shown struck through on the Free card. A gap you can see is worth more than
+// a longer list of things the free plan does include.
+const freeLocked = [
+    "Unlimited matches",
+    "Gear presets",
+    "Effects chain and signal order",
+    "Priority support",
+]
+
 export function Pricing() {
-    const [interval, setInterval] = useState<Interval>("month")
-    const [loading, setLoading] = useState(false)
+    const [billing, setBilling] = useState<Billing>("year")
+    const [loading, setLoading] = useState<Interval | null>(null)
     const [portalLoading, setPortalLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [currentPlan, setCurrentPlan] = useState<string | null>(null)
     const { isSignedIn } = useUser()
 
-    const plan = paid[interval]
+    const player = PLAYER_BILLING[billing]
 
     // Subscribers shouldn't be sold a plan they already pay for
     useEffect(() => {
@@ -111,6 +91,8 @@ export function Pricing() {
     }, [isSignedIn])
 
     const isSubscribed = !!currentPlan && currentPlan !== "free"
+    const onWeekPass = currentPlan === "weekly"
+    const onPlayer = currentPlan === "player"
 
     const openPortal = async () => {
         setPortalLoading(true)
@@ -127,7 +109,9 @@ export function Pricing() {
         }
     }
 
-    const handleCheckout = async () => {
+    // A subscriber hitting checkout is answered with a billing portal link
+    // rather than a second subscription, so the same call covers upgrades.
+    const handleCheckout = async (planId: "weekly" | "player", interval: Interval) => {
         if (!isSignedIn) {
             // Come back to pricing after signing up, otherwise the checkout
             // intent is lost on Clerk's default landing page
@@ -135,13 +119,13 @@ export function Pricing() {
             return
         }
 
-        setLoading(true)
+        setLoading(interval)
         setError(null)
         try {
             const response = await fetch("/api/stripe/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planId: plan.planId, interval }),
+                body: JSON.stringify({ planId, interval }),
             })
 
             // A 500 from the platform comes back as an HTML page, and parsing
@@ -156,13 +140,23 @@ export function Pricing() {
         } catch {
             setError("Checkout didn't open. Check your connection and try again.")
         } finally {
-            setLoading(false)
+            setLoading(null)
         }
     }
 
+    const manageBilling = (
+        <button
+            onClick={openPortal}
+            disabled={portalLoading}
+            className="w-full h-11 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center gap-2 hover:border-[#E8712A] disabled:opacity-60 transition-colors"
+        >
+            {portalLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Manage billing"}
+        </button>
+    )
+
     return (
         <section className="py-16 md:py-24 bg-[#08080C]" id="pricing">
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}
                 <div className="text-center mb-8 md:mb-10">
@@ -180,59 +174,73 @@ export function Pricing() {
                     </p>
                 </div>
 
-                {/* Interval toggle */}
-                <div className="flex justify-center mb-10 md:mb-12">
+                {/* Billing toggle. Only the Player card moves with it, so the
+                    label says so rather than leaving the Week Pass ambiguous. */}
+                <div className="flex flex-col items-center gap-2 mb-10 md:mb-12">
                     <div className="flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
-                        {intervals.map((i) => (
+                        {([
+                            { id: "month" as const, label: "Monthly" },
+                            { id: "year" as const, label: "Yearly", badge: "SAVE 62%" },
+                        ]).map((b) => (
                             <button
-                                key={i.id}
-                                onClick={() => setInterval(i.id)}
-                                aria-pressed={interval === i.id}
+                                key={b.id}
+                                onClick={() => setBilling(b.id)}
+                                aria-pressed={billing === b.id}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
-                                    interval === i.id
+                                    "flex items-center gap-2 px-5 sm:px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
+                                    billing === b.id
                                         ? "bg-[#E8712A] text-[#08080C] shadow-md"
                                         : "text-[#A6A29B] hover:text-[#F2F0ED]"
                                 )}
                             >
-                                {i.label}
-                                {i.badge && (
+                                {b.label}
+                                {b.badge && (
                                     <span
                                         className={cn(
                                             "text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap",
-                                            interval === i.id
+                                            billing === b.id
                                                 ? "bg-[#08080C]/20 text-[#08080C]"
                                                 : "bg-[#F5A623]/15 text-[#F5A623]"
                                         )}
                                     >
-                                        {i.badge}
+                                        {b.badge}
                                     </span>
                                 )}
                             </button>
                         ))}
                     </div>
+                    <p className="text-xs text-[#8A8494]">Sets how the Player plan is billed</p>
                 </div>
 
-                {/* On phones the paid plan is ordered first: stacked in source
-                    order, the Free card pushed it entirely below the fold. */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                {error && (
+                    <p role="alert" className="text-center text-sm text-red-400 mb-6">{error}</p>
+                )}
 
-                    {/* Free */}
+                {/* On phones the paid plans come first: stacked in desktop order,
+                    Player sat entirely below the fold. */}
+                {/* No items-start: the cards stretch to a common height so the
+                    three buttons land on one line whichever interval is picked */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                    {/* ── FREE ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4 }}
-                        className="order-2 md:order-1 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-white/8"
+                        className="order-3 md:order-1 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-white/8"
                     >
-                        <h3 className="text-2xl font-bold text-[#F2F0ED]">Free</h3>
+                        <h3 className="text-xl font-bold text-[#F2F0ED]">Free</h3>
                         <p className="text-sm text-[#8A8494] font-medium mt-0.5">For trying it out</p>
 
-                        <div className="flex items-baseline gap-1 mt-6 mb-6">
-                            <span className="font-display text-5xl font-bold text-[#F2F0ED]">$0</span>
+                        <div className="mt-5 mb-5">
+                            <div className="flex items-baseline gap-1">
+                                <span className="font-display text-4xl font-bold text-[#F2F0ED]">$0</span>
+                            </div>
+                            <p className="text-sm text-[#A6A29B] mt-2">Enough for three songs a month</p>
                         </div>
 
-                        <ul className="space-y-3 mb-8 flex-1">
+                        <ul className="space-y-2.5 mb-5">
                             {freeFeatures.map((f) => (
                                 <li key={f} className="flex items-start gap-3">
                                     <Check className="h-4 w-4 text-[#8A8494] shrink-0 mt-0.5" />
@@ -241,71 +249,43 @@ export function Pricing() {
                             ))}
                         </ul>
 
+                        <ul className="space-y-2.5 mb-6 flex-1 pt-5 border-t border-white/6">
+                            {freeLocked.map((f) => (
+                                <li key={f} className="flex items-start gap-3">
+                                    <Lock className="h-3.5 w-3.5 text-[#5C5862] shrink-0 mt-1" />
+                                    <span className="text-sm text-[#5C5862] line-through">{f}</span>
+                                </li>
+                            ))}
+                        </ul>
+
                         <Link
                             href="/tone-match"
                             className="w-full h-12 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center hover:border-[#E8712A] transition-colors"
                         >
-                            Start matching free
+                            {isSubscribed ? "Go to tone matching" : "Start matching free"}
                         </Link>
                     </motion.div>
 
-                    {/* Paid */}
+                    {/* ── WEEK PASS ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
-                        className="order-1 md:order-2 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-8 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                        transition={{ duration: 0.4, delay: 0.05 }}
+                        className="order-2 md:order-2 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-white/8"
                     >
-                        {interval === "year" && (
-                            <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-5 py-1.5 rounded-full bg-[#E8712A] text-[#08080C] text-xs font-bold tracking-wide shadow-lg">
-                                BEST VALUE
-                            </div>
-                        )}
+                        <h3 className="text-xl font-bold text-[#F2F0ED]">Week Pass</h3>
+                        <p className="text-sm text-[#8A8494] font-medium mt-0.5">For one song or one gig</p>
 
-                        <div className="flex items-start justify-between gap-3 mb-1">
-                            <div>
-                                <h3 className="text-2xl font-bold text-[#F2F0ED]">{plan.name}</h3>
-                                <p className="text-sm text-[#8A8494] font-medium mt-0.5">Everything, no caps</p>
+                        <div className="mt-5 mb-5">
+                            <div className="flex items-baseline gap-1">
+                                <span className="font-display text-4xl font-bold text-[#F2F0ED]">$4.99</span>
+                                <span className="text-[#8A8494] font-medium">/week</span>
                             </div>
-                            {plan.trial && !isSubscribed && (
-                                <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-                                    3-day free trial
-                                </span>
-                            )}
+                            <p className="text-sm text-[#A6A29B] mt-2">Renews every week until you cancel</p>
                         </div>
 
-                        {/* Keyed on the interval so switching tabs animates the
-                            number instead of silently swapping it */}
-                        <motion.div
-                            key={interval}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="mt-6 mb-6"
-                        >
-                            {/* Anchor sits on its own line above the headline so
-                                the discount pill never wraps under the price */}
-                            {plan.compare && (
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-lg font-bold text-[#8A8494] line-through decoration-[#D14B32] decoration-2">
-                                        {plan.compare}
-                                    </span>
-                                    {plan.off && (
-                                        <span className="bg-[#D14B32] text-[#F2F0ED] text-[11px] font-black px-2.5 py-1 rounded-full tracking-wider">
-                                            {plan.off}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                            <div className="flex items-baseline gap-1">
-                                <span className="font-display text-5xl font-bold text-[#F2F0ED]">{plan.price}</span>
-                                <span className="text-[#8A8494] font-medium">{plan.per}</span>
-                            </div>
-                            <p className="text-sm text-[#A6A29B] mt-2">{plan.billed}</p>
-                        </motion.div>
-
-                        <ul className="space-y-3 mb-8 flex-1">
+                        <ul className="space-y-2.5 mb-6 flex-1">
                             {paidFeatures.map((f) => (
                                 <li key={f} className="flex items-start gap-3">
                                     <Check className="h-4 w-4 text-[#F5A623] shrink-0 mt-0.5" />
@@ -314,46 +294,136 @@ export function Pricing() {
                             ))}
                         </ul>
 
-                        {error && (
-                            <p role="alert" className="text-sm text-red-400 mb-3">{error}</p>
-                        )}
-
-                        {isSubscribed ? (
+                        {onWeekPass ? (
                             <div className="space-y-3">
                                 <div className="w-full h-12 rounded-xl bg-[#E8712A]/10 border border-[#E8712A]/30 text-[#E8712A] font-bold flex items-center justify-center gap-2">
                                     <Check className="h-5 w-5" />
                                     You're on this plan
                                 </div>
-                                <button
-                                    onClick={openPortal}
-                                    disabled={portalLoading}
-                                    className="w-full h-11 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center gap-2 hover:border-[#E8712A] disabled:opacity-60 transition-colors"
-                                >
-                                    {portalLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Manage billing"}
-                                </button>
+                                {manageBilling}
                             </div>
                         ) : (
                             <div>
                                 <button
-                                    onClick={handleCheckout}
-                                    disabled={loading}
+                                    onClick={() => handleCheckout("weekly", "week")}
+                                    disabled={loading !== null || onPlayer}
+                                    className="w-full h-12 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center gap-2 hover:border-[#E8712A] disabled:opacity-40 transition-colors"
+                                >
+                                    {loading === "week" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Get the week pass"}
+                                </button>
+                                <p className="text-center text-xs text-[#8A8494] mt-3">
+                                    {onPlayer
+                                        ? "Your Player plan already covers this."
+                                        : "No free trial. A full year of renewals is $259.48."}
+                                </p>
+                            </div>
+                        )}
+                    </motion.div>
+
+                    {/* ── PLAYER ── */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="order-1 md:order-3 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                    >
+                        <div className="absolute -top-3.5 left-0 right-0 mx-auto w-fit px-4 py-1 rounded-full bg-[#E8712A] text-[#08080C] text-[10px] font-black tracking-widest shadow-lg">
+                            {billing === "year" ? "BEST VALUE" : "MOST POPULAR"}
+                        </div>
+
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <h3 className="text-xl font-bold text-[#F2F0ED]">Player</h3>
+                                <p className="text-sm text-[#8A8494] font-medium mt-0.5">For playing week in, week out</p>
+                            </div>
+                            {!isSubscribed && (
+                                <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                    3-day trial
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Keyed on the interval so switching the toggle animates
+                            the number instead of silently swapping it */}
+                        <motion.div
+                            key={billing}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="mt-5 mb-5"
+                        >
+                            {/* Anchor sits on its own line above the headline so
+                                the discount pill never wraps under the price */}
+                            {player.compare && (
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg font-bold text-[#8A8494] line-through decoration-[#D14B32] decoration-2">
+                                        {player.compare}
+                                    </span>
+                                    {player.off && (
+                                        <span className="bg-[#D14B32] text-[#F2F0ED] text-[11px] font-black px-2.5 py-1 rounded-full tracking-wider">
+                                            {player.off}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                            <div className="flex items-baseline gap-1">
+                                <span className="font-display text-4xl font-bold text-[#F2F0ED]">{player.price}</span>
+                                <span className="text-[#8A8494] font-medium">/month</span>
+                            </div>
+                            <p className="text-sm text-[#A6A29B] mt-2">{player.billed}</p>
+                        </motion.div>
+
+                        <ul className="space-y-2.5 mb-6 flex-1">
+                            {paidFeatures.map((f) => (
+                                <li key={f} className="flex items-start gap-3">
+                                    <Check className="h-4 w-4 text-[#F5A623] shrink-0 mt-0.5" />
+                                    <span className="text-sm text-[#F2F0ED]">{f}</span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        {onPlayer ? (
+                            <div className="space-y-3">
+                                <div className="w-full h-12 rounded-xl bg-[#E8712A]/10 border border-[#E8712A]/30 text-[#E8712A] font-bold flex items-center justify-center gap-2">
+                                    <Check className="h-5 w-5" />
+                                    You're on this plan
+                                </div>
+                                {manageBilling}
+                                <p className="text-center text-xs text-[#8A8494]">
+                                    Switch between monthly and yearly from the billing portal.
+                                </p>
+                            </div>
+                        ) : (
+                            <div>
+                                <button
+                                    onClick={() => handleCheckout("player", billing)}
+                                    disabled={loading !== null}
                                     className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
                                     style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
                                 >
-                                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
+                                    {loading === billing ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : onWeekPass ? (
+                                        billing === "year" ? "Switch to yearly" : "Switch to monthly"
+                                    ) : (
+                                        "Start 3-day free trial"
+                                    )}
                                 </button>
-                                {/* On the cheaper intervals the footnote is the
-                                    upsell, so it doubles as the way to take it */}
-                                {interval === "year" ? (
+                                {/* On monthly the footnote is the upsell, so it
+                                    doubles as the way to take it */}
+                                {billing === "year" ? (
                                     <p className="text-center text-xs text-[#F5A623] font-semibold mt-3">
-                                        {plan.footnote}
+                                        {onWeekPass
+                                            ? "Stripe credits what you already paid on the week pass."
+                                            : player.footnote}
                                     </p>
                                 ) : (
                                     <button
-                                        onClick={() => setInterval("year")}
+                                        onClick={() => setBilling("year")}
                                         className="block w-full text-center text-xs text-[#A6A29B] mt-3 hover:text-[#F5A623] transition-colors"
                                     >
-                                        {plan.footnote}
+                                        {player.footnote}
                                     </button>
                                 )}
                             </div>
@@ -364,6 +434,26 @@ export function Pricing() {
                 <p className="text-center text-xs text-[#8A8494] mt-8">
                     Payments handled by Stripe. Cancel from Settings at any time.
                 </p>
+
+                {/* ── FAQ. Native details so the answers are in the markup for
+                    anything that doesn't run JavaScript. ── */}
+                <div className="max-w-2xl mx-auto mt-16 md:mt-20">
+                    <h2 className="font-display text-2xl font-bold text-[#F2F0ED] text-center mb-6">
+                        Before you pay
+                    </h2>
+                    <div className="divide-y divide-white/8 border-y border-white/8">
+                        {PRICING_FAQ.map((f) => (
+                            <details key={f.q} className="group py-4">
+                                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none text-[#F2F0ED] font-semibold text-sm sm:text-base">
+                                    {f.q}
+                                    <span className="text-[#E8712A] text-xl leading-none shrink-0 group-open:hidden">+</span>
+                                    <span className="text-[#E8712A] text-xl leading-none shrink-0 hidden group-open:inline">&minus;</span>
+                                </summary>
+                                <p className="text-sm text-[#A6A29B] leading-relaxed mt-3">{f.a}</p>
+                            </details>
+                        ))}
+                    </div>
+                </div>
             </div>
         </section>
     )

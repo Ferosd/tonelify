@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Pricing } from "@/components/Pricing";
 import { SITE_URL } from "@/lib/site";
 import { getReviewSummary } from "@/lib/reviews";
+import { PRICING_FAQ } from "@/lib/pricing-faq";
 
 export const metadata: Metadata = {
     // The root layout appends "| Tonelify", so the brand is left off here
@@ -94,6 +95,18 @@ export default async function PlansPage() {
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                             ],
+                        },
+                        // The billing questions people actually ask before
+                        // paying. Same source as the accordion on the page, so
+                        // the markup can never describe a page that isn't there.
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "FAQPage",
+                            mainEntity: PRICING_FAQ.map((f) => ({
+                                "@type": "Question",
+                                name: f.q,
+                                acceptedAnswer: { "@type": "Answer", text: f.a },
+                            })),
                         },
                     ]),
                 }}
