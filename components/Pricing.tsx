@@ -54,16 +54,18 @@ const freeFeatures = [
     "3 tone matches per month",
     "3 saved tones",
     "Full amp settings on every match",
+    "Effects chain, tone tips and gear presets",
     "No card required",
 ]
 
-// Shown struck through on the Free card. A gap you can see is worth more than
-// a longer list of things the free plan does include.
+// Shown struck through on the Free card. Only the two caps that the API
+// actually enforces belong here: matchLimit in app/api/tone-match and
+// savedToneLimit in app/api/save-tone. Gear presets, the effects chain and
+// the tone tips were listed here too, and nothing in the codebase gates any
+// of them, so the page was talking free users out of features they already had.
 const freeLocked = [
     "Unlimited matches",
-    "Gear presets",
-    "Effects chain and signal order",
-    "Priority support",
+    "Unlimited saved tones",
 ]
 
 export function Pricing() {
