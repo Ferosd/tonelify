@@ -12,17 +12,47 @@
  * If you change a number here, change the matching Stripe price too.
  */
 
-/** Base amounts in dollars. Everything else on this page is derived. */
+/**
+ * Base amounts in dollars. Everything else on this page is derived.
+ *
+ * Set against the category as it stood in August 2026. ToneAdapt sells
+ * $6.99/mo capped and $10.99/mo unlimited on the web, $14.99/mo on iOS, and
+ * annual plans at $39.99 and $49.99. Guitar Tone Match AI sells $6.99/wk,
+ * $14.99/mo, $39.99/yr. Ultimate Guitar Pro, the anchor every guitarist
+ * already has a feel for, is $39.99/yr.
+ *
+ * Against that, these prices have the ladder upside down: the week pass is the
+ * cheapest in the category at $4.99 while the yearly plan, the one worth
+ * selling, is the most expensive anywhere at $59.99. The plan people should buy
+ * costs the most and the plan they should not costs the least. Correcting that
+ * is waiting on the matching Stripe prices, because a figure changed here while
+ * the environment still points at the old price id would advertise one amount
+ * and charge another.
+ */
 const WEEK_PASS = 4.99;
 const PLAYER_MONTHLY = 12.99;
 const PLAYER_YEARLY = 59.99;
 
-/** Matches and saved tones a free account gets each calendar month. */
+/**
+ * Matches and saved tones a free account gets each calendar month.
+ *
+ * Deliberately unchanged. The loudest complaint in ToneAdapt's App Store
+ * reviews is that you cannot do anything without paying, and they have no
+ * permanent free tier at all. A free plan that actually returns full settings
+ * is the wedge. Raising the cap would blunt the only thing that makes anyone
+ * subscribe, so the generosity goes into the trial instead, where it converts.
+ */
 export const FREE_MATCHES = 3;
 export const FREE_SAVED_TONES = 3;
 
-/** Days of free trial on the monthly and yearly plans. Mirrors PLANS.player.trialDays. */
-export const TRIAL_DAYS = 3;
+/**
+ * Days of free trial on the monthly and yearly plans. Must stay in step with
+ * PLANS.player.trialDays in lib/stripe.ts, which is what Stripe is told.
+ *
+ * Three days was the shortest in the category and did not cover a weekend of
+ * working a song up. ToneAdapt gives seven.
+ */
+export const TRIAL_DAYS = 7;
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 

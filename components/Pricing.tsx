@@ -219,8 +219,9 @@ export function Pricing() {
                 )}
 
                 {/* Ordered by what a month actually costs: $0, then Player at
-                    $3.75 to $12.99, then the week pass at $30.29 a month if you
-                    keep renewing it. That puts the plan we want people on in the
+                    the Player range, then the week pass, which costs the most per
+                    month of the three if you keep renewing it. That puts the plan
+                    we want people on in the
                     middle, which is where a three-option set gets picked from,
                     and it makes the pass read as flexibility rather than value.
                     On phones Player comes first so it is not below the fold. */}

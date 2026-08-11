@@ -34,7 +34,10 @@ export const PLANS: Record<string, Plan> = {
         name: "Player",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
-        trialDays: 3,
+        // Seven days, matching the category. Three did not cover a weekend of
+        // learning a song, which is the whole trial. Keep in step with
+        // TRIAL_DAYS in lib/pricing.ts, which is what the pages say.
+        trialDays: 7,
         prices: {
             month: process.env.STRIPE_PRICE_PLAYER_MONTHLY || "",
             year: process.env.STRIPE_PRICE_PLAYER_ANNUAL || "",
