@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils"
 
 type Interval = "week" | "month" | "year"
 
-const intervals: { id: Interval; label: string }[] = [
+// The yearly badge is the whole reason the toggle exists, so it sits on the
+// tab itself rather than only appearing once yearly is already selected.
+const intervals: { id: Interval; label: string; badge?: string }[] = [
     { id: "week", label: "Weekly" },
     { id: "month", label: "Monthly" },
-    { id: "year", label: "Yearly" },
+    { id: "year", label: "Yearly", badge: "SAVE 62%" },
 ]
 
 // Mirrors the Stripe prices. Amounts here are display only; checkout always
@@ -20,9 +22,16 @@ const intervals: { id: Interval; label: string }[] = [
 const paid: Record<Interval, {
     planId: "weekly" | "player"
     name: string
+    /** Headline number. Yearly is shown per month so the three tabs compare. */
     price: string
     per: string
-    note: string
+    /** What Stripe actually charges, spelled out under the headline number. */
+    billed: string
+    /** Struck-through anchor. Only set where the comparison is a real one. */
+    compare?: string
+    off?: string
+    /** Line under the button, pointing at the cheaper way to buy. */
+    footnote: string
     cta: string
     trial: boolean
 }> = {
@@ -31,7 +40,8 @@ const paid: Record<Interval, {
         name: "Week Pass",
         price: "$4.99",
         per: "/week",
-        note: "Renews weekly until you cancel",
+        billed: "Renews every week until you cancel",
+        footnote: "Built for one song or one gig. A full year of renewals is $259.48, against $59.99 yearly.",
         cta: "Get the week pass",
         trial: false,
     },
@@ -40,16 +50,20 @@ const paid: Record<Interval, {
         name: "Player",
         price: "$12.99",
         per: "/month",
-        note: "Cancel anytime",
+        billed: "Billed monthly, cancel anytime",
+        footnote: "Pay yearly instead and this drops to $5.00 a month.",
         cta: "Start 3-day free trial",
         trial: true,
     },
     year: {
         planId: "player",
         name: "Player",
-        price: "$59.99",
-        per: "/year",
-        note: "Works out at $5.00 a month. Save $95.89 against monthly.",
+        price: "$5.00",
+        per: "/month",
+        billed: "$59.99 billed once a year",
+        compare: "$155.88",
+        off: "62% OFF",
+        footnote: "You save $95.89 a year against paying month to month.",
         cta: "Start 3-day free trial",
         trial: true,
     },
@@ -162,7 +176,7 @@ export function Pricing() {
                     </h1>
                     <p className="text-[#A6A29B] text-base md:text-lg max-w-xl mx-auto">
                         Start free with three tone matches a month. Unlimited matching costs $4.99 for a
-                        week, $12.99 a month, or $59.99 a year.
+                        week, $12.99 a month, or $59.99 a year, which works out at $5.00 a month.
                     </p>
                 </div>
 
@@ -175,13 +189,25 @@ export function Pricing() {
                                 onClick={() => setInterval(i.id)}
                                 aria-pressed={interval === i.id}
                                 className={cn(
-                                    "px-4 sm:px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
+                                    "flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200",
                                     interval === i.id
                                         ? "bg-[#E8712A] text-[#08080C] shadow-md"
                                         : "text-[#A6A29B] hover:text-[#F2F0ED]"
                                 )}
                             >
                                 {i.label}
+                                {i.badge && (
+                                    <span
+                                        className={cn(
+                                            "text-[10px] font-black tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap",
+                                            interval === i.id
+                                                ? "bg-[#08080C]/20 text-[#08080C]"
+                                                : "bg-[#F5A623]/15 text-[#F5A623]"
+                                        )}
+                                    >
+                                        {i.badge}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -249,11 +275,35 @@ export function Pricing() {
                             )}
                         </div>
 
-                        <div className="flex items-baseline gap-1 mt-6">
-                            <span className="font-display text-5xl font-bold text-[#F2F0ED]">{plan.price}</span>
-                            <span className="text-[#8A8494] font-medium">{plan.per}</span>
-                        </div>
-                        <p className="text-xs text-[#A6A29B] mt-2 mb-6">{plan.note}</p>
+                        {/* Keyed on the interval so switching tabs animates the
+                            number instead of silently swapping it */}
+                        <motion.div
+                            key={interval}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="mt-6 mb-6"
+                        >
+                            {/* Anchor sits on its own line above the headline so
+                                the discount pill never wraps under the price */}
+                            {plan.compare && (
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg font-bold text-[#8A8494] line-through decoration-[#D14B32] decoration-2">
+                                        {plan.compare}
+                                    </span>
+                                    {plan.off && (
+                                        <span className="bg-[#D14B32] text-[#F2F0ED] text-[11px] font-black px-2.5 py-1 rounded-full tracking-wider">
+                                            {plan.off}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                            <div className="flex items-baseline gap-1">
+                                <span className="font-display text-5xl font-bold text-[#F2F0ED]">{plan.price}</span>
+                                <span className="text-[#8A8494] font-medium">{plan.per}</span>
+                            </div>
+                            <p className="text-sm text-[#A6A29B] mt-2">{plan.billed}</p>
+                        </motion.div>
 
                         <ul className="space-y-3 mb-8 flex-1">
                             {paidFeatures.map((f) => (
@@ -283,14 +333,30 @@ export function Pricing() {
                                 </button>
                             </div>
                         ) : (
-                            <button
-                                onClick={handleCheckout}
-                                disabled={loading}
-                                className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
-                                style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
-                            >
-                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
-                            </button>
+                            <div>
+                                <button
+                                    onClick={handleCheckout}
+                                    disabled={loading}
+                                    className="w-full h-12 rounded-xl text-[#08080C] font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+                                    style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
+                                >
+                                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : plan.cta}
+                                </button>
+                                {/* On the cheaper intervals the footnote is the
+                                    upsell, so it doubles as the way to take it */}
+                                {interval === "year" ? (
+                                    <p className="text-center text-xs text-[#F5A623] font-semibold mt-3">
+                                        {plan.footnote}
+                                    </p>
+                                ) : (
+                                    <button
+                                        onClick={() => setInterval("year")}
+                                        className="block w-full text-center text-xs text-[#A6A29B] mt-3 hover:text-[#F5A623] transition-colors"
+                                    >
+                                        {plan.footnote}
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </motion.div>
                 </div>
