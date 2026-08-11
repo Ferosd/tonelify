@@ -12,6 +12,7 @@ import { ToneProof, TONE_COUNT } from "@/components/ToneProof"
 import { AmpKnob } from "@/components/AmpKnob"
 import { TONE_LIBRARY } from "@/lib/tone-library"
 import type { StoredReview } from "@/lib/reviews"
+import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing"
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -47,8 +48,8 @@ const ampSettings = [
 
 const badges           = ["Any song", "Any gear", "Instant results", "Free to start"]
 const freeFeatures = [
-  "3 tone matches per month",
-  "3 saved tones",
+  `${FREE_MATCHES} tone matches per month`,
+  `${FREE_SAVED_TONES} saved tones`,
   "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
   "No card required",
 ]
@@ -1361,7 +1362,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
               transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
               transition: "opacity 0.25s, transform 0.25s",
               display: "inline-block",
-            }}>Save 62%</span>
+            }}>Save {PRICING.year.percentOff}%</span>
           </div>
 
           <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
@@ -1424,13 +1425,13 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
                   fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? "$12.99" : "$5.00"}</span>
+                }}>{billingCycle === "monthly" ? PRICING.month.price : PRICING.year.perMonth}</span>
                 <span style={{ fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
               </div>
               <div style={{
                 fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF",
                 fontSize: "0.875rem", marginBottom: "28px",
-              }}>{billingCycle === "annual" ? "$59.99 billed yearly · 3-day free trial" : "3-day free trial"}</div>
+              }}>{billingCycle === "annual" ? `${PRICING.year.price} billed yearly · ${TRIAL_DAYS}-day free trial` : `${TRIAL_DAYS}-day free trial`}</div>
               <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
                 {playerFeatures.map((f) => (
                   <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
@@ -1447,7 +1448,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
                 fontFamily: "'Satoshi', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
                 borderRadius: "12px", textDecoration: "none",
                 transition: "transform 0.2s, box-shadow 0.2s",
-              }}>Start 3-day free trial</Link>
+              }}>Start {TRIAL_DAYS}-day free trial</Link>
             </div>
 
           </div>
@@ -1458,7 +1459,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
             color: "#A6A6AF", textAlign: "center", marginTop: "36px", marginBottom: 0,
           }}>
             Only need it for one song? The <span style={{ color: "#F5A623", fontWeight: 600 }}>Week Pass</span> gives
-            you everything for $4.99 a week.{" "}
+            you everything for {PRICING.week.price} a week.{" "}
             <Link href="/plans" style={{ color: "#F5A623", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>
               See all plans
             </Link>
@@ -1683,9 +1684,9 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
               : {}),
             "offers": [
               { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Week Pass", "price": "4.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Player (Monthly)", "price": "12.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Player (Yearly)", "price": "59.99", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Week Pass", "price": PRICING.week.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Player (Monthly)", "price": PRICING.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": "Player (Yearly)", "price": PRICING.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
             ],
           }),
         }}

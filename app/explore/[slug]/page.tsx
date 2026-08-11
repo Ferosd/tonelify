@@ -6,6 +6,7 @@ import { getArtwork } from "@/lib/artwork";
 import { SITE_URL } from "@/lib/site";
 import { confirmationLine } from "@/lib/tone-feedback";
 import { getFeedbackCounts } from "@/lib/tone-feedback-server";
+import { PRICING, FREE_MATCHES } from "@/lib/pricing";
 
 // Six hours. The page content is a fixed library entry, but the confirmation
 // count under the title moves, and a day-old number reads as a stale page.
@@ -86,7 +87,7 @@ function faqs(tone: LibraryTone) {
         },
         {
             q: `Does Tonelify cost anything to try?`,
-            a: `No. The free plan includes three tone matches a month and does not ask for a card. Unlimited matching starts at $4.99 for a week pass, or $12.99 a month.`,
+            a: `No. The free plan includes ${FREE_MATCHES} tone matches a month and does not ask for a card. Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month.`,
         },
     ];
 }

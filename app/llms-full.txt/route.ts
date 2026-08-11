@@ -1,5 +1,6 @@
 import { TONE_LIBRARY, LIBRARY_UPDATED } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
+import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
 
 /**
  * The companion to /llms.txt. Where that file is an index, this one is the
@@ -75,9 +76,13 @@ pick attack, string gauge and technique rather than by knob positions.
 
 ## Plans
 
-- Free: 3 tone matches a month, 3 saved tones, full settings, no card required
-- Week Pass: $4.99 a week, unlimited matches, renews weekly, no trial
-- Player: $12.99 a month or $59.99 a year, unlimited matches, gear presets, effects chain and tone tips, 3-day free trial
+- Free: ${FREE_MATCHES} tone matches a month, ${FREE_SAVED_TONES} saved tones, full settings, no card required
+- Week Pass: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial
+- Player: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+
+The paid plans lift the two counters on the free plan. A match itself is
+identical on every plan: the same settings, the same effects chain, the same
+sources. Nothing about the answer is held back for paying accounts.
 
 Subscriptions are handled by Stripe and can be cancelled from account settings.
 Cancelling stops the next renewal and access runs to the end of the paid period.

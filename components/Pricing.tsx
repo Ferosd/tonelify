@@ -7,14 +7,15 @@ import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 import { PRICING_FAQ } from "@/lib/pricing-faq"
+import { PRICING, PRICING_SENTENCE, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing"
 
 type Interval = "week" | "month" | "year"
 /** Only the Player plan is sold on two intervals, so the toggle is binary. */
 type Billing = "month" | "year"
 
-// Everything below is display only. Checkout posts the plan id and interval and
-// the server resolves the real Stripe price, so these strings can never put a
-// customer on a price they didn't see.
+// Display only. Checkout posts the plan id and interval and the server resolves
+// the real Stripe price, so nothing here can put a customer on a price they
+// didn't see. The figures come from lib/pricing so they cannot drift.
 const PLAYER_BILLING: Record<Billing, {
     /** Headline number, always per month so the two options compare directly. */
     price: string
@@ -27,16 +28,16 @@ const PLAYER_BILLING: Record<Billing, {
     footnote: string
 }> = {
     month: {
-        price: "$12.99",
+        price: PRICING.month.price,
         billed: "Billed monthly, cancel anytime",
-        footnote: "Pay yearly instead and this drops to $5.00 a month.",
+        footnote: `Pay yearly instead and this drops to ${PRICING.year.perMonth} a month.`,
     },
     year: {
-        price: "$5.00",
-        billed: "$59.99 billed once a year",
-        compare: "$155.88",
-        off: "62% OFF",
-        footnote: "You save $95.89 a year against paying month to month.",
+        price: PRICING.year.perMonth,
+        billed: `${PRICING.year.price} billed once a year`,
+        compare: PRICING.month.yearTotal,
+        off: `${PRICING.year.percentOff}% OFF`,
+        footnote: `You save ${PRICING.year.saving} a year against paying month to month.`,
     },
 }
 
@@ -46,13 +47,13 @@ const paidFeatures = [
     "Gear presets for each of your rigs",
     "Full amp settings: gain, bass, mids, treble, master",
     "Effects chain and signal order",
+    "Every match shows where the settings came from",
     "Tone tips for every match",
-    "Priority support",
 ]
 
 const freeFeatures = [
-    "3 tone matches per month",
-    "3 saved tones",
+    `${FREE_MATCHES} tone matches per month`,
+    `${FREE_SAVED_TONES} saved tones`,
     "Full amp settings on every match",
     "Effects chain, tone tips and gear presets",
     "No card required",
@@ -171,8 +172,7 @@ export function Pricing() {
                         Tonelify pricing
                     </h1>
                     <p className="text-[#A6A29B] text-base md:text-lg max-w-xl mx-auto">
-                        Start free with three tone matches a month. Unlimited matching costs $4.99 for a
-                        week, $12.99 a month, or $59.99 a year, which works out at $5.00 a month.
+                        {PRICING_SENTENCE}
                     </p>
                 </div>
 
@@ -182,7 +182,7 @@ export function Pricing() {
                     <div className="flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
                         {([
                             { id: "month" as const, label: "Monthly" },
-                            { id: "year" as const, label: "Yearly", badge: "SAVE 62%" },
+                            { id: "year" as const, label: "Yearly", badge: `SAVE ${PRICING.year.percentOff}%` },
                         ]).map((b) => (
                             <button
                                 key={b.id}
@@ -218,8 +218,12 @@ export function Pricing() {
                     <p role="alert" className="text-center text-sm text-red-400 mb-6">{error}</p>
                 )}
 
-                {/* On phones the paid plans come first: stacked in desktop order,
-                    Player sat entirely below the fold. */}
+                {/* Ordered by what a month actually costs: $0, then Player at
+                    $3.75 to $12.99, then the week pass at $30.29 a month if you
+                    keep renewing it. That puts the plan we want people on in the
+                    middle, which is where a three-option set gets picked from,
+                    and it makes the pass read as flexibility rather than value.
+                    On phones Player comes first so it is not below the fold. */}
                 {/* No items-start: the cards stretch to a common height so the
                     three buttons land on one line whichever interval is picked */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -239,7 +243,9 @@ export function Pricing() {
                             <div className="flex items-baseline gap-1">
                                 <span className="font-display text-4xl font-bold text-[#F2F0ED]">$0</span>
                             </div>
-                            <p className="text-sm text-[#A6A29B] mt-2">Enough for three songs a month</p>
+                            <p className="text-sm text-[#A6A29B] mt-2">
+                                {FREE_MATCHES} songs a month, free forever
+                            </p>
                         </div>
 
                         <ul className="space-y-2.5 mb-5">
@@ -251,14 +257,23 @@ export function Pricing() {
                             ))}
                         </ul>
 
-                        <ul className="space-y-2.5 mb-6 flex-1 pt-5 border-t border-white/6">
-                            {freeLocked.map((f) => (
-                                <li key={f} className="flex items-start gap-3">
-                                    <Lock className="h-3.5 w-3.5 text-[#5C5862] shrink-0 mt-1" />
-                                    <span className="text-sm text-[#5C5862] line-through">{f}</span>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="mb-6 flex-1 pt-5 border-t border-white/6">
+                            <ul className="space-y-2.5">
+                                {freeLocked.map((f) => (
+                                    <li key={f} className="flex items-start gap-3">
+                                        <Lock className="h-3.5 w-3.5 text-[#5C5862] shrink-0 mt-1" />
+                                        <span className="text-sm text-[#5C5862] line-through">{f}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            {/* The caps are the only difference, and saying so is
+                                the point: the paid plans are the same product
+                                without a counter, not a better one. */}
+                            <p className="text-xs text-[#8A8494] mt-4 leading-relaxed">
+                                Those two counters are the only difference. Every match is the
+                                same on every plan.
+                            </p>
+                        </div>
 
                         <Link
                             href="/tone-match"
@@ -274,17 +289,19 @@ export function Pricing() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: 0.05 }}
-                        className="order-2 md:order-2 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-white/8"
+                        className="order-2 md:order-3 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-white/8"
                     >
                         <h3 className="text-xl font-bold text-[#F2F0ED]">Week Pass</h3>
                         <p className="text-sm text-[#8A8494] font-medium mt-0.5">For one song or one gig</p>
 
                         <div className="mt-5 mb-5">
                             <div className="flex items-baseline gap-1">
-                                <span className="font-display text-4xl font-bold text-[#F2F0ED]">$4.99</span>
-                                <span className="text-[#8A8494] font-medium">/week</span>
+                                <span className="font-display text-4xl font-bold text-[#F2F0ED]">{PRICING.week.price}</span>
+                                <span className="text-[#8A8494] font-medium">{PRICING.week.per}</span>
                             </div>
-                            <p className="text-sm text-[#A6A29B] mt-2">Renews every week until you cancel</p>
+                            <p className="text-sm text-[#A6A29B] mt-2">
+                                {PRICING.week.monthlyEquivalent} a month if you keep renewing
+                            </p>
                         </div>
 
                         <ul className="space-y-2.5 mb-6 flex-1">
@@ -316,7 +333,7 @@ export function Pricing() {
                                 <p className="text-center text-xs text-[#8A8494] mt-3">
                                     {onPlayer
                                         ? "Your Player plan already covers this."
-                                        : "No free trial. A full year of renewals is $259.48."}
+                                        : `No free trial. Renewed all year it comes to ${PRICING.week.yearTotal}.`}
                                 </p>
                             </div>
                         )}
@@ -328,7 +345,7 @@ export function Pricing() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: 0.1 }}
-                        className="order-1 md:order-3 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
+                        className="order-1 md:order-2 relative flex flex-col rounded-2xl bg-[#12121A] p-6 sm:p-7 border border-[#E8712A] shadow-xl shadow-[#E8712A]/10"
                     >
                         <div className="absolute -top-3.5 left-0 right-0 mx-auto w-fit px-4 py-1 rounded-full bg-[#E8712A] text-[#08080C] text-[10px] font-black tracking-widest shadow-lg">
                             {billing === "year" ? "BEST VALUE" : "MOST POPULAR"}
@@ -341,7 +358,7 @@ export function Pricing() {
                             </div>
                             {!isSubscribed && (
                                 <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-                                    3-day trial
+                                    {TRIAL_DAYS}-day trial
                                 </span>
                             )}
                         </div>
@@ -409,7 +426,7 @@ export function Pricing() {
                                     ) : onWeekPass ? (
                                         billing === "year" ? "Switch to yearly" : "Switch to monthly"
                                     ) : (
-                                        "Start 3-day free trial"
+                                        `Start ${TRIAL_DAYS}-day free trial`
                                     )}
                                 </button>
                                 {/* On monthly the footnote is the upsell, so it

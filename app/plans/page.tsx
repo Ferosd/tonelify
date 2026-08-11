@@ -3,14 +3,15 @@ import { Pricing } from "@/components/Pricing";
 import { SITE_URL } from "@/lib/site";
 import { getReviewSummary } from "@/lib/reviews";
 import { PRICING_FAQ } from "@/lib/pricing-faq";
+import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
 
 export const metadata: Metadata = {
     // The root layout appends "| Tonelify", so the brand is left off here
     title: "Pricing: Guitar Tone Matching Plans",
-    description: "Free plan with three matches a month, or unlimited from $4.99 a week. Monthly and yearly plans include a 3-day free trial.",
+    description: `Free plan with ${FREE_MATCHES} matches a month, or unlimited from ${PRICING.week.price} a week. Monthly and yearly plans include a ${TRIAL_DAYS}-day free trial.`,
     openGraph: {
         title: "Plans & Pricing | Tonelify",
-        description: "Free to start. Unlimited tone matching from $4.99 a week.",
+        description: `Free to start. Unlimited tone matching from ${PRICING.week.price} a week.`,
     },
     alternates: {
         canonical: "/plans",
@@ -76,22 +77,22 @@ export default async function PlansPage() {
                             offers: [
                                 {
                                     "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD",
-                                    description: "3 tone matches a month and 3 saved tones, no card required",
+                                    description: `${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, no card required`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                                 {
-                                    "@type": "Offer", name: "Week Pass", price: "4.99", priceCurrency: "USD",
+                                    "@type": "Offer", name: "Week Pass", price: PRICING.week.amount.toFixed(2), priceCurrency: "USD",
                                     description: "Unlimited matches for a week, renews weekly, no trial",
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                                 {
-                                    "@type": "Offer", name: "Player (Monthly)", price: "12.99", priceCurrency: "USD",
-                                    description: "Unlimited matches and saved tones, 3-day free trial",
+                                    "@type": "Offer", name: "Player (Monthly)", price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
+                                    description: `Unlimited matches and saved tones, ${TRIAL_DAYS}-day free trial`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                                 {
-                                    "@type": "Offer", name: "Player (Yearly)", price: "59.99", priceCurrency: "USD",
-                                    description: "Unlimited matches and saved tones billed yearly, 3-day free trial",
+                                    "@type": "Offer", name: "Player (Yearly)", price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
+                                    description: `Unlimited matches and saved tones billed yearly, ${TRIAL_DAYS}-day free trial`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                             ],

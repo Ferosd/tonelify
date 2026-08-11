@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TONE_LIBRARY } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
+import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
 
 export const metadata: Metadata = {
     title: "Guitar Tone Matching FAQ: How Tonelify Works",
@@ -110,14 +111,15 @@ const GROUPS: Group[] = [
             {
                 q: "Is Tonelify free?",
                 a: [
-                    "There is a free plan with three tone matches a month and three saved tones, and it does not ask for a card. Every match on the free plan returns the full settings, not a preview.",
-                    "Unlimited matching starts at $4.99 for a week pass, or $12.99 a month on the Player plan.",
+                    `There is a free plan with ${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, and it does not ask for a card. Every match on the free plan returns the full settings, not a preview.`,
+                    `Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month on the Player plan.`,
                 ],
             },
             {
                 q: "How much does Tonelify cost?",
                 a: [
-                    "Free: three matches a month, no card. Week Pass: $4.99 a week, unlimited matches, renews weekly, no trial. Player: $12.99 a month or $59.99 a year, unlimited matches, gear presets, effects chain and tone tips, with a 3-day free trial.",
+                    `Free: ${FREE_MATCHES} matches a month, no card. Week Pass: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial. Player: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, with a ${TRIAL_DAYS}-day free trial.`,
+                    "The paid plans lift the two counters on the free plan. A match is identical either way: nothing about the answer is held back for paying accounts.",
                 ],
             },
             {
