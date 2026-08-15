@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TONE_LIBRARY } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
 
 export const metadata: Metadata = {
     title: "Guitar Tone Matching FAQ: How Tonelify Works",
@@ -112,13 +112,13 @@ const GROUPS: Group[] = [
                 q: "Is Tonelify free?",
                 a: [
                     `There is a free plan with ${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, and it does not ask for a card. Every match on the free plan returns the full settings, not a preview.`,
-                    `Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month on the Player plan.`,
+                    `Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month on the ${PLAN_NAMES.player} plan.`,
                 ],
             },
             {
                 q: "How much does Tonelify cost?",
                 a: [
-                    `Free: ${FREE_MATCHES} matches a month, no card. Week Pass: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial. Player: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, with a ${TRIAL_DAYS}-day free trial.`,
+                    `${PLAN_NAMES.free}: ${FREE_MATCHES} matches a month, no card. ${PLAN_NAMES.weekly}: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial. ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, with a ${TRIAL_DAYS}-day free trial.`,
                     "The paid plans lift the two counters on the free plan. A match is identical either way: nothing about the answer is held back for paying accounts.",
                 ],
             },

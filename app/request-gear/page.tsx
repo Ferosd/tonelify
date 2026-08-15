@@ -78,8 +78,8 @@ export default function RequestGearPage() {
                 <div className="max-w-xl mx-auto">
                     <Card className="border border-white/8 overflow-hidden bg-[#12121A]">
                         <CardContent className="p-12 text-center">
-                            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Check className="h-8 w-8 text-green-500" />
+                            <div className="w-16 h-16 bg-[#F5A623]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Check className="h-8 w-8 text-[#F5A623]" />
                             </div>
                             <h2 className="text-2xl font-bold text-[#F2F0ED] mb-3">Request Submitted!</h2>
                             <p className="text-[#8A8494] mb-6">
@@ -247,19 +247,19 @@ export default function RequestGearPage() {
                         <ul className="space-y-3">
                             <li className="flex items-start gap-3">
                                 <div className="mt-0.5">
-                                    <Check className="h-4 w-4 text-green-500" />
+                                    <Check className="h-4 w-4 text-[#F5A623]" />
                                 </div>
                                 <span className="text-sm text-[#8A8494]">We review all feature requests regularly</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="mt-0.5">
-                                    <Check className="h-4 w-4 text-green-500" />
+                                    <Check className="h-4 w-4 text-[#F5A623]" />
                                 </div>
                                 <span className="text-sm text-[#8A8494]">Popular requests are prioritized for development</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="mt-0.5">
-                                    <Check className="h-4 w-4 text-green-500" />
+                                    <Check className="h-4 w-4 text-[#F5A623]" />
                                 </div>
                                 <span className="text-sm text-[#8A8494]">You&apos;ll be notified via email when your requested feature is added</span>
                             </li>

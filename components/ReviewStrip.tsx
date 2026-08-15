@@ -21,18 +21,24 @@ type Review = {
  */
 export function ReviewStrip({ initialReviews }: { initialReviews?: Review[] }) {
     // Seeded from the server render, so the quotes are in the HTML an engine
-    // reads. The refetch below still runs: it costs one request and it picks up
-    // anything posted since the page was last revalidated.
+    // reads.
     const [reviews, setReviews] = useState<Review[] | null>(initialReviews ?? null)
 
+    // Only fetch when the server render gave us nothing. Three components on
+    // this page carry the same list, and all three used to refetch it on mount:
+    // one landing page meant three identical round trips for data that was
+    // already in the HTML and is revalidated hourly anyway.
+    const needsFetch = !initialReviews
+
     useEffect(() => {
+        if (!needsFetch) return
         let cancelled = false
         fetch("/api/reviews")
             .then((r) => (r.ok ? r.json() : []))
             .then((d) => { if (!cancelled) setReviews(Array.isArray(d) ? d : []) })
             .catch(() => { if (!cancelled) setReviews([]) })
         return () => { cancelled = true }
-    }, [])
+    }, [needsFetch])
 
     if (!reviews || reviews.length === 0) return null
 

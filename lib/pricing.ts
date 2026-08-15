@@ -34,6 +34,27 @@ const PLAYER_MONTHLY = 12.99;
 const PLAYER_YEARLY = 59.99;
 
 /**
+ * The Stage tier: the metered plan that sits between Practice and Headliner.
+ *
+ * Set against the same category the block above describes. ToneAdapt's lower
+ * tier is $6.99 a month and $39.99 a year, and matching it puts a real ladder
+ * under the range for the first time: $0, then $6.99, then $12.99. The old
+ * shape had one paid price and a week pass that cost more per month than
+ * either, so there was nothing to step up from.
+ *
+ * Nothing here can charge anyone. Checkout resolves the Stripe price from
+ * STRIPE_PRICE_STAGE_MONTHLY and STRIPE_PRICE_STAGE_ANNUAL, and the tier stays
+ * hidden until both exist, so these figures cannot advertise a price the
+ * environment would not charge.
+ */
+const STAGE_MONTHLY = 6.99;
+const STAGE_YEARLY = 39.99;
+
+/** Matches and saved tones the Stage tier meters each calendar month. */
+export const STAGE_MATCHES = 20;
+export const STAGE_SAVED_TONES = 15;
+
+/**
  * Matches and saved tones a free account gets each calendar month.
  *
  * Deliberately unchanged. The loudest complaint in ToneAdapt's App Store
@@ -87,6 +108,37 @@ export const PRICING = {
         saving: usd(YEARLY_ANCHOR - PLAYER_YEARLY),
         percentOff: Math.round((1 - PLAYER_YEARLY / YEARLY_ANCHOR) * 100),
     },
+    /** The Stage tier, on both intervals it is sold on. */
+    stage: {
+        month: {
+            amount: STAGE_MONTHLY,
+            price: usd(STAGE_MONTHLY),
+            yearTotal: usd(STAGE_MONTHLY * 12),
+        },
+        year: {
+            amount: STAGE_YEARLY,
+            price: usd(STAGE_YEARLY),
+            perMonth: usd(STAGE_YEARLY / 12),
+            compare: usd(STAGE_MONTHLY * 12),
+            saving: usd(STAGE_MONTHLY * 12 - STAGE_YEARLY),
+            percentOff: Math.round((1 - STAGE_YEARLY / (STAGE_MONTHLY * 12)) * 100),
+        },
+    },
+} as const;
+
+/**
+ * Plan names.
+ *
+ * A ladder a guitarist can feel rather than a rank they have to decode:
+ * practising at home, playing out, then headlining. "Beginner" and "Expert"
+ * were the old labels and they graded the player instead of describing the
+ * plan, which made the cheaper card read as an insult.
+ */
+export const PLAN_NAMES = {
+    free: "Practice",
+    stage: "Stage",
+    player: "Headliner",
+    weekly: "Week Pass",
 } as const;
 
 /** One sentence covering all three prices, for meta descriptions and llms.txt. */

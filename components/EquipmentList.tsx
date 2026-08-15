@@ -46,13 +46,15 @@ export function EquipmentList({ initialEquipment }: EquipmentListProps) {
 
     if (equipment.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center text-center py-12 px-4 space-y-4 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/5 transition-all hover:bg-slate-50 dark:hover:bg-white/10">
-                <div className="h-16 w-16 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 text-slate-500 rounded-full flex items-center justify-center shadow-sm">
+            // Paired with the empty state in MatchList: both are what a brand
+            // new paid account sees on the page Stripe returns them to.
+            <div className="flex flex-col items-center justify-center text-center py-12 px-4 space-y-4 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
+                <div className="h-16 w-16 bg-[#1A1A24] border border-[#E8712A]/25 text-[#F5A623] rounded-full flex items-center justify-center">
                     <Guitar className="h-7 w-7" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Your Gear Locker is Empty</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto mt-1 leading-relaxed">
+                    <h3 className="text-sm font-bold text-[#F2F0ED]">Your Gear Locker is Empty</h3>
+                    <p className="text-xs text-[#8A8494] max-w-[200px] mx-auto mt-1 leading-relaxed">
                         Add your guitar and amp to get personalized tone recommendations.
                     </p>
                 </div>

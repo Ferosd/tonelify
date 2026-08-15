@@ -1,5 +1,6 @@
 import { LandingClient } from "./LandingClient"
 import { getReviewSummary } from "@/lib/reviews"
+import { isPlanConfigured } from "@/lib/stripe"
 
 /**
  * The landing page needs a server component in front of it purely so the
@@ -13,5 +14,7 @@ export default async function Home() {
     // A failed read comes back as an empty list, and every review block already
     // has an honest empty state, so the page still renders in full.
     const { reviews } = await getReviewSummary()
-    return <LandingClient initialReviews={reviews} />
+    // Stripe price ids are server-only, so whether the Stage tier is on sale has
+    // to be resolved here and handed down.
+    return <LandingClient initialReviews={reviews} stageAvailable={isPlanConfigured("stage")} />
 }

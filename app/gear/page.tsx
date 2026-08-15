@@ -105,14 +105,35 @@ export default function GearIndexPage() {
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "BreadcrumbList",
-                            itemListElement: [
-                                { "@type": "ListItem", position: 1, name: "Tonelify", item: SITE_URL },
-                                { "@type": "ListItem", position: 2, name: "Gear", item: `${SITE_URL}/gear` },
-                            ],
-                        }),
+                        __html: JSON.stringify([
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "BreadcrumbList",
+                                itemListElement: [
+                                    { "@type": "ListItem", position: 1, name: "Tonelify", item: SITE_URL },
+                                    { "@type": "ListItem", position: 2, name: "Gear", item: `${SITE_URL}/gear` },
+                                ],
+                            },
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "CollectionPage",
+                                "@id": `${SITE_URL}/gear`,
+                                name: "Guitar and amp settings by gear",
+                                url: `${SITE_URL}/gear`,
+                                isPartOf: { "@id": `${SITE_URL}/#website` },
+                                publisher: { "@id": `${SITE_URL}/#organization` },
+                                mainEntity: {
+                                    "@type": "ItemList",
+                                    numberOfItems: GEAR_CATALOG.length,
+                                    itemListElement: GEAR_CATALOG.map((entry, i) => ({
+                                        "@type": "ListItem",
+                                        position: i + 1,
+                                        url: `${SITE_URL}/gear/${entry.id}`,
+                                        name: gearLabel(entry),
+                                    })),
+                                },
+                            },
+                        ]),
                     }}
                 />
             </div>

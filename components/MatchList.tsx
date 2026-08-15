@@ -61,21 +61,25 @@ export function MatchList({ initialMatches }: MatchListProps) {
 
     if (!matches || matches.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center text-center py-16 px-4 space-y-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl bg-slate-50/50 dark:bg-white/5 transition-all hover:bg-slate-50 dark:hover:bg-white/10">
+            // This is the first thing a customer sees after paying: Stripe's
+            // success_url lands on /dashboard, where a brand new account has no
+            // matches yet. It used to render a blue-on-white panel from the old
+            // palette, on a #08080C page.
+            <div className="flex flex-col items-center justify-center text-center py-16 px-4 space-y-6 border-2 border-dashed border-white/10 rounded-3xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
                 <div className="relative">
-                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse"></div>
-                    <div className="relative h-20 w-20 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-lg transform transition-transform hover:scale-110 duration-500">
+                    <div className="absolute inset-0 bg-[#E8712A]/20 blur-xl rounded-full animate-pulse"></div>
+                    <div className="relative h-20 w-20 bg-gradient-to-br from-[#E8712A] to-[#D14B32] text-[#08080C] rounded-2xl flex items-center justify-center shadow-lg">
                         <Guitar className="h-10 w-10" />
                     </div>
                 </div>
                 <div className="max-w-sm space-y-2">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Your Tone Journey Starts Here</h3>
-                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <h3 className="text-xl font-bold text-[#F2F0ED]">Your Tone Journey Starts Here</h3>
+                    <p className="text-[#8A8494] leading-relaxed">
                         Match your first song to discover the perfect amp settings for your gear.
                     </p>
                 </div>
                 <Link href="/tone-match">
-                    <Button className="h-12 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:shadow-xl transition-all hover:-translate-y-1">
+                    <Button className="h-12 px-8 rounded-full bg-gradient-to-r from-[#E8712A] to-[#D14B32] text-[#08080C] font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform">
                         Start Matching Tones
                     </Button>
                 </Link>
@@ -130,7 +134,7 @@ export function MatchList({ initialMatches }: MatchListProps) {
                     {selectedMatch && (
                         <div className="space-y-6 mt-4">
                             <div className="bg-muted p-4 rounded-md italic text-sm">
-                                "{selectedMatch.settings.explanation}"
+                                &ldquo;{selectedMatch.settings.explanation}&rdquo;
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
@@ -159,7 +163,7 @@ export function MatchList({ initialMatches }: MatchListProps) {
                             {selectedMatch.settings.suggestedSettings.pedals && selectedMatch.settings.suggestedSettings.pedals.length > 0 && (
                                 <div className="space-y-2">
                                     <h3 className="font-semibold text-lg flex items-center gap-2">🎛 Pedals</h3>
-                                    <div className="flex flex-wrap gap-6 p-6 bg-muted/20 rounded-xl justify-center sm:justify-start border border-dashed border-gray-300 dark:border-gray-700">
+                                    <div className="flex flex-wrap gap-6 p-6 bg-muted/20 rounded-xl justify-center sm:justify-start border border-dashed border-white/10">
                                         {selectedMatch.settings.suggestedSettings.pedals.map((pedal: any, idx: number) => (
                                             <Stompbox key={idx} name={pedal.name} settings={pedal.settings} />
                                         ))}

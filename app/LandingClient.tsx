@@ -7,12 +7,14 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LandingTestimonials } from "@/components/LandingTestimonials"
 import { ReviewStrip } from "@/components/ReviewStrip"
+import { SocialProofBar } from "@/components/SocialProofBar"
 import { Reviews } from "@/components/Reviews"
+import { Pricing } from "@/components/Pricing"
 import { ToneProof, TONE_COUNT } from "@/components/ToneProof"
 import { AmpKnob } from "@/components/AmpKnob"
 import { TONE_LIBRARY } from "@/lib/tone-library"
 import type { StoredReview } from "@/lib/reviews"
-import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing"
+import { PRICING, PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing"
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -47,21 +49,6 @@ const ampSettings = [
 
 
 const badges           = ["Any song", "Any gear", "Instant results", "Free to start"]
-const freeFeatures = [
-  `${FREE_MATCHES} tone matches per month`,
-  `${FREE_SAVED_TONES} saved tones`,
-  "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
-  "No card required",
-]
-const playerFeatures = [
-  "Unlimited tone matches",
-  "Unlimited saved tones",
-  "Create gear presets",
-  "Full settings: GAIN, BASS, MIDS, TREBLE, MASTER",
-  "Effects chain and signal order",
-  "Tone tips for every match",
-  "Priority support",
-]
 
 // ── SHARED STYLES ─────────────────────────────────────────────────────────────
 
@@ -190,7 +177,7 @@ const trustItems = [
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-    title: "3-Day Free Trial", sub: "Cancel before it ends",
+    title: `${TRIAL_DAYS}-Day Free Trial`, sub: "Cancel before it ends",
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8712A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
@@ -228,7 +215,7 @@ const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS",
  * The components still refetch on mount, so a freshly posted review shows up
  * without waiting for the hourly revalidate.
  */
-export function LandingClient({ initialReviews }: { initialReviews: StoredReview[] }) {
+export function LandingClient({ initialReviews, stageAvailable = false }: { initialReviews: StoredReview[]; stageAvailable?: boolean }) {
   const navRef            = useRef<HTMLElement>(null)
   const wrapperRef        = useRef<HTMLDivElement>(null)
   const canvasRef         = useRef<HTMLCanvasElement>(null)
@@ -247,7 +234,6 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
   const s4Ref             = useRef<HTMLDivElement>(null)
   const s5Ref             = useRef<HTMLDivElement>(null)
   const s6Ref             = useRef<HTMLDivElement>(null)
-  const s7Ref             = useRef<HTMLDivElement>(null)
   const s8Ref             = useRef<HTMLDivElement>(null)
   const sTrendRef         = useRef<HTMLDivElement>(null)
   const stepRefs          = useRef<(HTMLDivElement | null)[]>([])
@@ -257,7 +243,6 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
   // the static HTML and the signed-in nav swaps in once Clerk resolves
   const { isSignedIn } = useUser()
 
-  const [billingCycle, setBillingCycle]     = useState<"monthly" | "annual">("monthly")
   const [mounted, setMounted]               = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [knobsLive, setKnobsLive]           = useState(false)
@@ -649,9 +634,15 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
           border-color: rgba(245,166,35,0.3);
           box-shadow: 0 0 30px rgba(232,113,42,0.15);
         }
+        .testimonial-card {
+          transition: border-color 0.3s, transform 0.3s;
+        }
         .testimonial-card:hover {
           border-color: rgba(245,166,35,0.35);
           transform: translateY(-2px);
+        }
+        @media (max-width: 1080px) {
+          .tn-review-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }
 
         .tn-hamburger {
@@ -720,7 +711,11 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
           .tn-foot-grid   { grid-template-columns: 1fr !important; gap: 40px !important; }
           .tn-trust-grid  { grid-template-columns: repeat(2, 1fr) !important; }
           .tn-tone-grid   { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .tn-testimonials { flex-direction: column !important; }
+          .tn-review-grid { grid-template-columns: 1fr !important; }
+          /* The pill's two halves stack rather than shrink: the rule between
+             them is meaningless once they are on separate lines. */
+          .tn-proofbar { gap: 12px !important; border-radius: 18px !important; }
+          .tn-proofbar-rule { display: none !important; }
           .tn-proof-grid   { flex-direction: column !important; }
           .tn-hero-content { max-width: calc(100vw - 48px) !important; }
           .tn-sign-in-btn { display: none !important; }
@@ -746,7 +741,9 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
             max-width: none !important;
             margin-bottom: 24px !important;
           }
-          .tn-hero-badges { gap: 8px 16px !important; margin-top: 20px !important; }
+          /* The proof pill now carries the trust line in the hero, and the phone
+             crop cannot hold both without pushing the CTA off the fold. */
+          .tn-hero-badges { display: none !important; }
 
           /* A half-width clip is unreadable in a 9:16 crop, and the two
              scrubbed files are 6 MB — phones skip them entirely. */
@@ -961,6 +958,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
               <Link href="/tone-match" className="cta-btn">Start Matching Tones</Link>
               <Link href="/plans"      className="ghost-btn">See plans</Link>
             </div>
+            <SocialProofBar reviews={initialReviews} />
             <div className="tn-hero-badges" style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginTop: "28px", pointerEvents: "auto" }}>
               {badges.map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
@@ -1288,8 +1286,13 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
       {/* ── REVIEW STRIP — real reviews, ahead of the pricing table ── */}
       <ReviewStrip initialReviews={initialReviews} />
 
-      {/* ── S7 PRICING — static section ── */}
-      <section ref={s7Ref} style={{
+      {/* ── S7 PRICING — signed-in only ──
+          Visitors who are not signed in do not see plans on the landing page.
+          /plans still carries them, still sits in the sitemap and is still
+          linked from the nav and the CTA, so the prices stay crawlable and one
+          click away; this only decides what the homepage itself leads with. */}
+      {isSignedIn && (
+      <section style={{
         position: "relative", isolation: "isolate",
         display: "flex", flexDirection: "column",
         justifyContent: "center", alignItems: "center",
@@ -1327,145 +1330,15 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
           opacity: 0.3,
         }} />
 
-        <div style={{ width: "100%", maxWidth: "860px", position: "relative", zIndex: 1 }}>
-          <div style={{ marginBottom: "32px", textAlign: "center" }}>
-            <span style={{ ...sectionLabel, display: "block", textAlign: "center" }}>Pricing</span>
-            <h2 style={{ ...h2Style, margin: 0 }}>Simple, honest pricing</h2>
-          </div>
-
-          {/* Monthly / Annual toggle */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "14px", marginBottom: "40px" }}>
-            <span style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9rem", color: billingCycle === "monthly" ? "#F2F2F7" : "#A6A6AF" }}>Monthly</span>
-            <button
-              onClick={() => setBillingCycle(c => c === "monthly" ? "annual" : "monthly")}
-              aria-label="Toggle billing cycle"
-              style={{
-                position: "relative", width: "48px", height: "26px", borderRadius: "999px", border: "none",
-                background: billingCycle === "annual" ? "#E8712A" : "rgba(255,255,255,0.12)",
-                cursor: "pointer", transition: "background 0.25s", flexShrink: 0,
-              }}
-            >
-              <span style={{
-                position: "absolute", top: "3px",
-                left: billingCycle === "annual" ? "25px" : "3px",
-                width: "20px", height: "20px", borderRadius: "50%",
-                background: "#FFFFFF",
-                transition: "left 0.25s",
-                display: "block",
-              }} />
-            </button>
-            <span style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9rem", color: billingCycle === "annual" ? "#F2F2F7" : "#A6A6AF" }}>Annual</span>
-            <span style={{
-              fontFamily: "'Satoshi', sans-serif", fontWeight: 600, fontSize: "0.75rem",
-              background: "#E8712A", color: "#FFFFFF", borderRadius: "999px", padding: "3px 10px",
-              opacity: billingCycle === "annual" ? 1 : 0,
-              transform: billingCycle === "annual" ? "scale(1)" : "scale(0.85)",
-              transition: "opacity 0.25s, transform 0.25s",
-              display: "inline-block",
-            }}>Save {PRICING.year.percentOff}%</span>
-          </div>
-
-          <div className="tn-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px", alignItems: "start" }}>
-
-            {/* BEGINNER */}
-            <div className="js-pricing-card" style={{
-              background: "rgba(20,17,15,0.85)",
-              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "36px",
-            }}>
-              <div style={{
-                fontFamily: "'Satoshi', sans-serif", fontWeight: 500,
-                fontSize: "0.75rem", textTransform: "uppercase",
-                letterSpacing: "0.1em", color: "#A6A6AF", marginBottom: "16px",
-              }}>Free</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                  fontSize: "2.25rem", color: "#F2F2F7", lineHeight: 1,
-                }}>$0</span>
-              </div>
-              <div style={{
-                fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF",
-                fontSize: "0.875rem", marginBottom: "28px",
-              }}>For trying it out</div>
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginBottom: "28px" }}>
-                {freeFeatures.map((f) => (
-                  <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                    <CheckIcon />
-                    <span style={{ fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/tone-match" className="ghost-btn" style={{ display: "block", textAlign: "center" }}>Start matching free</Link>
-            </div>
-
-            {/* EXPERT */}
-            <div className="js-pricing-card" style={{
-              background: "rgba(20,17,15,0.85)",
-              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid #E8712A",
-              boxShadow: "0 0 40px rgba(245,166,35,0.2)",
-              borderRadius: "16px", padding: "36px",
-              transform: "translateY(-20px)",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                <div style={{
-                  fontFamily: "'Satoshi', sans-serif", fontWeight: 500,
-                  fontSize: "0.75rem", textTransform: "uppercase",
-                  letterSpacing: "0.1em", color: "#E8712A",
-                }}>Player</div>
-                <span style={{
-                  fontFamily: "'Satoshi', sans-serif", fontWeight: 600,
-                  fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em",
-                  background: "#E8712A",
-                  color: "#08080C", borderRadius: "999px", padding: "4px 10px",
-                }}>{billingCycle === "annual" ? "BEST VALUE" : "MOST POPULAR"}</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "6px" }}>
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-                  fontSize: "2.5rem", color: "#E8712A", lineHeight: 1,
-                }}>{billingCycle === "monthly" ? PRICING.month.price : PRICING.year.perMonth}</span>
-                <span style={{ fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF", fontSize: "0.9375rem" }}>/month</span>
-              </div>
-              <div style={{
-                fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF",
-                fontSize: "0.875rem", marginBottom: "28px",
-              }}>{billingCycle === "annual" ? `${PRICING.year.price} billed yearly · ${TRIAL_DAYS}-day free trial` : `${TRIAL_DAYS}-day free trial`}</div>
-              <div style={{ borderTop: "1px solid rgba(232,113,42,0.15)", paddingTop: "24px", marginBottom: "28px" }}>
-                {playerFeatures.map((f) => (
-                  <div key={f} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
-                    <CheckIcon />
-                    <span style={{ fontFamily: "'Satoshi', sans-serif", color: "#A6A6AF", fontSize: "0.9rem" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/plans" style={{
-                display: "block", textAlign: "center",
-                padding: "14px 32px",
-                background: "linear-gradient(135deg, #E8712A 0%, #D14B32 100%)",
-                color: "#08080C",
-                fontFamily: "'Satoshi', sans-serif", fontWeight: 700, fontSize: "0.9375rem",
-                borderRadius: "12px", textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}>Start {TRIAL_DAYS}-day free trial</Link>
-            </div>
-
-          </div>
-
-          {/* Free tier note */}
-          <p style={{
-            fontFamily: "'Satoshi', sans-serif", fontSize: "0.9rem",
-            color: "#A6A6AF", textAlign: "center", marginTop: "36px", marginBottom: 0,
-          }}>
-            Only need it for one song? The <span style={{ color: "#F5A623", fontWeight: 600 }}>Week Pass</span> gives
-            you everything for {PRICING.week.price} a week.{" "}
-            <Link href="/plans" style={{ color: "#F5A623", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>
-              See all plans
-            </Link>
-          </p>
+        {/* The plan cards are the same component /plans renders, so the two
+            surfaces can never describe different plans. This section used to
+            hand-roll a two-card Free vs Player table that had already drifted
+            from the three plans actually on sale. */}
+        <div style={{ width: "100%", maxWidth: "1180px", position: "relative", zIndex: 1 }}>
+          <Pricing stageAvailable={stageAvailable} />
         </div>
       </section>
+      )}
 
       {/* ── S8 TESTIMONIALS — fed by the real reviews table ── */}
       <section ref={s8Ref} style={{
@@ -1491,7 +1364,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
 
           <div style={{ marginTop: 56 }}>
             <span style={sectionLabel}>What Guitarists Say</span>
-            <div className="tn-testimonials" style={{ display: "flex", gap: "24px", marginTop: "28px", flexWrap: "wrap" }}>
+            <div className="tn-testimonials" style={{ marginTop: "28px" }}>
               <LandingTestimonials initialReviews={initialReviews} />
             </div>
           </div>
@@ -1587,7 +1460,7 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
                   noindex and blocked in robots.txt, so every one of those links
                   spent a footer slot on a page no visitor could open without an
                   account and no crawler was allowed to fetch. */}
-              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Request Gear", "/request-gear"]] as const).map(([text, href]) => (
+              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Settings by Gear", "/gear"], ["Tone Guides", "/guides"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Request Gear", "/request-gear"], ["Send Feedback", "/feedback"]] as const).map(([text, href]) => (
                 <div key={href} style={{ marginBottom: "12px" }}>
                   <Link href={href} style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                     {text}
@@ -1600,6 +1473,11 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
               <h4 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Support
               </h4>
+              <div style={{ marginBottom: "12px" }}>
+                <Link href="/about" style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
+                  About & Method
+                </Link>
+              </div>
               <div style={{ marginBottom: "12px" }}>
                 <a href="mailto:contact@tonelify.com" style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                   Contact Us
@@ -1684,9 +1562,9 @@ export function LandingClient({ initialReviews }: { initialReviews: StoredReview
               : {}),
             "offers": [
               { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Week Pass", "price": PRICING.week.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Player (Monthly)", "price": PRICING.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": "Player (Yearly)", "price": PRICING.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": PLAN_NAMES.weekly, "price": PRICING.week.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": `${PLAN_NAMES.player} (Monthly)`, "price": PRICING.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": `${PLAN_NAMES.player} (Yearly)`, "price": PRICING.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
             ],
           }),
         }}

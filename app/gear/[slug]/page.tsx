@@ -8,7 +8,7 @@ import {
     gearLabel,
     type GearEntry,
 } from "@/lib/gear-catalog";
-import { TONE_LIBRARY } from "@/lib/tone-library";
+import { leadParagraph, gearFaqs, tonesFor } from "@/lib/gear-copy";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -66,10 +66,11 @@ export default async function GearPage({ params }: Props) {
     const typeLabel = GEAR_TYPE_LABELS[entry.type];
     const matchHref = `/tone-match?${isAmp(entry) ? "amp" : "guitar"}=${encodeURIComponent(label)}`;
 
-    // A handful of tones to start from. No claim is made that these were
-    // recorded on this gear: the product's whole premise is the opposite, that
-    // the tone gets translated onto whatever the reader owns.
-    const starters = TONE_LIBRARY.slice(0, 6);
+    // Tones ordered by what suits this gear, not the first six in the library.
+    // No claim is made that these were recorded on it: the product's premise is
+    // the opposite, that the tone gets translated onto whatever the reader owns.
+    const starters = tonesFor(entry);
+    const faqs = gearFaqs(entry);
 
     const related = GEAR_CATALOG.filter(
         (g) => g.id !== entry.id && g.type === entry.type && g.brand === entry.brand
@@ -113,13 +114,16 @@ export default async function GearPage({ params }: Props) {
                     <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
                         How do you dial in a specific tone on a {label}?
                     </h2>
-                    <p className="text-[#F2F0ED] leading-relaxed">
+                    {/* Family-specific, so a valve head, a modelling combo and a
+                        fuzz pedal do not open with the same paragraph. 123 pages
+                        sharing one lead is what gets a section classified as
+                        near-duplicate and dropped rather than ranked. */}
+                    <p className="text-[#F2F0ED] leading-relaxed">{leadParagraph(entry)}</p>
+                    <p className="text-[#A6A29B] text-sm leading-relaxed">
                         Name the song you are chasing and Tonelify returns the settings for this
                         exact {typeLabel.toLowerCase()}, not the settings the original artist used.
                         Those are two different things: the recording was made on gear most players
-                        do not own, and copying its numbers onto a {label} gives you the wrong
-                        answer. What carries a tone across rigs is the gain structure, the EQ curve
-                        and the order of the effects, and all three can be rebuilt here.
+                        do not own.
                     </p>
                     {entry.controls?.length ? (
                         <p className="text-[#8A8494] text-sm leading-relaxed">
@@ -176,8 +180,11 @@ export default async function GearPage({ params }: Props) {
                     <ul className="grid sm:grid-cols-2 gap-3">
                         {starters.map((tone) => (
                             <li key={tone.id}>
+                                {/* Points at the tone page rather than straight into
+                                    the matcher: /explore is indexable and the gear
+                                    pages were previously a dead end for crawlers. */}
                                 <Link
-                                    href={`/tone-match?song=${encodeURIComponent(tone.title)}&artist=${encodeURIComponent(tone.artist)}&${isAmp(entry) ? "amp" : "guitar"}=${encodeURIComponent(label)}`}
+                                    href={`/explore/${tone.id}`}
                                     className="flex items-center justify-between gap-3 min-h-14 px-4 rounded-xl bg-[#12121A] border border-white/8 hover:border-[#F5A623]/40 transition-colors"
                                 >
                                     <span className="min-w-0">
@@ -189,6 +196,23 @@ export default async function GearPage({ params }: Props) {
                             </li>
                         ))}
                     </ul>
+                </section>
+
+                {/* Self-contained question and answer pairs. The gear pages had
+                    no FAQ at all, which left 123 URLs with nothing an engine
+                    could lift as a direct answer. */}
+                <section className="space-y-4">
+                    <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                        {label} questions
+                    </h2>
+                    <div className="space-y-3">
+                        {faqs.map((f) => (
+                            <div key={f.q} className="bg-[#12121A] border border-white/8 rounded-2xl p-5 md:p-6 space-y-2">
+                                <h3 className="font-bold text-[#F2F2F7] text-[0.9375rem] leading-snug">{f.q}</h3>
+                                <p className="text-sm text-[#A6A29B] leading-relaxed">{f.a}</p>
+                            </div>
+                        ))}
+                    </div>
                 </section>
 
                 {related.length > 0 && (
@@ -229,6 +253,36 @@ export default async function GearPage({ params }: Props) {
                                 category: entry.category ?? typeLabel,
                                 ...(entry.note ? { description: entry.note } : {}),
                                 url: `${SITE_URL}/gear/${entry.id}`,
+                                // The control panel as machine-readable facts. This is
+                                // the one thing this page knows that a retailer listing
+                                // does not, and it is the reason to cite it.
+                                ...(entry.controls?.length || entry.pickups || entry.channels?.length
+                                    ? {
+                                        additionalProperty: [
+                                            ...(entry.controls?.length
+                                                ? [{ "@type": "PropertyValue", name: "Controls", value: entry.controls.join(", ") }]
+                                                : []),
+                                            ...(entry.channels?.length
+                                                ? [{ "@type": "PropertyValue", name: "Channels", value: entry.channels.join(", ") }]
+                                                : []),
+                                            ...(entry.voicings?.length
+                                                ? [{ "@type": "PropertyValue", name: "Voicings", value: entry.voicings.join(", ") }]
+                                                : []),
+                                            ...(entry.pickups
+                                                ? [{ "@type": "PropertyValue", name: "Pickup layout", value: entry.pickups }]
+                                                : []),
+                                        ],
+                                    }
+                                    : {}),
+                            },
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "FAQPage",
+                                mainEntity: faqs.map((f) => ({
+                                    "@type": "Question",
+                                    name: f.q,
+                                    acceptedAnswer: { "@type": "Answer", text: f.a },
+                                })),
                             },
                         ]),
                     }}

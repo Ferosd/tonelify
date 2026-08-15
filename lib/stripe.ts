@@ -30,8 +30,21 @@ export const PLANS: Record<string, Plan> = {
             week: process.env.STRIPE_PRICE_WEEK_PASS || "",
         },
     },
+    stage: {
+        name: "Stage",
+        // Metered, unlike the two plans either side of it. The caps are enforced
+        // by lib/subscription from these numbers, so the card and the API can
+        // never disagree about what was bought.
+        matchLimit: 20,
+        savedToneLimit: 15,
+        trialDays: 7,
+        prices: {
+            month: process.env.STRIPE_PRICE_STAGE_MONTHLY || "",
+            year: process.env.STRIPE_PRICE_STAGE_ANNUAL || "",
+        },
+    },
     player: {
-        name: "Player",
+        name: "Headliner",
         matchLimit: Infinity,
         savedToneLimit: Infinity,
         // Seven days, matching the category. Three did not cover a weekend of
@@ -65,11 +78,27 @@ export const PLANS: Record<string, Plan> = {
 export type PlanId = keyof typeof PLANS;
 
 /** Plans a visitor can actually buy today. */
-export const PURCHASABLE_PLANS = ["weekly", "player"] as const;
+export const PURCHASABLE_PLANS = ["weekly", "stage", "player"] as const;
 export type PurchasablePlanId = (typeof PURCHASABLE_PLANS)[number];
 
 export function isPurchasablePlan(id: unknown): id is PurchasablePlanId {
     return typeof id === "string" && (PURCHASABLE_PLANS as readonly string[]).includes(id);
+}
+
+/**
+ * Whether every interval a plan is sold on has a real Stripe price behind it.
+ *
+ * A plan whose price ids are not in the environment must not reach a visitor:
+ * the card would render, the button would post, and checkout would answer with
+ * "No such price". Server components call this to decide what to show, so an
+ * unconfigured tier is invisible rather than broken.
+ *
+ * Server only. Price ids are not public, so this cannot run in the browser.
+ */
+export function isPlanConfigured(planId: PlanId): boolean {
+    const plan = PLANS[planId];
+    const ids = Object.values(plan.prices);
+    return ids.length > 0 && ids.every((id) => !!id);
 }
 
 export function getPriceId(planId: PurchasablePlanId, interval: BillingInterval): string | null {

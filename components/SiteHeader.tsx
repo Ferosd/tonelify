@@ -4,12 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass, HelpCircle } from "lucide-react";
+import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass, HelpCircle, Sliders, BookOpen } from "lucide-react";
 import { useState } from "react";
 
+// /gear and /guides are the two largest indexable sections on the site and
+// neither was reachable from the nav, so both were orphaned: no path from any
+// high-authority page, which is the fastest way to have a section crawled
+// rarely and ranked poorly no matter what is on it.
 const routes = [
   { href: "/explore",       label: "Explore",      icon: Compass },
   { href: "/tone-match",    label: "Match Tones",  icon: Guitar },
+  { href: "/gear",          label: "Gear",         icon: Sliders },
+  { href: "/guides",        label: "Guides",       icon: BookOpen },
   { href: "/collection",    label: "Collection",   icon: Bookmark },
   { href: "/settings",      label: "Settings",     icon: Settings },
   { href: "/plans",         label: "Plans",        icon: Sparkles },

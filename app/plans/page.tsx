@@ -3,7 +3,8 @@ import { Pricing } from "@/components/Pricing";
 import { SITE_URL } from "@/lib/site";
 import { getReviewSummary } from "@/lib/reviews";
 import { PRICING_FAQ } from "@/lib/pricing-faq";
-import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
+import { isPlanConfigured } from "@/lib/stripe";
 
 export const metadata: Metadata = {
     // The root layout appends "| Tonelify", so the brand is left off here
@@ -31,9 +32,13 @@ export default async function PlansPage() {
     // would make that a lie and risk the block being distrusted anyway.
     const { count, average } = await getReviewSummary();
 
+    // Read here rather than in the component: price ids are server-only, and a
+    // tier without them must not reach a visitor as a button that cannot pay.
+    const stageAvailable = isPlanConfigured("stage");
+
     return (
         <div className="pt-10 md:pt-20 min-h-screen bg-[#08080C] text-[#F2F0ED]">
-            <Pricing />
+            <Pricing stageAvailable={stageAvailable} />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
@@ -74,24 +79,42 @@ export default async function PlansPage() {
                                     },
                                 }
                                 : {}),
+                            // Offers mirror the cards exactly, Stage included only
+                            // when it is actually on sale. An engine quoting a
+                            // tier a visitor cannot buy is the same failure as a
+                            // button that cannot pay.
                             offers: [
                                 {
-                                    "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD",
+                                    "@type": "Offer", name: PLAN_NAMES.free, price: "0", priceCurrency: "USD",
                                     description: `${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, no card required`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                                 {
-                                    "@type": "Offer", name: "Week Pass", price: PRICING.week.amount.toFixed(2), priceCurrency: "USD",
+                                    "@type": "Offer", name: PLAN_NAMES.weekly, price: PRICING.week.amount.toFixed(2), priceCurrency: "USD",
                                     description: "Unlimited matches for a week, renews weekly, no trial",
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
+                                ...(stageAvailable
+                                    ? [
+                                        {
+                                            "@type": "Offer", name: `${PLAN_NAMES.stage} (Monthly)`, price: PRICING.stage.month.amount.toFixed(2), priceCurrency: "USD",
+                                            description: `${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month, ${TRIAL_DAYS}-day free trial`,
+                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
+                                        },
+                                        {
+                                            "@type": "Offer", name: `${PLAN_NAMES.stage} (Yearly)`, price: PRICING.stage.year.amount.toFixed(2), priceCurrency: "USD",
+                                            description: `${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month billed yearly, ${TRIAL_DAYS}-day free trial`,
+                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
+                                        },
+                                    ]
+                                    : []),
                                 {
-                                    "@type": "Offer", name: "Player (Monthly)", price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
+                                    "@type": "Offer", name: `${PLAN_NAMES.player} (Monthly)`, price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
                                     description: `Unlimited matches and saved tones, ${TRIAL_DAYS}-day free trial`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
                                 {
-                                    "@type": "Offer", name: "Player (Yearly)", price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
+                                    "@type": "Offer", name: `${PLAN_NAMES.player} (Yearly)`, price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
                                     description: `Unlimited matches and saved tones billed yearly, ${TRIAL_DAYS}-day free trial`,
                                     url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
                                 },
