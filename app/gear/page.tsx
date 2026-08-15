@@ -95,7 +95,7 @@ export default function GearIndexPage() {
                         their real control layout attached.
                     </p>
                     <Link
-                        href="/request-gear"
+                        href="/feedback?kind=gear"
                         className="inline-flex items-center min-h-11 text-sm font-semibold text-[#F5A623] hover:text-[#FFD700] transition-colors"
                     >
                         Ask us to add yours →

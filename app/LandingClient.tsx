@@ -1460,7 +1460,7 @@ export function LandingClient({ initialReviews, stageAvailable = false }: { init
                   noindex and blocked in robots.txt, so every one of those links
                   spent a footer slot on a page no visitor could open without an
                   account and no crawler was allowed to fetch. */}
-              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Settings by Gear", "/gear"], ["Tone Guides", "/guides"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Request Gear", "/request-gear"], ["Send Feedback", "/feedback"]] as const).map(([text, href]) => (
+              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Settings by Gear", "/gear"], ["Tone Guides", "/guides"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Send Feedback", "/feedback"]] as const).map(([text, href]) => (
                 <div key={href} style={{ marginBottom: "12px" }}>
                   <Link href={href} style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                     {text}

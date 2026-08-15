@@ -139,7 +139,7 @@ Cancelling stops the next renewal and access runs to the end of the paid period.
 - ${SITE_URL}/tone-match : enter your gear and a song, get settings
 - ${SITE_URL}/faq : how tone matching works, gear coverage, pricing
 - ${SITE_URL}/plans : plan comparison
-- ${SITE_URL}/request-gear : ask for equipment to be added
+- ${SITE_URL}/feedback?kind=gear : ask for equipment to be added
 - ${SITE_URL}/feedback : report a bug, request a feature, or correct a tone
 
 ## Tone library

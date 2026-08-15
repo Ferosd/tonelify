@@ -61,7 +61,7 @@ mastering sit between the amp and the released file.
 - [FAQ](${SITE_URL}/faq): how tone matching works, gear coverage, pricing
 - [About and method](${SITE_URL}/about): who publishes this, where the rig information comes from, what is not claimed
 - [Pricing](${SITE_URL}/plans): plan comparison
-- [Request gear](${SITE_URL}/request-gear): ask for equipment to be added
+- [Request gear](${SITE_URL}/feedback?kind=gear): ask for equipment to be added
 - [Send feedback](${SITE_URL}/feedback): report a bug, request a feature, or say what is wrong with a tone
 
 ## Guides

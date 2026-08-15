@@ -11,6 +11,16 @@ const IMMUTABLE = {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return [
+      // /request-gear and /feedback were the same form with different wording,
+      // which meant two nav rows, two inboxes and a visitor guessing which one
+      // their message belonged in. Gear requests are a kind on /feedback now.
+      // 308 rather than a client redirect so the ranking the old URL earned
+      // moves with it.
+      { source: "/request-gear", destination: "/feedback?kind=gear", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

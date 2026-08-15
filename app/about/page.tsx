@@ -145,7 +145,7 @@ export default function AboutPage() {
                     </p>
                     <div className="flex flex-wrap gap-3 pt-1">
                         <Link
-                            href="/request-gear"
+                            href="/feedback?kind=gear"
                             className="inline-flex items-center h-12 px-8 rounded-full bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold text-sm shadow-lg shadow-[#E8712A]/20 transition-colors"
                         >
                             Request gear

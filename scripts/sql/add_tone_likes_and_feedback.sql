@@ -54,7 +54,7 @@ ALTER TABLE public.tone_likes ENABLE ROW LEVEL SECURITY;
 CREATE TABLE IF NOT EXISTS public.feedback (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id    TEXT REFERENCES public.profiles(id) ON DELETE SET NULL,
-  kind       TEXT NOT NULL CHECK (kind IN ('bug', 'feature', 'improvement', 'praise', 'other')),
+  kind       TEXT NOT NULL CHECK (kind IN ('bug', 'gear', 'feature', 'improvement', 'praise', 'other')),
   message    TEXT NOT NULL,
   email      TEXT,
   page_path  TEXT,
@@ -69,3 +69,11 @@ CREATE INDEX IF NOT EXISTS feedback_status_idx
   ON public.feedback (status);
 
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+
+-- CREATE TABLE IF NOT EXISTS does nothing to a table that already exists, so a
+-- second run would leave an older CHECK in place and every gear request would
+-- fail on 23514. Dropping and recreating the constraint makes the whole file
+-- safe to run again.
+ALTER TABLE public.feedback DROP CONSTRAINT IF EXISTS feedback_kind_check;
+ALTER TABLE public.feedback ADD CONSTRAINT feedback_kind_check
+  CHECK (kind IN ('bug', 'gear', 'feature', 'improvement', 'praise', 'other'));

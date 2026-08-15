@@ -1,9 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
-import { Bug, Lightbulb, Wrench, Heart, MessageSquare, Check } from "lucide-react"
+import { Bug, Lightbulb, Wrench, Heart, MessageSquare, Check, Sliders } from "lucide-react"
 import {
     FEEDBACK_KINDS,
     FEEDBACK_MIN,
@@ -13,11 +13,14 @@ import {
 
 const ICONS: Record<FeedbackKind, typeof Bug> = {
     bug: Bug,
+    gear: Sliders,
     feature: Lightbulb,
     improvement: Wrench,
     praise: Heart,
     other: MessageSquare,
 }
+
+const KIND_VALUES = FEEDBACK_KINDS.map((k) => k.value) as readonly FeedbackKind[]
 
 /**
  * The feedback form.
@@ -30,17 +33,31 @@ const ICONS: Record<FeedbackKind, typeof Bug> = {
 export function FeedbackForm() {
     const { user } = useUser()
     const pathname = usePathname()
+    const params = useSearchParams()
 
-    const [kind, setKind] = useState<FeedbackKind>("bug")
+    // /request-gear redirects here as ?kind=gear, so somebody who followed an
+    // old link lands on the tile they were looking for rather than on "Bug".
+    const requested = params.get("kind") as FeedbackKind | null
+    const initialKind: FeedbackKind =
+        requested && KIND_VALUES.includes(requested) ? requested : "bug"
+
+    const [kind, setKind] = useState<FeedbackKind>(initialKind)
     const [message, setMessage] = useState("")
+    const [gearName, setGearName] = useState("")
     const [email, setEmail] = useState("")
     const [sending, setSending] = useState(false)
     const [sent, setSent] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    const isGear = kind === "gear"
     const trimmed = message.trim()
     const short = Math.max(0, FEEDBACK_MIN - trimmed.length)
-    const valid = trimmed.length >= FEEDBACK_MIN && trimmed.length <= FEEDBACK_MAX
+    // A gear request also has to name the gear, or the queue fills with rows
+    // nobody can act on.
+    const valid =
+        trimmed.length >= FEEDBACK_MIN &&
+        trimmed.length <= FEEDBACK_MAX &&
+        (!isGear || gearName.trim().length >= 2)
 
     // Signed-in senders are already identified, so the field is only asked for
     // when there is no account behind the message.
@@ -59,6 +76,7 @@ export function FeedbackForm() {
                 body: JSON.stringify({
                     kind,
                     message: trimmed,
+                    gearName: isGear ? gearName.trim() : "",
                     email: askEmail ? email.trim() : "",
                     pagePath: pathname || "",
                 }),
@@ -131,12 +149,33 @@ export function FeedbackForm() {
                 </div>
             </fieldset>
 
+            {isGear && (
+                <div className="space-y-2">
+                    <label
+                        htmlFor="feedback-gear"
+                        className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[#F5A623]"
+                    >
+                        Which amp, guitar or pedal?
+                    </label>
+                    <input
+                        id="feedback-gear"
+                        value={gearName}
+                        onChange={(e) => setGearName(e.target.value.slice(0, 160))}
+                        placeholder="Boss Katana 50 MkII"
+                        className="w-full h-12 rounded-xl bg-[#12121A] border border-white/8 px-4 text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors"
+                    />
+                    <p className="text-[11px] text-[#8A8494]">
+                        Make and model. The more exact it is, the sooner it can be added.
+                    </p>
+                </div>
+            )}
+
             <div className="space-y-2">
                 <label
                     htmlFor="feedback-message"
                     className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[#F5A623]"
                 >
-                    Tell us what happened
+                    {isGear ? "Anything else about it" : "Tell us what happened"}
                 </label>
                 <textarea
                     id="feedback-message"

@@ -7,20 +7,54 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass, HelpCircle, Sliders, BookOpen } from "lucide-react";
 import { useState } from "react";
 
-// /gear and /guides are the two largest indexable sections on the site and
-// neither was reachable from the nav, so both were orphaned: no path from any
-// high-authority page, which is the fastest way to have a section crawled
-// rarely and ranked poorly no matter what is on it.
-const routes = [
-  { href: "/explore",       label: "Explore",      icon: Compass },
-  { href: "/tone-match",    label: "Match Tones",  icon: Guitar },
-  { href: "/gear",          label: "Gear",         icon: Sliders },
-  { href: "/guides",        label: "Guides",       icon: BookOpen },
-  { href: "/collection",    label: "Collection",   icon: Bookmark },
-  { href: "/settings",      label: "Settings",     icon: Settings },
-  { href: "/plans",         label: "Plans",        icon: Sparkles },
-  { href: "/faq",           label: "FAQ",          icon: HelpCircle },
-  { href: "/request-gear",  label: "Request Gear", icon: MessageSquare },
+/**
+ * The whole nav, grouped the way the drawer shows it.
+ *
+ * Nine links across the top bar was the problem: past about five, a horizontal
+ * nav stops being read and starts being scanned past, and every link competes
+ * with the four that actually sell the product. The drawer holds all of them
+ * now, at every width, and the bar keeps only the four.
+ *
+ * /gear and /guides are the two largest indexable sections on the site, so both
+ * stay one tap from every page. An orphaned section gets crawled rarely and
+ * ranks poorly no matter what is on it.
+ */
+const groups: { label: string; routes: { href: string; label: string; icon: typeof Compass }[] }[] = [
+  {
+    label: "Tones",
+    routes: [
+      { href: "/explore", label: "Explore", icon: Compass },
+      { href: "/tone-match", label: "Match Tones", icon: Guitar },
+      { href: "/collection", label: "My Collection", icon: Bookmark },
+    ],
+  },
+  {
+    label: "Reference",
+    routes: [
+      { href: "/gear", label: "Settings by Gear", icon: Sliders },
+      { href: "/guides", label: "Tone Guides", icon: BookOpen },
+      { href: "/faq", label: "FAQ", icon: HelpCircle },
+    ],
+  },
+  {
+    label: "Account",
+    routes: [
+      { href: "/plans", label: "Plans", icon: Sparkles },
+      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/feedback", label: "Send Feedback", icon: MessageSquare },
+    ],
+  },
+];
+
+/**
+ * The four that stay visible on a wide screen: browse, do the thing, the
+ * biggest reference section, and the page that takes the money.
+ */
+const primary = [
+  { href: "/explore", label: "Explore" },
+  { href: "/tone-match", label: "Match Tones" },
+  { href: "/gear", label: "Gear" },
+  { href: "/plans", label: "Plans" },
 ];
 
 export function SiteHeader() {
@@ -49,7 +83,7 @@ export function SiteHeader() {
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--tn-text-secondary)" }}
               // 36x36 before: the icon is 20px and p-2 added 8 either side, which
               // is under every touch-target guideline. The box grows, the icon doesn't.
-              className="flex items-center justify-center -ml-2 h-11 w-11 lg:hidden"
+              className="flex items-center justify-center -ml-2 h-11 w-11"
             >
               <Menu size={20} />
             </button>
@@ -71,24 +105,38 @@ export function SiteHeader() {
               </SheetTitle>
             </SheetHeader>
 
-            <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
-              {routes.map(route => (
-                <Link
-                  key={route.href}
-                  href={route.href}
-                  onClick={() => setOpen(false)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "12px",
-                    padding: "12px 16px", borderRadius: "10px",
-                    fontFamily: "var(--font-prose)", fontWeight: 500,
-                    fontSize: "0.9375rem", textDecoration: "none",
-                    color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
-                    background: pathname === route.href ? "rgba(232,113,42,0.08)" : "transparent",
-                  }}
-                >
-                  <route.icon size={18} />
-                  {route.label}
-                </Link>
+            {/* Grouped, because nine flat rows in a drawer is the same problem
+                as nine links in a bar, just rotated ninety degrees */}
+            <div style={{ padding: "0 16px 96px", display: "flex", flexDirection: "column", gap: "18px", overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}>
+              {groups.map(group => (
+                <div key={group.label} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <span style={{
+                    fontFamily: "var(--font-prose)", fontWeight: 700,
+                    fontSize: "0.6875rem", textTransform: "uppercase",
+                    letterSpacing: "0.08em", color: "#F5A623",
+                    padding: "0 16px 8px",
+                  }}>
+                    {group.label}
+                  </span>
+                  {group.routes.map(route => (
+                    <Link
+                      key={route.href}
+                      href={route.href}
+                      onClick={() => setOpen(false)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "12px",
+                        padding: "12px 16px", borderRadius: "10px",
+                        fontFamily: "var(--font-prose)", fontWeight: 500,
+                        fontSize: "0.9375rem", textDecoration: "none",
+                        color: pathname === route.href ? "var(--tn-accent)" : "var(--tn-text-secondary)",
+                        background: pathname === route.href ? "rgba(232,113,42,0.08)" : "transparent",
+                      }}
+                    >
+                      <route.icon size={18} />
+                      {route.label}
+                    </Link>
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -134,14 +182,13 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        {/* Desktop nav. Held back to lg: seven labels plus the wordmark and the
-            account button do not fit across a 768px tablet, and the row was
-            wrapping into the logo before the drawer took over. */}
+        {/* Four links, not nine. The rest live in the drawer, which is now the
+            nav at every width rather than the phone fallback. */}
         <nav
-          className="hidden lg:flex"
+          className="hidden md:flex"
           style={{ flex: 1, justifyContent: "center", gap: "8px" }}
         >
-          {routes.map(route => (
+          {primary.map(route => (
             <Link
               key={route.href}
               href={route.href}

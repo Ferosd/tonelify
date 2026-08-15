@@ -1,8 +1,15 @@
 import { z } from "zod";
 
-/** The five buckets on the form, in the order they are shown. */
+/**
+ * The buckets on the form, in the order they are shown.
+ *
+ * "gear" is here rather than on its own page: /request-gear was the same form
+ * with different wording, which cost a nav row and left a visitor guessing
+ * which of two near-identical pages their message belonged in.
+ */
 export const FEEDBACK_KINDS = [
     { value: "bug", label: "Bug report", hint: "Something is broken or wrong" },
+    { value: "gear", label: "Missing gear", hint: "An amp, guitar or pedal we don't have" },
     { value: "feature", label: "Feature request", hint: "Something you wish existed" },
     { value: "improvement", label: "Improvement", hint: "Something that could work better" },
     { value: "praise", label: "Praise", hint: "Something you like" },
@@ -20,7 +27,12 @@ export const FEEDBACK_MIN = 10;
 export const FEEDBACK_MAX = 5000;
 
 export const feedbackSchema = z.object({
-    kind: z.enum(["bug", "feature", "improvement", "praise", "other"]),
+    kind: z.enum(["bug", "gear", "feature", "improvement", "praise", "other"]),
+    /**
+     * Only asked for on a gear request, where the make and model is the whole
+     * point and burying it in prose makes the queue unsortable.
+     */
+    gearName: z.string().trim().max(160).optional().or(z.literal("")),
     message: z
         .string()
         .trim()

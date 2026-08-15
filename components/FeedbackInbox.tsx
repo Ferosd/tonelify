@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bug, Lightbulb, Wrench, Heart, MessageSquare } from "lucide-react"
+import { Bug, Lightbulb, Wrench, Heart, MessageSquare, Sliders } from "lucide-react"
 import type { FeedbackKind } from "@/lib/validations/feedback"
 
 export type FeedbackRow = {
@@ -17,6 +17,7 @@ export type FeedbackRow = {
 
 const ICONS: Record<FeedbackKind, typeof Bug> = {
     bug: Bug,
+    gear: Sliders,
     feature: Lightbulb,
     improvement: Wrench,
     praise: Heart,
@@ -25,6 +26,7 @@ const ICONS: Record<FeedbackKind, typeof Bug> = {
 
 const KIND_LABEL: Record<FeedbackKind, string> = {
     bug: "Bug",
+    gear: "Gear request",
     feature: "Feature",
     improvement: "Improvement",
     praise: "Praise",

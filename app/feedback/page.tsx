@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { SITE_URL } from "@/lib/site";
 
@@ -35,18 +35,12 @@ export default function FeedbackPage() {
                     </p>
                 </div>
 
-                <FeedbackForm />
-
-                <p className="text-sm text-[#8A8494] leading-relaxed border-t border-white/8 pt-6">
-                    Looking for a piece of gear that is not in the catalog?{" "}
-                    <Link
-                        href="/request-gear"
-                        className="inline-block py-2 font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2"
-                    >
-                        Request it here
-                    </Link>{" "}
-                    instead, so it lands in the right queue.
-                </p>
+                {/* useSearchParams reads ?kind=gear, which the old /request-gear
+                    URL redirects to. Without the boundary the whole page would
+                    have to render on demand for one query parameter. */}
+                <Suspense fallback={<div className="h-96" />}>
+                    <FeedbackForm />
+                </Suspense>
             </div>
 
             <script

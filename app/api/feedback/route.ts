@@ -30,7 +30,12 @@ export async function POST(request: NextRequest) {
         if (!result.success) {
             return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
         }
-        const { kind, message, email, pagePath } = result.data;
+        const { kind, message, gearName, email, pagePath } = result.data;
+
+        // Gear requests carry the make and model as its own field on the form.
+        // It goes into the stored message as a labelled first line so the inbox
+        // shows it without the row needing a column only one kind ever uses.
+        const body = kind === "gear" && gearName ? `Gear: ${gearName}\n\n${message}` : message;
 
         // feedback.user_id references profiles(id); signed-out visitors store
         // null there, which the foreign key allows.
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
             .insert({
                 user_id: rowUserId,
                 kind,
-                message,
+                message: body,
                 email: senderEmail,
                 page_path: pagePath || null,
             })

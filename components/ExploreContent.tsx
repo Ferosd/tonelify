@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Flame, Sparkles, Search, Music, Zap, Heart } from "lucide-react"
+import { Flame, Sparkles, Search, Music, Zap, Heart, Guitar, Volume2 } from "lucide-react"
 import { TONE_LIBRARY, type LibraryTone } from "@/lib/tone-library"
 import { likeLabel } from "@/lib/tone-likes"
 
@@ -17,6 +17,14 @@ function fallbackGradient(id: string) {
     return `linear-gradient(135deg, hsl(${28 + shift}, 78%, 42%) 0%, hsl(${10 + shift}, 62%, 32%) 100%)`
 }
 
+/**
+ * One library entry.
+ *
+ * The rows below the sleeve are fixed height on purpose: title, artist, chips,
+ * rig, footer. Cards in a grid are read across as much as down, and a card
+ * whose chip row is one line taller pushes its button out of line with every
+ * neighbour. Nothing here wraps to a second line, everything truncates.
+ */
 function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: string; likes?: number }) {
     const clean = tone.tone === "Clean"
     // Null below the visibility floor, so a young library never prints "1"
@@ -49,13 +57,6 @@ function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: strin
                     style={{ background: "linear-gradient(to top, rgba(6,6,9,0.88) 0%, rgba(6,6,9,0.35) 45%, transparent 100%)" }}
                 />
 
-                {likeCount && (
-                    <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-[#08080C]/70 text-[#E8712A] border border-[#D14B32]/40 whitespace-nowrap">
-                        <Heart className="h-3 w-3" fill="currentColor" />
-                        {likeCount}
-                    </span>
-                )}
-
                 <span
                     className={`absolute bottom-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border whitespace-nowrap ${clean
                         ? "text-[#FFD700] border-[#FFD700]/30 bg-[#08080C]/60"
@@ -71,18 +72,43 @@ function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: strin
             </div>
 
             {/* Meta */}
-            <div className="px-3 py-3 md:px-4 md:py-4 flex flex-col gap-1 flex-1 min-w-0">
-                <h3 className="font-bold text-[0.8125rem] md:text-sm text-[#F2F2F7] leading-tight truncate" title={tone.title}>
+            <div className="px-3 py-3 md:px-4 md:py-4 flex flex-col flex-1 min-w-0">
+                <h3 className="font-bold text-[0.875rem] md:text-[0.9375rem] text-[#F2F2F7] leading-tight truncate" title={tone.title}>
                     {tone.title}
                 </h3>
-                <p className="text-[0.75rem] text-[#A6A29B] font-medium truncate">{tone.artist}</p>
-                {/* Running prose, not a chip: 11px reads as "text too small"
-                    on a phone, so it sits at 12px with the lighter token */}
-                <p className="text-[12px] text-[#A6A29B] leading-snug line-clamp-2 mt-1">{tone.character}</p>
-                <div className="hidden md:flex items-center gap-1.5 mt-auto pt-3">
-                    <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.genre}</span>
-                    <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.era}</span>
+                <p className="text-[0.75rem] text-[#A6A29B] font-medium truncate mt-0.5">{tone.artist}</p>
+
+                {/* The rig, one line each. Truncated rather than wrapped so the
+                    two rows are the same height on every card in the row. */}
+                <div className="mt-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 min-w-0" title={tone.guitar}>
+                        <Guitar className="h-3 w-3 shrink-0 text-[#8A8494]" />
+                        <span className="text-[11px] text-[#A6A29B] truncate">{tone.guitar}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 min-w-0" title={tone.amp}>
+                        <Volume2 className="h-3 w-3 shrink-0 text-[#8A8494]" />
+                        <span className="text-[11px] text-[#A6A29B] truncate">{tone.amp}</span>
+                    </div>
                 </div>
+
+                {/* mt-auto pins the footer to the bottom, which is what actually
+                    lines the buttons up across a row of uneven titles */}
+                <div className="flex items-center gap-2 mt-auto pt-3">
+                    <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.genre}</span>
+                    <span className="hidden sm:inline text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.era}</span>
+                    {likeCount && (
+                        <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-[#8A8494] shrink-0">
+                            <Heart className="h-3 w-3" fill="currentColor" />
+                            {likeCount}
+                        </span>
+                    )}
+                </div>
+
+                <span className="mt-3 inline-flex items-center justify-center h-9 rounded-lg text-[0.8125rem] font-bold text-[#08080C] group-hover:brightness-110 transition-[filter]"
+                    style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
+                >
+                    View tone
+                </span>
             </div>
         </Link>
     )
