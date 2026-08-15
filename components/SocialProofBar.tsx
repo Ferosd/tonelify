@@ -12,9 +12,9 @@ type Review = { rating: number }
  * reviews table: no count is shown unless there are reviews behind it, so the
  * block quietly loses its right half rather than inventing one.
  *
- * Faces come from public/avatars/stack-1.jpg through stack-5.jpg. Each falls
- * back to an initials disc, so the row is complete whether or not the files are
- * in place.
+ * Faces come from public/avatars/stack-1.jpg through stack-4.jpg, and they are
+ * four people nobody on the review cards below is, so the same face never turns
+ * up twice on one page. Each falls back to an initials disc.
  */
 
 const STACK = [
@@ -22,7 +22,6 @@ const STACK = [
     { name: "Guitarist two", src: "/avatars/stack-2.jpg" },
     { name: "Guitarist three", src: "/avatars/stack-3.jpg" },
     { name: "Guitarist four", src: "/avatars/stack-4.jpg" },
-    { name: "Guitarist five", src: "/avatars/stack-5.jpg" },
 ]
 
 export function SocialProofBar({ reviews = [] }: { reviews?: Review[] }) {

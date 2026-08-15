@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { UserButton } from "@clerk/nextjs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,6 +8,7 @@ import { EquipmentList } from "@/components/EquipmentList";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { CheckoutSuccessBanner } from "@/components/CheckoutSuccessBanner";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -33,7 +33,12 @@ export const metadata: Metadata = {
 export default async function Dashboard() {
     const { userId } = await auth();
 
-    if (!userId) return null;
+    // Middleware normally catches this, but a render that runs before the
+    // session cookie is readable, which is what a sign-in redirect can land in,
+    // used to return null: header, then a page of nothing. Sending them back
+    // through sign-in either restores the session or asks for it, and either
+    // beats a black screen.
+    if (!userId) redirect("/sign-in?redirect_url=%2Fdashboard");
 
     const { data: recentMatches } = await getSupabaseAdmin()
         .from('tone_matches')

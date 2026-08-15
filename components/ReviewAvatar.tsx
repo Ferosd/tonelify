@@ -1,15 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import { hasAvatar } from "@/lib/avatars"
 
 /**
  * A reviewer's picture, with an initials disc as the fallback.
  *
  * Photos live in public/avatars/ and are matched by the reviewer's name run
- * through avatarSlug(): "Emma Taylor" reads /avatars/emma-taylor.jpg. Nothing
- * has to exist for the component to render, so dropping a file into that folder
- * is the whole job of adding a face; until then the initials disc shows and no
- * broken image ever reaches the page.
+ * through avatarSlug(): "Emma Taylor" reads /avatars/emma-taylor.jpg. Which
+ * names have a file is declared in lib/avatars, so a reviewer without one draws
+ * the disc immediately instead of requesting an image that will 404.
+ *
+ * onError alone was not enough. An <img> that fails before React hydrates has
+ * already fired its error event by the time the handler is attached, so the
+ * browser's broken-image glyph stayed on screen forever: that is what the row
+ * of torn-page icons under the hero was. The ref below re-checks a settled
+ * image, which covers the load that finished before the listener existed.
  */
 export function avatarSlug(name: string) {
     return name
@@ -46,7 +52,16 @@ export function ReviewAvatar({
     ring?: string
 }) {
     const [failed, setFailed] = useState(false)
-    const path = src ?? `/avatars/${avatarSlug(name)}.jpg`
+    const slug = avatarSlug(name)
+    // An explicit src is trusted: it names a file the caller knows about, such
+    // as the hero stack, which has no reviewer behind it.
+    const path = src ?? (hasAvatar(slug) ? `/avatars/${slug}.jpg` : null)
+
+    // Catches the image that errored before hydration, which never fires
+    // onError at all.
+    const check = useCallback((img: HTMLImageElement | null) => {
+        if (img && img.complete && img.naturalWidth === 0) setFailed(true)
+    }, [])
 
     const base: React.CSSProperties = {
         width: size,
@@ -57,7 +72,7 @@ export function ReviewAvatar({
         ...(ring ? { border: `2px solid ${ring}` } : null),
     }
 
-    if (failed) {
+    if (failed || !path) {
         return (
             <div
                 aria-hidden="true"
@@ -82,6 +97,7 @@ export function ReviewAvatar({
     return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
+            ref={check}
             src={path}
             alt=""
             width={size}
