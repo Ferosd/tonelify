@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Check, Gift, Lock, Loader2 } from "lucide-react"
+import { ArrowRight, Check, Gift, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
@@ -11,46 +11,35 @@ import {
     PRICING,
     PLAN_NAMES,
     TRIAL_DAYS,
-    FREE_MATCHES,
-    FREE_SAVED_TONES,
     STAGE_MATCHES,
     STAGE_SAVED_TONES,
 } from "@/lib/pricing"
 
-type Interval = "week" | "month" | "year"
-/** Both paid tiers are sold monthly and yearly, so the toggle is binary. */
+type Interval = "month" | "year"
+/** Both tiers are sold monthly and yearly, so the toggle is binary. */
 type Billing = "month" | "year"
-type PaidPlanId = "weekly" | "stage" | "player"
+type PaidPlanId = "stage" | "player"
 
 /** One feature line: a claim, and the qualifier that keeps it honest. */
 type Feature = { label: string; note?: string }
 
 type Tier = {
-    id: "free" | "stage" | "player"
+    id: "stage" | "player"
     name: string
     tagline: string
     features: Feature[]
-    /** Struck through under the features. Free only. */
-    locked?: string[]
     highlight?: boolean
 }
 
 // Display only. Checkout posts the plan id and interval and the server resolves
 // the real Stripe price, so nothing here can put a customer on a price they did
 // not see. Every figure comes from lib/pricing so they cannot drift.
-const TIERS: Record<"free" | "stage" | "player", Tier> = {
-    free: {
-        id: "free",
-        name: PLAN_NAMES.free,
-        tagline: "For trying it on one song",
-        features: [
-            { label: `${FREE_MATCHES} tone matches`, note: "per month" },
-            { label: `${FREE_SAVED_TONES} saved tones`, note: "Keep them as long as you like" },
-            { label: "Full amp settings", note: "Gain, bass, mids, treble, master" },
-            { label: "Effects chain and gear presets", note: "Nothing held back" },
-        ],
-        locked: ["More than 3 matches a month", "More than 3 saved tones"],
-    },
+//
+// The free card and the Week Pass card were both removed in August 2026. The
+// free card advertised three matches a month that lib/subscription had stopped
+// granting, so the most prominent number on the page was one the product would
+// not honour.
+const TIERS: Record<"stage" | "player", Tier> = {
     stage: {
         id: "stage",
         name: PLAN_NAMES.stage,
@@ -146,8 +135,8 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
     const { isSignedIn } = useUser()
 
     const tiers: Tier[] = stageAvailable
-        ? [TIERS.free, TIERS.stage, TIERS.player]
-        : [TIERS.free, TIERS.player]
+        ? [TIERS.stage, TIERS.player]
+        : [TIERS.player]
 
     // Subscribers shouldn't be sold a plan they already pay for
     useEffect(() => {
@@ -164,7 +153,6 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
     }, [isSignedIn])
 
     const isSubscribed = !!currentPlan && currentPlan !== "free"
-    const onWeekPass = currentPlan === "weekly"
 
     const openPortal = async () => {
         setPortalLoading(true)
@@ -308,11 +296,10 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                     and buttons all land on one line. */}
                 <div className={cn(
                     "grid grid-cols-1 gap-5 items-stretch",
-                    tiers.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2 md:max-w-3xl md:mx-auto"
+                    tiers.length === 2 ? "md:grid-cols-2 md:max-w-3xl md:mx-auto" : "md:max-w-md md:mx-auto"
                 )}>
                     {tiers.map((tier, i) => {
-                        const paid = tier.id !== "free"
-                        const b = paid ? BILLING[tier.id as "stage" | "player"][billing] : null
+                        const b = BILLING[tier.id][billing]
                         const onThisPlan = currentPlan === tier.id
                         const busy = loading === `${tier.id}:${billing}`
                         // The ribbon is only earned while the tier can still be
@@ -360,7 +347,7 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                             <h3 className="text-xl font-bold leading-tight text-[#F2F0ED]">{tier.name}</h3>
                                             <p className="text-sm text-[#8A8494] font-medium mt-1 leading-snug">{tier.tagline}</p>
                                         </div>
-                                        {paid && !isSubscribed && (
+                                        {!isSubscribed && (
                                             <span className="shrink-0 bg-[#E8712A]/10 text-[#E8712A] text-[10px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                                                 {TRIAL_DAYS}-day trial
                                             </span>
@@ -383,7 +370,7 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                             headline so the discount pill never
                                             wraps under the price */}
                                         <div className="flex items-center gap-2 h-7">
-                                            {b?.compare && (
+                                            {b.compare && (
                                                 <>
                                                     <span className="text-base font-bold text-[#8A8494] line-through decoration-[#D14B32] decoration-2">
                                                         {b.compare}
@@ -398,53 +385,45 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                         </div>
                                         <div className="flex items-baseline flex-wrap gap-x-2">
                                             <span className="font-display text-[2.75rem] leading-none font-bold text-[#F2F0ED]">
-                                                {paid ? b!.price : "$0"}
+                                                {b.price}
                                             </span>
-                                            <span className="text-[#8A8494] font-medium">
-                                                {paid ? "/mo" : "forever"}
-                                            </span>
-                                            {b?.annual && (
+                                            <span className="text-[#8A8494] font-medium">/mo</span>
+                                            {b.annual && (
                                                 <span className="text-sm text-[#8A8494] font-medium">
                                                     ({b.annual})
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-[#A6A29B] mt-2.5 h-5">
-                                            {paid ? b!.billed : `${FREE_MATCHES} songs a month, no card`}
-                                        </p>
+                                        <p className="text-sm text-[#A6A29B] mt-2.5 h-5">{b.billed}</p>
                                         <p className="text-sm text-[#F5A623] font-semibold mt-1 h-5">
-                                            {b?.saving ?? ""}
+                                            {b.saving ?? ""}
                                         </p>
                                     </motion.div>
 
                                     <div className="mt-5 mb-5 border-t border-white/8" />
 
                                     {/* Slot 4: what the money does before it is
-                                        money. Free fills the same box so the
-                                        feature lists below start level. */}
+                                        money. Fixed height so the feature lists
+                                        below start level on both cards. */}
                                     <div className={cn(
                                         "mb-5 rounded-xl border px-4 py-3 min-h-[84px]",
-                                        paid && !isSubscribed
-                                            ? "border-[#E8712A]/20 bg-[#E8712A]/[0.06]"
-                                            : "border-white/8 bg-white/[0.02]"
+                                        isSubscribed
+                                            ? "border-white/8 bg-white/[0.02]"
+                                            : "border-[#E8712A]/20 bg-[#E8712A]/[0.06]"
                                     )}>
                                         <div className="flex items-center gap-2">
                                             <Gift className={cn(
                                                 "h-4 w-4 shrink-0",
-                                                paid && !isSubscribed ? "text-[#F5A623]" : "text-[#8A8494]"
+                                                isSubscribed ? "text-[#8A8494]" : "text-[#F5A623]"
                                             )} />
                                             <span className="text-sm font-bold text-[#F2F0ED]">
-                                                {paid
-                                                    ? (isSubscribed ? "Your plan, in full" : `${TRIAL_DAYS}-day free trial`)
-                                                    : "No card required"}
+                                                {isSubscribed ? "Your plan, in full" : `${TRIAL_DAYS}-day free trial`}
                                             </span>
                                         </div>
                                         <p className="text-xs text-[#A6A29B] mt-1 leading-relaxed">
-                                            {paid
-                                                ? (isSubscribed
-                                                    ? "Switch between plans whenever you like. Stripe credits the days you already paid for."
-                                                    : `The whole plan for ${TRIAL_DAYS} days. Cancel before it ends and your card is never charged.`)
-                                                : "Start matching in a minute. The count resets on the first of each month."}
+                                            {isSubscribed
+                                                ? "Switch between plans whenever you like. Stripe credits the days you already paid for."
+                                                : `The whole plan for ${TRIAL_DAYS} days. Cancel before it ends and your card is never charged.`}
                                         </p>
                                     </div>
 
@@ -455,20 +434,11 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                         <ul className="space-y-3">
                                             {tier.features.map((f) => (
                                                 <li key={f.label} className="flex items-start gap-3">
-                                                    <span className={cn(
-                                                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-                                                        paid ? "bg-[#F5A623]/12" : "bg-white/6"
-                                                    )}>
-                                                        <Check className={cn(
-                                                            "h-3 w-3",
-                                                            paid ? "text-[#F5A623]" : "text-[#8A8494]"
-                                                        )} />
+                                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F5A623]/12">
+                                                        <Check className="h-3 w-3 text-[#F5A623]" />
                                                     </span>
                                                     <span>
-                                                        <span className={cn(
-                                                            "block text-sm font-semibold leading-snug",
-                                                            paid ? "text-[#F2F0ED]" : "text-[#A6A29B]"
-                                                        )}>
+                                                        <span className="block text-sm font-semibold leading-snug text-[#F2F0ED]">
                                                             {f.label}
                                                         </span>
                                                         {f.note && (
@@ -479,47 +449,22 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                             ))}
                                         </ul>
 
-                                        {tier.locked && (
-                                            <div className="mt-5 pt-5 border-t border-white/6">
-                                                <ul className="space-y-2.5">
-                                                    {tier.locked.map((f) => (
-                                                        <li key={f} className="flex items-start gap-3">
-                                                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/4">
-                                                                <Lock className="h-3 w-3 text-[#5C5862]" />
-                                                            </span>
-                                                            <span className="text-sm text-[#5C5862] line-through leading-snug">{f}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                {/* The caps are the only difference, and
-                                                    saying so is the point: the paid plans
-                                                    are the same product without a
-                                                    counter, not a better one. */}
-                                                <p className="text-xs text-[#8A8494] mt-4 leading-relaxed">
-                                                    Those counters are the only difference. Every match is the same
-                                                    on every plan.
-                                                </p>
-                                            </div>
+                                        {/* The caps are the only difference between
+                                            the two cards, and saying so is the
+                                            point: Stage is the same product with a
+                                            counter, not a worse one. */}
+                                        {tier.id === "stage" && (
+                                            <p className="text-xs text-[#8A8494] mt-5 pt-5 border-t border-white/6 leading-relaxed">
+                                                The counters are the only difference. A match returns the same
+                                                settings, the same effects chain and the same sources on either plan.
+                                            </p>
                                         )}
                                     </div>
 
                                     {/* Slot 6: CTA, flush to the bottom edge of
                                         every card. */}
                                     <div className="mt-6">
-                                        {tier.id === "free" ? (
-                                            <>
-                                                <Link
-                                                    href="/tone-match"
-                                                    className="w-full h-12 rounded-xl border border-white/12 text-[#F2F0ED] font-bold flex items-center justify-center gap-2 hover:border-[#E8712A] transition-colors"
-                                                >
-                                                    {isSubscribed ? "Go to tone matching" : "Start matching free"}
-                                                    <ArrowRight className="h-4 w-4" />
-                                                </Link>
-                                                <p className="text-center text-xs text-[#8A8494] mt-3">
-                                                    No card, nothing to cancel
-                                                </p>
-                                            </>
-                                        ) : onThisPlan ? (
+                                        {onThisPlan ? (
                                             <div className="space-y-3">
                                                 <div className="w-full h-12 rounded-xl bg-[#E8712A]/10 border border-[#E8712A]/30 text-[#E8712A] font-bold flex items-center justify-center gap-2">
                                                     <Check className="h-5 w-5" />
@@ -533,7 +478,7 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                         ) : (
                                             <>
                                                 <button
-                                                    onClick={() => handleCheckout(tier.id as PaidPlanId, billing)}
+                                                    onClick={() => handleCheckout(tier.id, billing)}
                                                     disabled={loading !== null}
                                                     className={cn(
                                                         "w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity",
@@ -560,9 +505,7 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                                                     )}
                                                 </button>
                                                 <p className="text-center text-xs text-[#8A8494] mt-3">
-                                                    {onWeekPass
-                                                        ? "Stripe credits what you already paid on the week pass."
-                                                        : "Cancel anytime. No hidden fees."}
+                                                    Cancel anytime. No hidden fees.
                                                 </p>
                                             </>
                                         )}
@@ -573,20 +516,19 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                     })}
                 </div>
 
-                {/* The week pass stays on sale without taking a card. It costs
-                    more per month than either plan if it keeps renewing, so it is
-                    offered as flexibility rather than ranked as value. */}
+                {/* The library is the honest answer to "can I see it first". It
+                    costs nothing, needs no account, and is a better first click
+                    than a free tier that capped what the product could do. */}
                 <p className="text-center text-sm text-[#A6A29B] mt-10 max-w-xl mx-auto leading-relaxed">
-                    Only need it for one song? The{" "}
-                    <span className="text-[#F5A623] font-semibold">{PLAN_NAMES.weekly}</span> gives you
-                    everything unlimited for {PRICING.week.price} a week, no trial.{" "}
-                    <button
-                        onClick={() => handleCheckout("weekly", "week")}
-                        disabled={loading !== null}
-                        className="text-[#F5A623] font-semibold underline underline-offset-4 hover:text-[#FFD700] disabled:opacity-60 transition-colors"
-                    >
-                        {loading === "weekly:week" ? "Opening checkout…" : "Get the week pass"}
-                    </button>
+                    Not ready to pick one? The{" "}
+                    <Link href="/explore" className="text-[#F5A623] font-semibold underline underline-offset-4 hover:text-[#FFD700] transition-colors">
+                        tone library
+                    </Link>{" "}
+                    and the{" "}
+                    <Link href="/gear" className="text-[#F5A623] font-semibold underline underline-offset-4 hover:text-[#FFD700] transition-colors">
+                        gear pages
+                    </Link>{" "}
+                    are open to everyone, no account needed.
                 </p>
 
                 <p className="text-center text-xs text-[#8A8494] mt-4">

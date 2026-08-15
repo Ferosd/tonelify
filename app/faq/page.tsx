@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TONE_LIBRARY } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 
 export const metadata: Metadata = {
     title: "Guitar Tone Matching FAQ: How Tonelify Works",
     description:
-        "How tone matching works, what Tonelify needs from your rig, which amps and guitars it covers, what the free plan includes, and where the settings come from.",
+        "How tone matching works, what Tonelify needs from your rig, which amps and guitars it covers, what the plans cost, and where the settings come from.",
     alternates: { canonical: "/faq" },
     openGraph: {
         title: "Guitar Tone Matching FAQ | Tonelify",
         description:
-            "How tone matching works, which gear it covers, and what the free plan includes.",
+            "How tone matching works, which gear it covers, and what the plans cost.",
         url: `${SITE_URL}/faq`,
         type: "article",
     },
@@ -111,15 +111,15 @@ const GROUPS: Group[] = [
             {
                 q: "Is Tonelify free?",
                 a: [
-                    `There is a free plan with ${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, and it does not ask for a card. Every match on the free plan returns the full settings, not a preview.`,
-                    `Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month on the ${PLAN_NAMES.player} plan.`,
+                    `Matching is not. There is no free plan, there is a ${TRIAL_DAYS}-day free trial on both plans, and nothing is charged until it ends.`,
+                    "The tone library, the gear pages and the guides are open to everyone with no account at all, so you can read what the product knows before you pay for it.",
                 ],
             },
             {
                 q: "How much does Tonelify cost?",
                 a: [
-                    `${PLAN_NAMES.free}: ${FREE_MATCHES} matches a month, no card. ${PLAN_NAMES.weekly}: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial. ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, with a ${TRIAL_DAYS}-day free trial.`,
-                    "The paid plans lift the two counters on the free plan. A match is identical either way: nothing about the answer is held back for paying accounts.",
+                    `${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year, which is ${PRICING.stage.year.perMonth} a month, for ${STAGE_MATCHES} matches and ${STAGE_SAVED_TONES} saved tones a month. ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, for unlimited matches and saved tones.`,
+                    `Both come with the same ${TRIAL_DAYS}-day free trial. A match is identical on either plan: nothing about the answer is held back on the cheaper one.`,
                 ],
             },
             {
@@ -234,8 +234,8 @@ export default function FaqPage() {
                 <section className="bg-[#12121A] border border-white/8 rounded-2xl p-6 md:p-8 space-y-3">
                     <h2 className="font-display text-xl font-bold text-[#F2F2F7]">Still deciding?</h2>
                     <p className="text-[#A6A29B] text-sm leading-relaxed">
-                        The free plan runs three matches a month without a card, which is enough to see whether the
-                        settings land on your own rig before any money changes hands.
+                        Both plans open with a {TRIAL_DAYS}-day free trial, which is long enough to work a song up and
+                        find out whether the settings land on your own rig before any money changes hands.
                     </p>
                     <div className="flex flex-wrap gap-3 pt-1">
                         <Link

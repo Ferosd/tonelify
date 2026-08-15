@@ -2,7 +2,7 @@ import { TONE_LIBRARY } from "@/lib/tone-library";
 import { GEAR_CATALOG } from "@/lib/gear-catalog";
 import { GUIDES } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing";
 
 /**
  * The index an answer engine reads first: what the product is, what it costs,
@@ -48,9 +48,12 @@ mastering sit between the amp and the released file.
 
 ## Plans
 
-- ${PLAN_NAMES.free}: ${FREE_MATCHES} tone matches a month, ${FREE_SAVED_TONES} saved tones, no card required
-- ${PLAN_NAMES.weekly}: ${PRICING.week.price} a week, unlimited matches, no trial, renews weekly
-- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, unlimited matches, ${TRIAL_DAYS}-day free trial
+Two plans, each sold monthly or yearly. There is no free tier and no weekly pass.
+
+- ${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year, metered matches and saved tones
+- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, unlimited matches and saved tones
+
+Both start with a ${TRIAL_DAYS}-day free trial. Nothing is charged until the trial ends.
 
 ## Main pages
 

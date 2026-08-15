@@ -1561,8 +1561,8 @@ export function LandingClient({ initialReviews, stageAvailable = false }: { init
               }
               : {}),
             "offers": [
-              { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": PLAN_NAMES.weekly, "price": PRICING.week.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": `${PLAN_NAMES.stage} (Monthly)`, "price": PRICING.stage.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
+              { "@type": "Offer", "name": `${PLAN_NAMES.stage} (Yearly)`, "price": PRICING.stage.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
               { "@type": "Offer", "name": `${PLAN_NAMES.player} (Monthly)`, "price": PRICING.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
               { "@type": "Offer", "name": `${PLAN_NAMES.player} (Yearly)`, "price": PRICING.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
             ],

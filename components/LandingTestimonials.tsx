@@ -139,8 +139,8 @@ export function LandingTestimonials({ initialReviews }: { initialReviews?: Revie
                     }}
                 >
                     Every review on this page is written by someone with an account, and posted
-                    under their own name. Run a match on the free plan, three a month with no card,
-                    and tell us whether the settings held up on your rig.
+                    under their own name. Start the free trial, run a match on your own
+                    rig, and tell us whether the settings held up.
                 </p>
                 <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
                     <Link href="/tone-match" className="cta-btn">

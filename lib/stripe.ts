@@ -4,6 +4,11 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_dummy
     typescript: true,
 });
 
+/**
+ * "week" is still in the union because the retired Week Pass rows and any
+ * Stripe object that predates its withdrawal are typed against it. Nothing is
+ * sold on it.
+ */
 export type BillingInterval = "week" | "month" | "year";
 
 type Plan = {
@@ -20,16 +25,6 @@ type Plan = {
 // the same test-mode ids were used against a live key and every checkout failed
 // with "No such price". Keeping them per-environment makes that impossible.
 export const PLANS: Record<string, Plan> = {
-    weekly: {
-        name: "Week Pass",
-        matchLimit: Infinity,
-        savedToneLimit: Infinity,
-        // No trial: a free trial on a 7-day plan gives the product away
-        trialDays: 0,
-        prices: {
-            week: process.env.STRIPE_PRICE_WEEK_PASS || "",
-        },
-    },
     stage: {
         name: "Stage",
         // Metered, unlike the two plans either side of it. The caps are enforced
@@ -59,6 +54,23 @@ export const PLANS: Record<string, Plan> = {
 
     // Retired plans. Not sold any more, kept so anyone already subscribed keeps
     // the limits they paid for and the webhook can still map their price back.
+    //
+    // The entries stay even with empty `prices`: getPlanByPriceId only matches
+    // on ids that are present, but user_subscriptions rows still carry these
+    // plan names, and getUserSubscription checks `plan in PLANS` before it
+    // grants anything. Delete the entry and an existing subscriber silently
+    // drops to no plan.
+    weekly: {
+        name: "Week Pass",
+        matchLimit: Infinity,
+        savedToneLimit: Infinity,
+        trialDays: 0,
+        // Withdrawn August 2026. At $4.99 it read as the cheapest option in the
+        // category while working out at $21.62 a month, so it undercut the plan
+        // it was meant to feed. Archive the price in Stripe as well: an id left
+        // live is an id a stale checkout link can still charge against.
+        prices: {},
+    },
     beginner: {
         name: "Beginner",
         matchLimit: 20,
@@ -77,8 +89,8 @@ export const PLANS: Record<string, Plan> = {
 
 export type PlanId = keyof typeof PLANS;
 
-/** Plans a visitor can actually buy today. */
-export const PURCHASABLE_PLANS = ["weekly", "stage", "player"] as const;
+/** Plans a visitor can actually buy today. Two, each on month and year. */
+export const PURCHASABLE_PLANS = ["stage", "player"] as const;
 export type PurchasablePlanId = (typeof PURCHASABLE_PLANS)[number];
 
 export function isPurchasablePlan(id: unknown): id is PurchasablePlanId {

@@ -3,16 +3,16 @@ import { Pricing } from "@/components/Pricing";
 import { SITE_URL } from "@/lib/site";
 import { getReviewSummary } from "@/lib/reviews";
 import { PRICING_FAQ } from "@/lib/pricing-faq";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 import { isPlanConfigured } from "@/lib/stripe";
 
 export const metadata: Metadata = {
     // The root layout appends "| Tonelify", so the brand is left off here
     title: "Pricing: Guitar Tone Matching Plans",
-    description: `Free plan with ${FREE_MATCHES} matches a month, or unlimited from ${PRICING.week.price} a week. Monthly and yearly plans include a ${TRIAL_DAYS}-day free trial.`,
+    description: `Two plans, monthly or yearly. ${PLAN_NAMES.stage} from ${PRICING.stage.month.price} a month, unlimited matching on ${PLAN_NAMES.player} from ${PRICING.month.price} a month. Both start with a ${TRIAL_DAYS}-day free trial.`,
     openGraph: {
         title: "Plans & Pricing | Tonelify",
-        description: `Free to start. Unlimited tone matching from ${PRICING.week.price} a week.`,
+        description: `Unlimited guitar tone matching from ${PRICING.month.price} a month, with a ${TRIAL_DAYS}-day free trial.`,
     },
     alternates: {
         canonical: "/plans",
@@ -84,16 +84,6 @@ export default async function PlansPage() {
                             // tier a visitor cannot buy is the same failure as a
                             // button that cannot pay.
                             offers: [
-                                {
-                                    "@type": "Offer", name: PLAN_NAMES.free, price: "0", priceCurrency: "USD",
-                                    description: `${FREE_MATCHES} tone matches a month and ${FREE_SAVED_TONES} saved tones, no card required`,
-                                    url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                },
-                                {
-                                    "@type": "Offer", name: PLAN_NAMES.weekly, price: PRICING.week.amount.toFixed(2), priceCurrency: "USD",
-                                    description: "Unlimited matches for a week, renews weekly, no trial",
-                                    url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                },
                                 ...(stageAvailable
                                     ? [
                                         {

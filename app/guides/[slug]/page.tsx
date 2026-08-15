@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GUIDES, getGuide, relatedGuides, guideText } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
+import { TRIAL_DAYS } from "@/lib/pricing";
 
 export const revalidate = 86400;
 // Fixed in-code set, so an unknown slug is a hard 404 rather than a soft one
@@ -133,7 +134,7 @@ export default async function GuidePage({ params }: Props) {
                         This guide covers what is true of every rig. For a specific song on a
                         specific amp, Tonelify reads the documented chain behind the recording and
                         returns gain, bass, middle, treble and presence values for the controls
-                        your amp actually has. Three matches a month, no card.
+                        your amp actually has. Free for {TRIAL_DAYS} days, no charge until the trial ends.
                     </p>
                     <div className="flex flex-wrap gap-3 pt-1">
                         <Link

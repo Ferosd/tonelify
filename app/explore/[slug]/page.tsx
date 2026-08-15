@@ -6,7 +6,7 @@ import { getArtwork } from "@/lib/artwork";
 import { SITE_URL } from "@/lib/site";
 import { confirmationLine } from "@/lib/tone-feedback";
 import { getFeedbackCounts } from "@/lib/tone-feedback-server";
-import { PRICING, FREE_MATCHES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing";
 import { startingPoint, openSettingsSentence, OPEN_SETTING_KEYS, REFERENCE_CAVEAT, type AmpSettings } from "@/lib/tone-settings";
 import { GEAR_CATALOG, gearLabel } from "@/lib/gear-catalog";
 import { ToneSettingsPanel } from "@/components/ToneSettingsPanel";
@@ -107,7 +107,7 @@ function faqs(tone: LibraryTone) {
         },
         {
             q: `Does Tonelify cost anything to try?`,
-            a: `No. The free plan includes ${FREE_MATCHES} tone matches a month and does not ask for a card. Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month.`,
+            a: `Both plans start with a ${TRIAL_DAYS}-day free trial and nothing is charged until it ends. After that it is ${PRICING.stage.month.price} a month for ${PLAN_NAMES.stage} or ${PRICING.month.price} a month for unlimited matching on ${PLAN_NAMES.player}, with yearly working out cheaper on both. Reading this page and the rest of the library costs nothing and needs no account.`,
         },
     ];
 }
@@ -336,7 +336,7 @@ export default async function ToneDetailPage({ params }: Props) {
                             href={adaptHref}
                             className="inline-flex items-center gap-2 min-h-11 text-sm font-bold text-[#F5A623] hover:text-[#FFD700] transition-colors"
                         >
-                            Start matching, 3 free matches a month →
+                            Start matching, {TRIAL_DAYS} days free →
                         </Link>
                     </div>
                 </section>

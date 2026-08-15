@@ -13,23 +13,24 @@
  */
 
 /**
- * Base amounts in dollars. Everything else on this page is derived.
+ * Two plans, each sold monthly or yearly. That is the whole range.
+ *
+ * The week pass and the free tier were both removed in August 2026. The week
+ * pass had the ladder upside down: at $4.99 it was the cheapest thing in the
+ * category while working out at $21.62 a month, so the plan nobody should buy
+ * was the one that looked cheapest, and every visitor comparing prices was
+ * comparing the wrong two numbers.
+ *
+ * The free tier was worse: it was advertised everywhere as three matches a
+ * month while lib/subscription had granted zero since the trial replaced it.
+ * The site was promising something the API refused. A seven-day trial on both
+ * plans does the same job honestly.
  *
  * Set against the category as it stood in August 2026. ToneAdapt sells
  * $6.99/mo capped and $10.99/mo unlimited on the web, $14.99/mo on iOS, and
- * annual plans at $39.99 and $49.99. Guitar Tone Match AI sells $6.99/wk,
- * $14.99/mo, $39.99/yr. Ultimate Guitar Pro, the anchor every guitarist
- * already has a feel for, is $39.99/yr.
- *
- * Against that, these prices have the ladder upside down: the week pass is the
- * cheapest in the category at $4.99 while the yearly plan, the one worth
- * selling, is the most expensive anywhere at $59.99. The plan people should buy
- * costs the most and the plan they should not costs the least. Correcting that
- * is waiting on the matching Stripe prices, because a figure changed here while
- * the environment still points at the old price id would advertise one amount
- * and charge another.
+ * annual plans at $39.99 and $49.99. Ultimate Guitar Pro, the anchor every
+ * guitarist already has a feel for, is $39.99/yr.
  */
-const WEEK_PASS = 4.99;
 const PLAYER_MONTHLY = 12.99;
 const PLAYER_YEARLY = 59.99;
 
@@ -55,20 +56,11 @@ export const STAGE_MATCHES = 20;
 export const STAGE_SAVED_TONES = 15;
 
 /**
- * Matches and saved tones a free account gets each calendar month.
+ * Days of free trial. Both plans, both intervals.
  *
- * Deliberately unchanged. The loudest complaint in ToneAdapt's App Store
- * reviews is that you cannot do anything without paying, and they have no
- * permanent free tier at all. A free plan that actually returns full settings
- * is the wedge. Raising the cap would blunt the only thing that makes anyone
- * subscribe, so the generosity goes into the trial instead, where it converts.
- */
-export const FREE_MATCHES = 3;
-export const FREE_SAVED_TONES = 3;
-
-/**
- * Days of free trial on the monthly and yearly plans. Must stay in step with
- * PLANS.player.trialDays in lib/stripe.ts, which is what Stripe is told.
+ * Must stay in step with trialDays in lib/stripe.ts, which is what Stripe is
+ * actually told. This is now the only way to use the product without paying,
+ * so it carries the weight the free tier used to.
  *
  * Three days was the shortest in the category and did not cover a weekend of
  * working a song up. ToneAdapt gives seven.
@@ -79,19 +71,8 @@ const usd = (n: number) => `$${n.toFixed(2)}`;
 
 /** A year of paying month to month. The anchor the yearly price is sold against. */
 const YEARLY_ANCHOR = PLAYER_MONTHLY * 12;
-/** A year of renewing the week pass. Never a saving, only flexibility. */
-const WEEK_PASS_YEAR = WEEK_PASS * 52;
 
 export const PRICING = {
-    week: {
-        amount: WEEK_PASS,
-        price: usd(WEEK_PASS),
-        per: "/week",
-        /** What a year of renewals costs, so the pass is never mistaken for value. */
-        yearTotal: usd(WEEK_PASS_YEAR),
-        /** The same pass expressed per month, for comparing against Player. */
-        monthlyEquivalent: usd((WEEK_PASS * 52) / 12),
-    },
     month: {
         amount: PLAYER_MONTHLY,
         price: usd(PLAYER_MONTHLY),
@@ -130,20 +111,19 @@ export const PRICING = {
  * Plan names.
  *
  * A ladder a guitarist can feel rather than a rank they have to decode:
- * practising at home, playing out, then headlining. "Beginner" and "Expert"
- * were the old labels and they graded the player instead of describing the
- * plan, which made the cheaper card read as an insult.
+ * playing out, then headlining. "Beginner" and "Expert" were the old labels and
+ * they graded the player instead of describing the plan, which made the cheaper
+ * card read as an insult.
  */
 export const PLAN_NAMES = {
-    free: "Practice",
     stage: "Stage",
     player: "Headliner",
-    weekly: "Week Pass",
 } as const;
 
-/** One sentence covering all three prices, for meta descriptions and llms.txt. */
+/** One sentence covering the whole range, for meta descriptions and llms.txt. */
 export const PRICING_SENTENCE =
-    `Free covers ${FREE_MATCHES} tone matches a month with no card. ` +
-    `Unlimited matching costs ${PRICING.week.price} for a week, ` +
-    `${PRICING.month.price} a month, or ${PRICING.year.price} a year, ` +
-    `which works out at ${PRICING.year.perMonth} a month.`;
+    `${PLAN_NAMES.stage} is ${PRICING.stage.month.price} a month or ` +
+    `${PRICING.stage.year.price} a year. ${PLAN_NAMES.player} is ` +
+    `${PRICING.month.price} a month or ${PRICING.year.price} a year, ` +
+    `which works out at ${PRICING.year.perMonth} a month. ` +
+    `Both start with a ${TRIAL_DAYS}-day free trial and no charge until it ends.`;

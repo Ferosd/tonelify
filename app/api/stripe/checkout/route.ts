@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
 
         // `interval` is the current contract; `annual` is the older boolean and
         // is still honoured so a cached client bundle keeps working.
+        // The weekly branch is gone with the Week Pass: every purchasable plan
+        // is sold on month or year now, so month is the only sensible default.
         const requested: BillingInterval =
-            INTERVALS.includes(interval) ? interval
-                : planId === "weekly" ? "week"
-                    : annual ? "year" : "month";
+            INTERVALS.includes(interval) ? interval : annual ? "year" : "month";
 
         const priceId = getPriceId(planId, requested);
 

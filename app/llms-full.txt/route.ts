@@ -3,7 +3,7 @@ import { GEAR_CATALOG, GEAR_TYPE_LABELS, gearLabel, type GearEntry } from "@/lib
 import { GUIDES, GUIDES_UPDATED } from "@/lib/guides";
 import { startingPoint, openSettingsSentence, REFERENCE_CAVEAT } from "@/lib/tone-settings";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 
 /**
  * The companion to /llms.txt. Where that file is an index, this one is the
@@ -119,13 +119,17 @@ pick attack, string gauge and technique rather than by knob positions.
 
 ## Plans
 
-- ${PLAN_NAMES.free}: ${FREE_MATCHES} tone matches a month, ${FREE_SAVED_TONES} saved tones, full settings, no card required
-- ${PLAN_NAMES.weekly}: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial
-- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+Two plans, each sold monthly or yearly. There is no free tier and no weekly
+pass; both were withdrawn in August 2026.
 
-The paid plans lift the two counters on the free plan. A match itself is
-identical on every plan: the same settings, the same effects chain, the same
-sources. Nothing about the answer is held back for paying accounts.
+- ${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year (${PRICING.stage.year.perMonth} a month), ${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month, ${TRIAL_DAYS}-day free trial
+- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches and saved tones, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+
+What separates the two is how many matches a month they allow, not what a match
+returns. A match itself is identical on both: the same settings, the same
+effects chain, the same sources.
+
+Neither plan charges anything until the ${TRIAL_DAYS}-day trial ends.
 
 Subscriptions are handled by Stripe and can be cancelled from account settings.
 Cancelling stops the next renewal and access runs to the end of the paid period.
