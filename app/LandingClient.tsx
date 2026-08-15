@@ -215,7 +215,7 @@ const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS",
  * The components still refetch on mount, so a freshly posted review shows up
  * without waiting for the hourly revalidate.
  */
-export function LandingClient({ initialReviews, stageAvailable = false }: { initialReviews: StoredReview[]; stageAvailable?: boolean }) {
+export function LandingClient({ initialReviews, stageAvailable = false, playerAvailable = true }: { initialReviews: StoredReview[]; stageAvailable?: boolean; playerAvailable?: boolean }) {
   const navRef            = useRef<HTMLElement>(null)
   const wrapperRef        = useRef<HTMLDivElement>(null)
   const canvasRef         = useRef<HTMLCanvasElement>(null)
@@ -1335,7 +1335,7 @@ export function LandingClient({ initialReviews, stageAvailable = false }: { init
             hand-roll a two-card Free vs Player table that had already drifted
             from the three plans actually on sale. */}
         <div style={{ width: "100%", maxWidth: "1180px", position: "relative", zIndex: 1 }}>
-          <Pricing stageAvailable={stageAvailable} />
+          <Pricing stageAvailable={stageAvailable} playerAvailable={playerAvailable} />
         </div>
       </section>
       )}

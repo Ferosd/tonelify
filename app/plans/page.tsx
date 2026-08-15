@@ -35,10 +35,11 @@ export default async function PlansPage() {
     // Read here rather than in the component: price ids are server-only, and a
     // tier without them must not reach a visitor as a button that cannot pay.
     const stageAvailable = isPlanConfigured("stage");
+    const playerAvailable = isPlanConfigured("player");
 
     return (
         <div className="pt-10 md:pt-20 min-h-screen bg-[#08080C] text-[#F2F0ED]">
-            <Pricing stageAvailable={stageAvailable} />
+            <Pricing stageAvailable={stageAvailable} playerAvailable={playerAvailable} />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
@@ -79,10 +80,10 @@ export default async function PlansPage() {
                                     },
                                 }
                                 : {}),
-                            // Offers mirror the cards exactly, Stage included only
-                            // when it is actually on sale. An engine quoting a
-                            // tier a visitor cannot buy is the same failure as a
-                            // button that cannot pay.
+                            // Offers mirror the cards exactly, each tier included
+                            // only when it is actually on sale. An engine quoting
+                            // a tier a visitor cannot buy is the same failure as
+                            // a button that cannot pay.
                             offers: [
                                 ...(stageAvailable
                                     ? [
@@ -98,16 +99,20 @@ export default async function PlansPage() {
                                         },
                                     ]
                                     : []),
-                                {
-                                    "@type": "Offer", name: `${PLAN_NAMES.player} (Monthly)`, price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
-                                    description: `Unlimited matches and saved tones, ${TRIAL_DAYS}-day free trial`,
-                                    url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                },
-                                {
-                                    "@type": "Offer", name: `${PLAN_NAMES.player} (Yearly)`, price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
-                                    description: `Unlimited matches and saved tones billed yearly, ${TRIAL_DAYS}-day free trial`,
-                                    url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                },
+                                ...(playerAvailable
+                                    ? [
+                                        {
+                                            "@type": "Offer", name: `${PLAN_NAMES.player} (Monthly)`, price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
+                                            description: `Unlimited matches and saved tones, ${TRIAL_DAYS}-day free trial`,
+                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
+                                        },
+                                        {
+                                            "@type": "Offer", name: `${PLAN_NAMES.player} (Yearly)`, price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
+                                            description: `Unlimited matches and saved tones billed yearly, ${TRIAL_DAYS}-day free trial`,
+                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
+                                        },
+                                    ]
+                                    : []),
                             ],
                         },
                         // The billing questions people actually ask before

@@ -115,9 +115,13 @@ const BILLING: Record<"stage" | "player", Record<Billing, {
 /**
  * The pricing table, on /plans and on the signed-in half of the landing page.
  *
- * `stageAvailable` is resolved on the server from whether the Stage tier has
- * real Stripe price ids behind it. The card is not rendered without them: a
- * plan a visitor can see but cannot buy is worse than one tier fewer.
+ * Both flags are resolved on the server from whether that tier has real Stripe
+ * price ids behind it. A card is not rendered without them: a plan a visitor
+ * can see but cannot buy is worse than one tier fewer. Headliner used to be
+ * exempt from that check and rendered unconditionally, so an environment
+ * missing STRIPE_PRICE_PLAYER_* showed a card whose button answered "that plan
+ * isn't available right now", which is the exact failure the check exists to
+ * prevent.
  *
  * Layout note: every card is the same stack of fixed-height slots (ribbon,
  * heading, price, trial, features, CTA) so the three columns line up row for
@@ -126,7 +130,13 @@ const BILLING: Record<"stage" | "player", Record<Billing, {
  * cards that leave them empty. Without that the price numbers sat at three
  * different heights and the eye had to hunt for the comparison.
  */
-export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }) {
+export function Pricing({
+    stageAvailable = false,
+    playerAvailable = true,
+}: {
+    stageAvailable?: boolean
+    playerAvailable?: boolean
+}) {
     const [billing, setBilling] = useState<Billing>("year")
     const [loading, setLoading] = useState<string | null>(null)
     const [portalLoading, setPortalLoading] = useState(false)
@@ -134,9 +144,10 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
     const [currentPlan, setCurrentPlan] = useState<string | null>(null)
     const { isSignedIn } = useUser()
 
-    const tiers: Tier[] = stageAvailable
-        ? [TIERS.stage, TIERS.player]
-        : [TIERS.player]
+    const tiers: Tier[] = [
+        ...(stageAvailable ? [TIERS.stage] : []),
+        ...(playerAvailable ? [TIERS.player] : []),
+    ]
 
     // Subscribers shouldn't be sold a plan they already pay for
     useEffect(() => {
@@ -214,6 +225,12 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
         </button>
     )
 
+    // Nothing is configured, so there is nothing to sell. Rendering the header,
+    // the trial badge and the billing toggle above an empty grid would promise
+    // a plan and then show none, which reads as a broken page rather than a
+    // misconfigured one.
+    if (tiers.length === 0) return null
+
     return (
         <section className="py-16 md:py-24 bg-[#08080C]" id="pricing">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -290,7 +307,7 @@ export function Pricing({ stageAvailable = false }: { stageAvailable?: boolean }
                 )}
 
                 {/* ── PLAN CARDS ──
-                    A ladder read left to right: free, metered, unlimited. The
+                    A ladder read left to right: metered, then unlimited. The
                     grid stretches every card to a common height and each card is
                     the same slot stack inside, so headings, prices, trial boxes
                     and buttons all land on one line. */}
