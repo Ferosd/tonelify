@@ -81,33 +81,41 @@ const BILLING: Record<"stage" | "player", Record<Billing, {
     compare?: string
     off?: string
     saving?: string
+    /** Shown on the monthly card, where there is no saving to report yet. */
+    nudge?: string
 }>> = {
     stage: {
         month: {
             price: PRICING.stage.month.price,
             billed: "Billed monthly, cancel anytime",
+            // The monthly card used to leave this line blank while reserving
+            // its height. Saying what the other interval is worth, in the exact
+            // dollars this tier would save, is the one place on the page where
+            // a visitor is already thinking about the number.
+            nudge: `Pay yearly and keep ${PRICING.stage.year.saving}`,
         },
         year: {
             price: PRICING.stage.year.perMonth,
             annual: `${PRICING.stage.year.price} a year`,
             billed: `${PRICING.stage.year.price} billed once a year`,
             compare: PRICING.stage.month.yearTotal,
-            off: `${PRICING.stage.year.percentOff}% OFF`,
-            saving: `Save ${PRICING.stage.year.saving} a year`,
+            off: `SAVE ${PRICING.stage.year.percentOff}%`,
+            saving: `${PRICING.stage.year.saving} back in your pocket every year`,
         },
     },
     player: {
         month: {
             price: PRICING.month.price,
             billed: "Billed monthly, cancel anytime",
+            nudge: `Pay yearly and keep ${PRICING.year.saving}`,
         },
         year: {
             price: PRICING.year.perMonth,
             annual: `${PRICING.year.price} a year`,
             billed: `${PRICING.year.price} billed once a year`,
             compare: PRICING.month.yearTotal,
-            off: `${PRICING.year.percentOff}% OFF`,
-            saving: `Save ${PRICING.year.saving} a year`,
+            off: `SAVE ${PRICING.year.percentOff}%`,
+            saving: `${PRICING.year.saving} back in your pocket every year`,
         },
     },
 }
@@ -268,7 +276,11 @@ export function Pricing({
                     <div className="flex items-center bg-[#12121A] p-1.5 rounded-full border border-white/8">
                         {([
                             { id: "month" as const, label: "Monthly" },
-                            { id: "year" as const, label: "Yearly", badge: `SAVE ${PRICING.year.percentOff}%` },
+                        // "up to" because the toggle governs both tiers and they
+                            // discount differently: Headliner saves the larger
+                            // share, Stage a little less. Quoting the bigger one
+                            // flat would overstate what a Stage buyer gets.
+                            { id: "year" as const, label: "Yearly", badge: `SAVE UP TO ${PRICING.year.percentOff}%` },
                         ]).map((b) => (
                             <button
                                 key={b.id}
@@ -393,7 +405,10 @@ export function Pricing({
                                                         {b.compare}
                                                     </span>
                                                     {b.off && (
-                                                        <span className="bg-[#D14B32] text-[#F2F0ED] text-[10px] font-black px-2.5 py-1 rounded-full tracking-wider">
+                                                        <span
+                                                            className="text-[#08080C] text-xs font-black px-3 py-1 rounded-full tracking-wider shadow-sm shadow-[#D14B32]/30"
+                                                            style={{ background: "linear-gradient(135deg, #F5A623 0%, #D14B32 100%)" }}
+                                                        >
                                                             {b.off}
                                                         </span>
                                                     )}
@@ -412,8 +427,15 @@ export function Pricing({
                                             )}
                                         </div>
                                         <p className="text-sm text-[#A6A29B] mt-2.5 h-5">{b.billed}</p>
-                                        <p className="text-sm text-[#F5A623] font-semibold mt-1 h-5">
-                                            {b.saving ?? ""}
+                                        {/* One line, always present so the two
+                                            cards stay level: what the year saves
+                                            on the yearly card, what switching
+                                            would save on the monthly one. */}
+                                        <p className={cn(
+                                            "text-sm font-semibold mt-1 h-5",
+                                            b.saving ? "text-[#F5A623]" : "text-[#8A8494]"
+                                        )}>
+                                            {b.saving ?? b.nudge ?? ""}
                                         </p>
                                     </motion.div>
 

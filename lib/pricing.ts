@@ -30,18 +30,24 @@
  * $6.99/mo capped and $10.99/mo unlimited on the web, $14.99/mo on iOS, and
  * annual plans at $39.99 and $49.99. Ultimate Guitar Pro, the anchor every
  * guitarist already has a feel for, is $39.99/yr.
+ *
+ * Both tiers now sit exactly on those figures. Headliner came down from
+ * $12.99/$59.99 in August 2026: being the dearer unlimited plan bought nothing
+ * while the product was the less known of the two, and the yearly price is
+ * where the argument is won anyway. At $49.99 against twelve months of $10.99
+ * the yearly saving is 62%, which is a number worth putting on the page.
  */
-const PLAYER_MONTHLY = 12.99;
-const PLAYER_YEARLY = 59.99;
+const PLAYER_MONTHLY = 10.99;
+const PLAYER_YEARLY = 49.99;
 
 /**
  * The Stage tier: the metered plan that sits between Practice and Headliner.
  *
  * Set against the same category the block above describes. ToneAdapt's lower
  * tier is $6.99 a month and $39.99 a year, and matching it puts a real ladder
- * under the range for the first time: $0, then $6.99, then $12.99. The old
- * shape had one paid price and a week pass that cost more per month than
- * either, so there was nothing to step up from.
+ * under the range for the first time: $6.99 for a counter, $10.99 for none.
+ * The old shape had one paid price and a week pass that cost more per month
+ * than either, so there was nothing to step up from.
  *
  * Nothing here can charge anyone. Checkout resolves the Stripe price from
  * STRIPE_PRICE_STAGE_MONTHLY and STRIPE_PRICE_STAGE_ANNUAL, and the tier stays
