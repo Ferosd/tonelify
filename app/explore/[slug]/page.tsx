@@ -7,6 +7,11 @@ import { SITE_URL } from "@/lib/site";
 import { confirmationLine } from "@/lib/tone-feedback";
 import { getFeedbackCounts } from "@/lib/tone-feedback-server";
 import { PRICING, FREE_MATCHES } from "@/lib/pricing";
+import { startingPoint, openSettingsSentence, OPEN_SETTING_KEYS, REFERENCE_CAVEAT, type AmpSettings } from "@/lib/tone-settings";
+import { GEAR_CATALOG, gearLabel } from "@/lib/gear-catalog";
+import { ToneSettingsPanel } from "@/components/ToneSettingsPanel";
+import { LikeButton } from "@/components/LikeButton";
+import { getLikeState } from "@/lib/tone-likes-server";
 
 // Six hours. The page content is a fixed library entry, but the confirmation
 // count under the title moves, and a day-old number reads as a stale page.
@@ -24,8 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     const tone = getToneBySlug(slug);
     if (!tone) return {};
-    const title = `${tone.title} by ${tone.artist}: Guitar Tone Settings`;
-    const description = `How to get the ${tone.title} guitar tone on your own amp: ${tone.character.toLowerCase()}. Original rig, tone character, and AI-adapted settings for your exact gear.`;
+    const title = `${tone.title} Amp Settings and Guitar Tone`;
+    // The snippet carries the actual numbers. A description that only promises
+    // settings loses the click to one that shows them.
+    const sp = startingPoint(tone);
+    // Only the open half. The locked knobs must not appear anywhere a crawler
+    // reads, and a meta description is the first thing one reads.
+    const description = `${tone.title} by ${tone.artist}: start at ${openSettingsSentence(sp.settings)} on a five-knob amp. Original rig, the full EQ curve, and the same tone rewritten for the amp you own.`;
     const url = `${SITE_URL}/explore/${tone.id}`;
     const artwork = await getArtwork(tone.title, tone.artist);
     const images = artwork ? [artwork] : ["/og-image.png"];
@@ -72,10 +82,20 @@ function toneShape(tone: LibraryTone): string {
  */
 function faqs(tone: LibraryTone) {
     const gear = tone.originalGear.charAt(0).toLowerCase() + tone.originalGear.slice(1);
+    const sp = startingPoint(tone);
     return [
         {
             q: `What amp settings do you need for ${tone.title}?`,
-            a: `There is no single set of numbers, because the settings depend on the amp in front of you. A high-gain head and a small solid-state combo reach the same ${tone.character.toLowerCase()} in different positions. Tonelify takes your amp and guitar and returns the gain, bass, mids, treble and presence values for that specific rig.`,
+            // The numbers come first because this is the answer the question is
+            // actually asking for, and a passage that opens with a caveat gets
+            // skipped by every engine looking for something to quote. Only the
+            // open half is stated: the locked values are absent from this text
+            // rather than blanked, so nothing here is a wrong number.
+            a: `On a generic five-knob amp, start at ${openSettingsSentence(sp.settings)}, with the ${sp.pickup.toLowerCase()}. ${REFERENCE_CAVEAT} The middle, treble, presence and reverb positions for this tone come with a Tonelify plan, along with the same values rewritten for the specific amp and guitar you own, because a high-gain head and a small solid-state combo reach the same ${tone.character.toLowerCase()} from different positions.`,
+        },
+        {
+            q: `What is the most important control for the ${tone.title} tone?`,
+            a: `It is rarely the gain knob. Every style in the library has one control that decides whether the tone lands, and for ${tone.genre.toLowerCase()} it is named on this page for players on a plan, with a sentence on where to put it and why.`,
         },
         {
             q: `Can you get the ${tone.title} tone without the original gear?`,
@@ -90,6 +110,27 @@ function faqs(tone: LibraryTone) {
             a: `No. The free plan includes ${FREE_MATCHES} tone matches a month and does not ask for a card. Unlimited matching starts at ${PRICING.week.price} for a week pass, or ${PRICING.month.price} a month.`,
         },
     ];
+}
+
+/**
+ * Amps worth offering as the next click, chosen by what the style is usually
+ * played through. The point is a link from a song page into a gear page: the
+ * two page types had no edges between them at all, which left 123 gear pages
+ * reachable only from the /gear index.
+ */
+const AMPS_BY_MOOD: Record<string, string[]> = {
+    highGain: ["peavey-6505-plus", "mesa-boogie-dual-rectifier", "boss-katana-50-mkii", "marshall-dsl40cr"],
+    rock: ["marshall-jcm800-2203", "marshall-dsl40cr", "marshall-origin-20c", "boss-katana-50-mkii"],
+    clean: ["fender-65-deluxe-reverb", "fender-blues-junior-iv", "vox-ac15c1", "boss-katana-50-mkii"],
+};
+
+const HIGH_GAIN_GENRES = new Set(["Thrash Metal", "Groove Metal", "Metalcore", "Metal", "Alt Metal"]);
+
+function suggestedAmps(tone: LibraryTone) {
+    const mood = tone.tone === "Clean" ? "clean" : HIGH_GAIN_GENRES.has(tone.genre) ? "highGain" : "rock";
+    return AMPS_BY_MOOD[mood]
+        .map((id) => GEAR_CATALOG.find((g) => g.id === id))
+        .filter((g): g is NonNullable<typeof g> => Boolean(g));
 }
 
 const badge = (text: string, accent = false) => (
@@ -116,6 +157,16 @@ export default async function ToneDetailPage({ params }: Props) {
     // engine has a reason to cite.
     const confirmations = confirmationLine(await getFeedbackCounts(tone.title, tone.artist));
     const adaptHref = `/tone-match?song=${encodeURIComponent(tone.title)}&artist=${encodeURIComponent(tone.artist)}`;
+    const sp = startingPoint(tone);
+    const amps = suggestedAmps(tone);
+    // Only these reach the browser from the server. Everything else in
+    // sp.settings stays on this side of the wire.
+    const openSettings: Partial<AmpSettings> = Object.fromEntries(
+        OPEN_SETTING_KEYS.map((k) => [k, sp.settings[k]])
+    );
+    // Count only. The `liked` half is per account and this page is cached, so
+    // the button resolves that itself after hydration.
+    const likes = await getLikeState(tone.title, tone.artist);
 
     return (
         <div className="min-h-screen bg-[#08080C] pb-24 md:pb-20 font-sans">
@@ -161,12 +212,20 @@ export default async function ToneDetailPage({ params }: Props) {
                                 {confirmations}
                             </p>
                         )}
-                        <Link
-                            href={adaptHref}
-                            className="inline-flex items-center gap-2 h-12 px-8 rounded-full bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold text-sm shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105"
-                        >
-                            ⚡ Adapt to My Gear
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Link
+                                href={adaptHref}
+                                className="inline-flex items-center gap-2 h-12 px-8 rounded-full bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold text-sm shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105"
+                            >
+                                ⚡ Adapt to My Gear
+                            </Link>
+                            <LikeButton
+                                songTitle={tone.title}
+                                artist={tone.artist}
+                                slug={tone.id}
+                                initial={likes}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -191,6 +250,54 @@ export default async function ToneDetailPage({ params }: Props) {
                         a small practice amp reach the same voicing from different knob positions. That translation
                         is what Tonelify works out for the rig you actually own.
                     </p>
+                </section>
+
+                {/* Reference starting point. This is the block the page exists to
+                    own: the competing articles that rank for "<song> amp settings"
+                    all print numbers, and a passage with no figure in it does not
+                    get quoted. The reference panel is named in the caveat so the
+                    numbers stay a checkable claim rather than a claim about the
+                    record. */}
+                <section className="bg-[#12121A] border border-[#F5A623]/20 rounded-2xl p-6 md:p-8 space-y-5">
+                    <div className="space-y-2">
+                        <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                            {tone.title} amp settings: a starting point
+                        </h2>
+                        <p className="text-[#F2F0ED] leading-relaxed">
+                            On a generic five-knob amp, start at {openSettingsSentence(sp.settings)},
+                            with the {sp.pickup.toLowerCase()}.
+                        </p>
+                    </div>
+
+                    {/* The knob grid, the pedal order and the key control are
+                        rendered client side and fetched per account, so the
+                        locked values are not in this page's HTML for anyone,
+                        signed in or not. See components/ToneSettingsPanel. */}
+                    <div id="tone-settings-locked">
+                        <ToneSettingsPanel slug={tone.id} openSettings={openSettings} />
+                    </div>
+
+                    <dl className="text-sm">
+                        <dt className="text-[10px] font-bold uppercase tracking-widest text-[#8A8494]">Pickup</dt>
+                        <dd className="text-[#A6A29B] leading-relaxed mt-1">{sp.pickup}</dd>
+                    </dl>
+
+                    <p className="text-xs text-[#8A8494] leading-relaxed border-t border-white/8 pt-4">
+                        {REFERENCE_CAVEAT} If you tell Tonelify which amp you own, it rewrites
+                        every value above for the controls that amp actually has.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                        {amps.map((amp) => (
+                            <Link
+                                key={amp.id}
+                                href={`/gear/${amp.id}`}
+                                className="inline-flex items-center min-h-11 px-4 rounded-full bg-[#08080C] border border-white/10 text-sm text-[#A6A29B] hover:text-[#F5A623] hover:border-[#F5A623]/40 transition-colors"
+                            >
+                                {gearLabel(amp)}
+                            </Link>
+                        ))}
+                    </div>
                 </section>
 
                 {/* Original rig */}
@@ -295,6 +402,66 @@ export default async function ToneDetailPage({ params }: Props) {
                             dateModified: LIBRARY_UPDATED,
                             ...(artwork ? { image: artwork } : {}),
                             author: { "@type": "Organization", name: "Tonelify", url: SITE_URL },
+                            // Declaring the paywall is what keeps this the right
+                            // side of cloaking. Google's rule is that a page may
+                            // show a crawler less than a subscriber sees, as long
+                            // as it says so and points at the region that differs.
+                            isAccessibleForFree: false,
+                            hasPart: {
+                                "@type": "WebPageElement",
+                                isAccessibleForFree: false,
+                                cssSelector: "#tone-settings-locked",
+                            },
+                        },
+                        // The starting point again, as steps. HowTo is what an
+                        // engine looks for behind a "how do I get X" query, and
+                        // it carries the numbers into the structured payload so
+                        // they are readable without parsing the prose.
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "HowTo",
+                            name: `How to get the ${tone.title} guitar tone`,
+                            description: `A reference starting point for the ${tone.title} tone on a five-knob amp, and how to translate it to your own rig.`,
+                            totalTime: "PT5M",
+                            supply: [
+                                { "@type": "HowToSupply", name: "An electric guitar" },
+                                { "@type": "HowToSupply", name: "A guitar amplifier with gain, bass, middle and treble controls" },
+                            ],
+                            step: [
+                                {
+                                    "@type": "HowToStep",
+                                    position: 1,
+                                    name: "Select the pickup",
+                                    text: `${sp.pickup}. Pickup output and position change how hard the front of the amp is driven, so this is set before the amp is touched.`,
+                                    url: `${SITE_URL}/explore/${tone.id}`,
+                                },
+                                // Steps 2 to 4 state what is done, not the locked
+                                // values. Putting them here would publish the
+                                // paywalled half in a machine-readable block,
+                                // which is the same leak as printing it.
+                                {
+                                    "@type": "HowToStep",
+                                    position: 2,
+                                    name: "Set the gain and the low end",
+                                    text: `On a generic five-knob amp, start at ${openSettingsSentence(sp.settings)}. ${REFERENCE_CAVEAT}`,
+                                    url: `${SITE_URL}/explore/${tone.id}`,
+                                },
+                                {
+                                    "@type": "HowToStep",
+                                    position: 3,
+                                    name: "Set the EQ curve and the effects order",
+                                    text: `The middle, treble, presence and reverb positions and the pedal order for this tone are part of a Tonelify plan, and are shown on this page once you are on one.`,
+                                    url: `${SITE_URL}/explore/${tone.id}`,
+                                },
+                                {
+                                    "@type": "HowToStep",
+                                    position: 4,
+                                    name: "Adjust for your own amp",
+                                    text: `Different amps reach this voicing from different positions, so enter your own amp and guitar at ${SITE_URL}/tone-match to get the values rewritten for that rig.`,
+                                    url: `${SITE_URL}/tone-match`,
+                                },
+                            ],
+                            publisher: { "@id": `${SITE_URL}/#organization` },
                         },
                         {
                             "@context": "https://schema.org",

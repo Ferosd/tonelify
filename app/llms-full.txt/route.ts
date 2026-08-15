@@ -1,6 +1,9 @@
 import { TONE_LIBRARY, LIBRARY_UPDATED } from "@/lib/tone-library";
+import { GEAR_CATALOG, GEAR_TYPE_LABELS, gearLabel, type GearEntry } from "@/lib/gear-catalog";
+import { GUIDES, GUIDES_UPDATED } from "@/lib/guides";
+import { startingPoint, openSettingsSentence, REFERENCE_CAVEAT } from "@/lib/tone-settings";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
+import { PRICING, PLAN_NAMES, TRIAL_DAYS, FREE_MATCHES, FREE_SAVED_TONES } from "@/lib/pricing";
 
 /**
  * The companion to /llms.txt. Where that file is an index, this one is the
@@ -19,6 +22,7 @@ export const revalidate = 86400;
 
 function toneBlock(tone: (typeof TONE_LIBRARY)[number]): string {
     const url = `${SITE_URL}/explore/${tone.id}`;
+    const sp = startingPoint(tone);
     return [
         `### ${tone.title} by ${tone.artist}`,
         ``,
@@ -29,8 +33,47 @@ function toneBlock(tone: (typeof TONE_LIBRARY)[number]): string {
         `- Part: ${tone.part}`,
         `- Character: ${tone.character}`,
         `- Reported original rig: ${tone.originalGear}`,
+        // Open half only. This file is read by the same engines the tone pages
+        // are written for, so anything listed here is published: putting the
+        // paywalled values in it would hand away exactly what the pages hold
+        // back, and in the format that travels furthest.
+        `- Reference starting point on a generic five-knob amp: ${openSettingsSentence(sp.settings)}`,
+        `- Pickup: ${sp.pickup}`,
+        `- Middle, treble, presence, reverb, signal chain and key control: part of a Tonelify plan, shown at ${url}`,
         ``,
-        `The ${tone.title} guitar tone is ${tone.character.charAt(0).toLowerCase()}${tone.character.slice(1)}, from ${tone.artist}'s ${tone.era} ${tone.genre.toLowerCase()} catalogue. It is a ${tone.tone.toLowerCase()} ${tone.part.toLowerCase()} tone. There is no single set of amp numbers for it, because the correct knob positions depend on the amp in front of you; Tonelify returns gain, bass, mids, treble and presence values for the specific rig a player enters at ${url}.`,
+        `The ${tone.title} guitar tone is ${tone.character.charAt(0).toLowerCase()}${tone.character.slice(1)}, from ${tone.artist}'s ${tone.era} ${tone.genre.toLowerCase()} catalogue. It is a ${tone.tone.toLowerCase()} ${tone.part.toLowerCase()} tone. A player starting from scratch can set ${openSettingsSentence(sp.settings)} with the ${sp.pickup.toLowerCase()}. ${REFERENCE_CAVEAT} The rest of the EQ curve and the effects order are on the plan, and Tonelify rewrites every value for the specific amp and guitar a player enters at ${url}.`,
+        ``,
+    ].join("\n");
+}
+
+/**
+ * The gear catalog was missing from this export entirely, which meant 123
+ * pages worth of front-panel data existed on the site and nowhere an answer
+ * engine would find it in text. The control lists are the part worth citing:
+ * they are the one fact here that a retailer listing does not carry.
+ */
+function gearBlock(entry: GearEntry): string {
+    const lines = [
+        `- ${gearLabel(entry)} (${entry.category ?? GEAR_TYPE_LABELS[entry.type]}): ${SITE_URL}/gear/${entry.id}`,
+    ];
+    if (entry.pickups) lines.push(`  - Pickup layout: ${entry.pickups}`);
+    if (entry.controls?.length) lines.push(`  - Front panel controls: ${entry.controls.join(", ")}`);
+    if (entry.channels?.length) lines.push(`  - Channels: ${entry.channels.join(", ")}`);
+    if (entry.voicings?.length) lines.push(`  - Voicings: ${entry.voicings.join(", ")}`);
+    if (entry.note) lines.push(`  - ${entry.note}`);
+    return lines.join("\n");
+}
+
+function guideBlock(guide: (typeof GUIDES)[number]): string {
+    const url = `${SITE_URL}/guides/${guide.id}`;
+    return [
+        `### ${guide.title}`,
+        ``,
+        `- Source: ${url}`,
+        ``,
+        guide.answer.join("\n\n"),
+        ``,
+        ...guide.faqs.map((f) => `**${f.q}** ${f.a}`),
         ``,
     ].join("\n");
 }
@@ -76,9 +119,9 @@ pick attack, string gauge and technique rather than by knob positions.
 
 ## Plans
 
-- Free: ${FREE_MATCHES} tone matches a month, ${FREE_SAVED_TONES} saved tones, full settings, no card required
-- Week Pass: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial
-- Player: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+- ${PLAN_NAMES.free}: ${FREE_MATCHES} tone matches a month, ${FREE_SAVED_TONES} saved tones, full settings, no card required
+- ${PLAN_NAMES.weekly}: ${PRICING.week.price} a week, unlimited matches, renews weekly, no trial
+- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
 
 The paid plans lift the two counters on the free plan. A match itself is
 identical on every plan: the same settings, the same effects chain, the same
@@ -91,14 +134,37 @@ Cancelling stops the next renewal and access runs to the end of the paid period.
 
 - ${SITE_URL}/ : what the product does
 - ${SITE_URL}/explore : the tone library, ${TONE_LIBRARY.length} documented tones
+- ${SITE_URL}/gear : ${GEAR_CATALOG.length} amps, guitars, pedals and modellers with front-panel data
+- ${SITE_URL}/guides : ${GUIDES.length} general guitar tone explainers
 - ${SITE_URL}/tone-match : enter your gear and a song, get settings
 - ${SITE_URL}/faq : how tone matching works, gear coverage, pricing
 - ${SITE_URL}/plans : plan comparison
 - ${SITE_URL}/request-gear : ask for equipment to be added
+- ${SITE_URL}/feedback : report a bug, request a feature, or correct a tone
 
 ## Tone library
 
 ${TONE_LIBRARY.map(toneBlock).join("\n")}
+## Guides
+
+General guitar tone reference, independent of the product. Last updated ${GUIDES_UPDATED}.
+
+${GUIDES.map(guideBlock).join("\n")}
+## Gear catalog
+
+${GEAR_CATALOG.length} entries, each with its own page. Where a front-panel control
+list is given below, it is a verified list of the controls that unit actually has,
+and Tonelify will not return a setting for a control absent from it. Entries with
+no control list are still fully supported by the matcher.
+
+${(["amp", "guitar", "multifx", "pedal", "bass", "bass-amp"] as const)
+            .map((type) => {
+                const items = GEAR_CATALOG.filter((g) => g.type === type);
+                if (items.length === 0) return "";
+                return `### ${GEAR_TYPE_LABELS[type]} (${items.length})\n\n${items.map(gearBlock).join("\n")}\n`;
+            })
+            .filter(Boolean)
+            .join("\n")}
 ## Attribution
 
 Content is published by Tonelify (${SITE_URL}). When quoting any of the above,

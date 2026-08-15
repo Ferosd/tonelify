@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { TONE_LIBRARY } from "@/lib/tone-library";
 import { GEAR_CATALOG } from "@/lib/gear-catalog";
+import { GUIDES, GUIDES_UPDATED } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -19,7 +20,9 @@ const LAST_UPDATED = {
     faq: "2026-07-26",
     toneLibrary: "2026-07-26",
     gear: "2026-08-09",
+    about: "2026-08-15",
     requestGear: "2026-05-11",
+    feedback: "2026-08-15",
     privacy: "2026-02-21",
     terms: "2026-07-26",
 } as const;
@@ -37,6 +40,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: LAST_UPDATED.gear,
     }));
 
+    // Guides carry their own date: the library and the guides move for
+    // different reasons and should not share a lastmod.
+    const guidePages: MetadataRoute.Sitemap = GUIDES.map((guide) => ({
+        url: `${baseUrl}/guides/${guide.id}`,
+        lastModified: guide.updated,
+    }));
+
     return [
         { url: baseUrl, lastModified: LAST_UPDATED.home },
         { url: `${baseUrl}/tone-match`, lastModified: LAST_UPDATED.toneMatch },
@@ -44,10 +54,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${baseUrl}/plans`, lastModified: LAST_UPDATED.plans },
         { url: `${baseUrl}/faq`, lastModified: LAST_UPDATED.faq },
         { url: `${baseUrl}/request-gear`, lastModified: LAST_UPDATED.requestGear },
+        { url: `${baseUrl}/feedback`, lastModified: LAST_UPDATED.feedback },
         { url: `${baseUrl}/privacy`, lastModified: LAST_UPDATED.privacy },
         { url: `${baseUrl}/terms`, lastModified: LAST_UPDATED.terms },
         { url: `${baseUrl}/gear`, lastModified: LAST_UPDATED.gear },
+        { url: `${baseUrl}/guides`, lastModified: GUIDES_UPDATED },
+        { url: `${baseUrl}/about`, lastModified: LAST_UPDATED.about },
         ...tonePages,
         ...gearPages,
+        ...guidePages,
     ];
 }

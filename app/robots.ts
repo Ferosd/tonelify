@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/site";
 // Signed-in surfaces and auth screens. Nothing here is useful in a result page,
 // and most of it redirects to sign-in for a crawler anyway.
 // No trailing slashes: "/sign-in/" does not match the real path "/sign-in".
-const PRIVATE = ["/api", "/dashboard", "/settings", "/collection", "/sign-in", "/sign-up"];
+const PRIVATE = ["/api", "/admin", "/dashboard", "/settings", "/collection", "/sign-in", "/sign-up"];
 
 /**
  * Answer engines send their own agents, and several of them read robots.txt

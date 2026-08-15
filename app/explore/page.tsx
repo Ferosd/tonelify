@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { ExploreContent } from "@/components/ExploreContent";
 import { getLibraryArtwork } from "@/lib/artwork";
+import { TONE_LIBRARY, LIBRARY_UPDATED } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
+import { songKey } from "@/lib/tone-likes";
+import { getLikeCountsFor } from "@/lib/tone-likes-server";
 
-export const revalidate = 86400;
+// Six hours, down from a day: the artwork and the entries are fixed, but the
+// like counts on the cards move, and a day-old number reads as a dead page.
+export const revalidate = 21600;
 
 export const metadata: Metadata = {
     title: "Explore Tones: Iconic Guitar Tones Library",
@@ -22,6 +27,12 @@ export const metadata: Metadata = {
 export default async function ExplorePage() {
     const covers = await getLibraryArtwork();
 
+    // One round trip for the whole grid, keyed back to the slug the cards use.
+    const likeCounts = await getLikeCountsFor(TONE_LIBRARY);
+    const likes = Object.fromEntries(
+        TONE_LIBRARY.map((t) => [t.id, likeCounts.get(songKey(t.title, t.artist)) ?? 0])
+    );
+
     return (
         <div className="min-h-screen bg-[#08080C] pb-28 md:pb-20 font-sans">
             {/* Compact on phones so the sleeves land above the fold; full marketing
@@ -37,18 +48,44 @@ export default async function ExplorePage() {
                     Pick a tone, adapt it to your gear in one tap
                 </p>
             </div>
-            <ExploreContent covers={covers} />
+            <ExploreContent covers={covers} likes={likes} />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "BreadcrumbList",
-                        itemListElement: [
-                            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-                            { "@type": "ListItem", position: 2, name: "Explore Tones", item: `${SITE_URL}/explore` },
-                        ],
-                    }),
+                    __html: JSON.stringify([
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "BreadcrumbList",
+                            itemListElement: [
+                                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                                { "@type": "ListItem", position: 2, name: "Explore Tones", item: `${SITE_URL}/explore` },
+                            ],
+                        },
+                        // The grid itself is rendered by a client component, so the
+                        // only machine-readable record of what is in the library was
+                        // whatever survived the crawler's JavaScript budget. This
+                        // puts all 24 entries and their URLs in the first payload.
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "CollectionPage",
+                            "@id": `${SITE_URL}/explore`,
+                            name: "Guitar tone library",
+                            url: `${SITE_URL}/explore`,
+                            dateModified: LIBRARY_UPDATED,
+                            isPartOf: { "@id": `${SITE_URL}/#website` },
+                            publisher: { "@id": `${SITE_URL}/#organization` },
+                            mainEntity: {
+                                "@type": "ItemList",
+                                numberOfItems: TONE_LIBRARY.length,
+                                itemListElement: TONE_LIBRARY.map((tone, i) => ({
+                                    "@type": "ListItem",
+                                    position: i + 1,
+                                    url: `${SITE_URL}/explore/${tone.id}`,
+                                    name: `${tone.title} by ${tone.artist}`,
+                                })),
+                            },
+                        },
+                    ]),
                 }}
             />
         </div>

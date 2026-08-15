@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Flame, Sparkles, Search, Music, Zap } from "lucide-react"
+import { Flame, Sparkles, Search, Music, Zap, Heart } from "lucide-react"
 import { TONE_LIBRARY, type LibraryTone } from "@/lib/tone-library"
+import { likeLabel } from "@/lib/tone-likes"
 
 type ToneFilter = "All" | "Clean" | "Distorted"
 type PartFilter = "All" | "Riff" | "Solo"
@@ -16,8 +17,10 @@ function fallbackGradient(id: string) {
     return `linear-gradient(135deg, hsl(${28 + shift}, 78%, 42%) 0%, hsl(${10 + shift}, 62%, 32%) 100%)`
 }
 
-function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
+function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: string; likes?: number }) {
     const clean = tone.tone === "Clean"
+    // Null below the visibility floor, so a young library never prints "1"
+    const likeCount = likeLabel({ count: likes, liked: false })
     return (
         <Link
             href={`/explore/${tone.id}`}
@@ -45,6 +48,13 @@ function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
                     className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
                     style={{ background: "linear-gradient(to top, rgba(6,6,9,0.88) 0%, rgba(6,6,9,0.35) 45%, transparent 100%)" }}
                 />
+
+                {likeCount && (
+                    <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-[#08080C]/70 text-[#E8712A] border border-[#D14B32]/40 whitespace-nowrap">
+                        <Heart className="h-3 w-3" fill="currentColor" />
+                        {likeCount}
+                    </span>
+                )}
 
                 <span
                     className={`absolute bottom-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border whitespace-nowrap ${clean
@@ -78,8 +88,14 @@ function ToneCard({ tone, cover }: { tone: LibraryTone; cover?: string }) {
     )
 }
 
-/** `covers` is resolved on the server so artwork is in the first paint. */
-export function ExploreContent({ covers = {} }: { covers?: Record<string, string> }) {
+/** `covers` and `likes` are resolved on the server so both are in the first paint. */
+export function ExploreContent({
+    covers = {},
+    likes = {},
+}: {
+    covers?: Record<string, string>
+    likes?: Record<string, number>
+}) {
     const [toneFilter, setToneFilter] = useState<ToneFilter>("All")
     const [partFilter, setPartFilter] = useState<PartFilter>("All")
     const [query, setQuery] = useState("")
@@ -146,7 +162,7 @@ export function ExploreContent({ covers = {} }: { covers?: Record<string, string
             {filtered.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
                     {filtered.map((tone) => (
-                        <ToneCard key={tone.id} tone={tone} cover={covers[tone.id]} />
+                        <ToneCard key={tone.id} tone={tone} cover={covers[tone.id]} likes={likes[tone.id]} />
                     ))}
                 </div>
             ) : (
