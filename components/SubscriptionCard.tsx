@@ -80,14 +80,19 @@ export function SubscriptionCard({
                         <span className="font-semibold text-[#F5A623]">{planName}</span>
                     </div>
 
+                    {/* With no free tier, an account without a plan has a limit
+                        of zero, and "0 / 0 matches used" reads as a broken
+                        counter rather than as the reason nothing runs. */}
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Matches used</span>
+                        <span className="text-muted-foreground">Matches</span>
                         <span className="font-medium">
-                            {matchesUsed} / {unlimited ? "∞" : matchLimit}
+                            {!isPaid
+                                ? "Needs a plan"
+                                : `${matchesUsed} / ${unlimited ? "∞" : matchLimit}`}
                         </span>
                     </div>
 
-                    {!unlimited && (
+                    {isPaid && !unlimited && (
                         <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
                             <div
                                 className="h-full rounded-full bg-[#E8712A]"

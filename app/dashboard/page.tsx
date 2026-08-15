@@ -16,7 +16,10 @@ import { getUserSubscription } from "@/lib/subscription";
 import { PLANS } from "@/lib/stripe";
 
 export const metadata: Metadata = {
-    title: "Collection: Your Saved Tones & Equipment",
+    // This is where Stripe returns a customer after checkout, so the tab title
+    // is the first word they read after paying. It used to carry the Collection
+    // page's title.
+    title: "Dashboard",
     description: "View your matched tones, saved equipment profiles, and subscription status on Tonelify.",
     alternates: {
         canonical: "/dashboard",
@@ -113,7 +116,10 @@ export default async function Dashboard() {
                     {/* Stats / Subscription Card */}
                     <SubscriptionCard
                         plan={subscription.plan}
-                        planName={PLANS[subscription.plan]?.name || "Free"}
+                        // "Free" named a tier that no longer exists. An account
+                        // with no subscription has no plan, which is what it
+                        // should say.
+                        planName={PLANS[subscription.plan]?.name || "No plan"}
                         status={subscription.status}
                         matchesUsed={subscription.matchesUsed}
                         matchLimit={subscription.matchLimit}

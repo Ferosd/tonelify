@@ -50,7 +50,7 @@ export function SettingsContent({ subscription, planName, counts }: SettingsCont
                             <h1 className="text-xl md:text-2xl font-bold">{user.username || user.fullName}</h1>
                             <p className="text-white/70 text-sm mb-2">{user.primaryEmailAddress?.emailAddress}</p>
                             <Badge className="w-fit bg-white/20 hover:bg-white/20 text-white border-0 capitalize">
-                                {subscription.plan === 'free' ? 'Free Account' : `${planName} Plan`}
+                                {subscription.plan === 'free' ? 'No plan' : `${planName} Plan`}
                             </Badge>
                         </div>
                     </div>

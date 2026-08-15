@@ -57,14 +57,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Check match limit
-        const { allowed, subscription } = await canUserMatch(userId);
+        // Check match limit. An account with no plan and an account that has
+        // spent a metered plan are both blocked here, but they are not the same
+        // situation and must not read the same: `locked` lets the client send
+        // one to /plans to subscribe and the other to /plans to move up.
+        const { allowed, subscription, reason } = await canUserMatch(userId);
         if (!allowed) {
+            const noPlan = reason === "no-plan";
             return NextResponse.json(
                 {
-                    error: "Match limit reached",
+                    error: noPlan ? "Subscription required" : "Match limit reached",
+                    locked: noPlan ? "no-plan" : "quota",
                     subscription,
-                    message: `You've used all ${subscription.matchLimit} matches this month. Upgrade your plan for more.`,
+                    message: noPlan
+                        ? "Tone matching is part of a Tonelify plan. Pick one to start matching, and cancel whenever you like."
+                        : `You've used all ${subscription.matchLimit} matches this month. Move up a plan for more.`,
                 },
                 { status: 403 }
             );
@@ -98,11 +105,22 @@ export async function POST(req: NextRequest) {
         // Hash keeps Redis keys bounded regardless of input length.
         // v5: the payload gained `sources` and `provenance`, and a v4 entry
         // would replay without them for a week.
-        const cacheKey = `tone-match:v5:${createHash("sha256").update(cachePayload).digest("hex")}`;
+        const requestHash = createHash("sha256").update(cachePayload).digest("hex");
+        const cacheKey = `tone-match:v5:${requestHash}`;
 
         const cachedResult = await redis.get(cacheKey);
         if (cachedResult) {
-            // console.log("Serving from cache:", cacheKey)
+            // A cache hit used to return before the usage counter, so a metered
+            // plan could replay the same query forever without spending a
+            // match. What the caller gets is a finished tone card either way,
+            // so a served result costs a match — but only the first time this
+            // user asks for this exact request. Re-running an identical query
+            // returns the identical card, and charging twice for the same
+            // answer is what would actually read as broken.
+            const chargeKey = `tone-match:charged:${userId}:${requestHash}`;
+            const firstTime = await redis.set(chargeKey, 1, { ex: 60 * 60 * 24 * 31, nx: true });
+            if (firstTime) await incrementMatchUsage(userId);
+
             return NextResponse.json(cachedResult);
         }
 
@@ -141,12 +159,22 @@ export async function POST(req: NextRequest) {
     - Desired tone: ${playTone === "clean" ? "Clean (minimal gain/breakup)" : playTone === "distorted" ? "Distorted (driven / high gain as the song needs)" : "Auto — match the original recording's character"}
     `;
 
+        // A curated row's effects list can be empty, which means "we have not
+        // recorded any", not "the recording used none". Those are different
+        // claims and only the first one is true of the seeded rows, so an empty
+        // array is never presented to the model or the reader as a fact.
+        const curatedEffects: string[] = Array.isArray(songGearData?.effects)
+            ? songGearData.effects.filter((e: unknown) => typeof e === "string" && e.trim())
+            : [];
+
         if (songGearData) {
             prompt += `
       Verified Original Gear Used:
       - Guitar: ${songGearData.guitar_model} (Pickups: ${songGearData.pickup_type})
       - Amp: ${songGearData.amp_model}
-      - Effects: ${songGearData.effects.join(", ")}
+      - Effects: ${curatedEffects.length > 0
+                    ? curatedEffects.join(", ")
+                    : "not recorded in our database, use your own knowledge for this line only"}
       `;
         } else {
             prompt += `
@@ -345,7 +373,10 @@ export async function POST(req: NextRequest) {
                 guitar: songGearData.guitar_model ?? aiResponse.original?.guitar,
                 amp: songGearData.amp_model ?? aiResponse.original?.amp,
                 pickups: songGearData.pickup_type ?? aiResponse.original?.pickups,
-                effects: songGearData.effects ?? aiResponse.original?.effects,
+                // Only a populated curated list overrides. `?? ` let an empty
+                // array through, which blanked the effects line on every row
+                // whose pedals were never entered.
+                effects: curatedEffects.length > 0 ? curatedEffects : aiResponse.original?.effects,
                 verified: true,
             };
             aiResponse.provenance = "verified";
@@ -366,7 +397,10 @@ export async function POST(req: NextRequest) {
         // 4. Cache the result for 7 days
         await redis.set(cacheKey, aiResponse, { ex: 60 * 60 * 24 * 7 });
 
-        // 5. Increment match usage
+        // 5. Increment match usage, and record that this user has now paid for
+        // this exact request so the cache-hit path above doesn't charge them a
+        // second time when they run it again.
+        await redis.set(`tone-match:charged:${userId}:${requestHash}`, 1, { ex: 60 * 60 * 24 * 31 });
         await incrementMatchUsage(userId);
 
         return NextResponse.json(aiResponse);

@@ -11,9 +11,20 @@ export interface UserSubscription {
     cancelAtPeriodEnd: boolean;
 }
 
-// Free tier defaults (no subscription)
-const FREE_MATCH_LIMIT = 3;
-const FREE_SAVED_TONE_LIMIT = 3;
+/**
+ * What an account without a live subscription can do: read the product, and
+ * nothing else.
+ *
+ * There is no free tier any more. An account with no plan can still open
+ * /tone-match, /explore and /collection and see everything the product is, but
+ * matching and saving are subscriber actions. These two zeros are the single
+ * place that is decided; every gate in the app reads them through
+ * canUserMatch/canUserSaveTone rather than testing the plan name itself, so
+ * bringing a free allowance back later means editing these numbers and nothing
+ * else.
+ */
+const FREE_MATCH_LIMIT = 0;
+const FREE_SAVED_TONE_LIMIT = 0;
 
 // Grace period after current_period_end before an "active" subscription
 // is treated as expired (covers missed/delayed webhooks)
@@ -113,7 +124,9 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
 }
 
 // Check if user can perform a match
-export async function canUserMatch(userId: string): Promise<{ allowed: boolean; subscription: UserSubscription }> {
+export async function canUserMatch(
+    userId: string
+): Promise<{ allowed: boolean; subscription: UserSubscription; reason?: "no-plan" | "quota" }> {
     const subscription = await getUserSubscription(userId);
 
     // Unlimited plan
@@ -123,11 +136,36 @@ export async function canUserMatch(userId: string): Promise<{ allowed: boolean; 
 
     // Check limit
     const allowed = subscription.matchesRemaining > 0;
-    return { allowed, subscription };
+    return { allowed, subscription, reason: blockReason(subscription) };
+}
+
+/**
+ * Whether this account is holding a plan at all.
+ *
+ * Read from the resolved subscription rather than from the presence of a row:
+ * getUserSubscription already downgrades an expired or cancelled plan to
+ * "free", so this answers "can they use the product right now", which is the
+ * only question any caller has.
+ */
+export function hasActivePlan(subscription: UserSubscription): boolean {
+    return subscription.plan !== "free";
+}
+
+/**
+ * Why a blocked action was blocked, so the UI can say the right sentence.
+ *
+ * "no-plan" needs a subscribe prompt and "quota" needs an upgrade prompt, and
+ * telling a never-subscribed visitor they have "used all 0 matches this month"
+ * is the kind of copy that reads as a bug.
+ */
+function blockReason(subscription: UserSubscription): "no-plan" | "quota" {
+    return hasActivePlan(subscription) ? "quota" : "no-plan";
 }
 
 // Check if user can save another tone (enforces plan savedToneLimit)
-export async function canUserSaveTone(userId: string): Promise<{ allowed: boolean; limit: number; used: number }> {
+export async function canUserSaveTone(
+    userId: string
+): Promise<{ allowed: boolean; limit: number; used: number; reason: "no-plan" | "quota" }> {
     const subscription = await getUserSubscription(userId);
 
     const planLimit = subscription.plan === "free"
@@ -135,7 +173,7 @@ export async function canUserSaveTone(userId: string): Promise<{ allowed: boolea
         : PLANS[subscription.plan as PlanId]?.savedToneLimit ?? FREE_SAVED_TONE_LIMIT;
 
     if (planLimit === Infinity) {
-        return { allowed: true, limit: -1, used: 0 };
+        return { allowed: true, limit: -1, used: 0, reason: "quota" };
     }
 
     const { count } = await getSupabaseAdmin()
@@ -144,7 +182,12 @@ export async function canUserSaveTone(userId: string): Promise<{ allowed: boolea
         .eq("user_id", userId);
 
     const used = count ?? 0;
-    return { allowed: used < planLimit, limit: planLimit as number, used };
+    return {
+        allowed: used < planLimit,
+        limit: planLimit as number,
+        used,
+        reason: blockReason(subscription),
+    };
 }
 
 // Increment match usage

@@ -35,7 +35,7 @@ export default async function SettingsPage() {
     return (
         <SettingsContent
             subscription={subscription}
-            planName={PLANS[subscription.plan]?.name || "Free"}
+            planName={PLANS[subscription.plan]?.name || "No plan"}
             counts={counts}
         />
     );

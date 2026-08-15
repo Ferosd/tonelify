@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { stripe, PLANS, getPriceId, isPurchasablePlan, type BillingInterval } from "@/lib/stripe";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { ensureCustomer, findCustomerIds, findLiveSubscription, hasPriorSubscription } from "@/lib/stripe-customer";
 import { SITE_URL } from "@/lib/site";
+
 
 const INTERVALS: BillingInterval[] = ["week", "month", "year"];
 
@@ -42,47 +43,40 @@ export async function POST(req: NextRequest) {
         // Determine base URL
         const baseUrl = SITE_URL || req.headers.get("origin") || "http://localhost:3000";
 
-        const { data: existing } = await getSupabaseAdmin()
-            .from("user_subscriptions")
-            .select("stripe_customer_id, stripe_subscription_id")
-            .eq("user_id", userId)
-            .single();
+        const clerkUser = await currentUser();
+        const email = clerkUser?.primaryEmailAddress?.emailAddress
+            ?? clerkUser?.emailAddresses?.[0]?.emailAddress
+            ?? null;
 
-        // Guard against double billing: if the user already has a live
-        // subscription in Stripe, never open a second subscription checkout.
-        // Send them to the Billing Portal, which changes the plan on the
-        // EXISTING subscription (prorated) instead of stacking a new one.
-        if (existing?.stripe_subscription_id) {
-            let liveSub: any = null;
+        // Every customer record this person could be billed under, not just the
+        // one the database happens to know about. Three records for one email is
+        // exactly how the same user ended up paying twice a month.
+        const customerIds = await findCustomerIds(userId, email);
+
+        // Guard against double billing: one live subscription per user, always.
+        // A second purchase attempt goes to the Billing Portal, which switches
+        // the plan on the EXISTING subscription with proration, rather than
+        // stacking a new one beside it.
+        const liveSub = await findLiveSubscription(customerIds);
+        if (liveSub) {
             try {
-                liveSub = await stripe.subscriptions.retrieve(existing.stripe_subscription_id);
-            } catch {
-                // Subscription no longer exists in Stripe — a fresh checkout is safe
-            }
-
-            if (liveSub && ["active", "trialing", "past_due", "unpaid"].includes(liveSub.status)) {
-                const customerId =
-                    (typeof liveSub.customer === "string" ? liveSub.customer : liveSub.customer?.id) ||
-                    existing.stripe_customer_id;
-                try {
-                    const portal = await stripe.billingPortal.sessions.create({
-                        customer: customerId,
-                        return_url: `${baseUrl}/plans`,
-                    });
-                    return NextResponse.json({ url: portal.url });
-                } catch (portalError) {
-                    console.error("Billing portal error for subscribed user:", portalError);
-                    return NextResponse.json(
-                        { error: "You already have an active subscription. Manage your plan from Settings." },
-                        { status: 409 }
-                    );
-                }
+                const portal = await stripe.billingPortal.sessions.create({
+                    customer: liveSub.customerId,
+                    return_url: `${baseUrl}/plans`,
+                });
+                return NextResponse.json({ url: portal.url, reason: "existing_subscription" });
+            } catch (portalError) {
+                console.error("Billing portal error for subscribed user:", portalError);
+                return NextResponse.json(
+                    { error: "You already have an active subscription. Manage your plan from Settings." },
+                    { status: 409 }
+                );
             }
         }
 
         // Returning customers (expired/canceled) don't get a second free trial,
         // and the Week Pass never carries one
-        const isReturningCustomer = !!existing;
+        const isReturningCustomer = customerIds.length > 0 && await hasPriorSubscription(customerIds);
         const trialDays = isReturningCustomer ? 0 : plan.trialDays;
 
         const sessionParams: any = {
@@ -110,23 +104,13 @@ export async function POST(req: NextRequest) {
             allow_promotion_codes: true,
         };
 
-        // Reuse the user's Stripe customer so all their billing lives on one record
-        if (existing?.stripe_customer_id) {
-            sessionParams.customer = existing.stripe_customer_id;
-        }
+        // Always bill against one resolved customer. Letting Checkout mint its
+        // own customer, which is what happened whenever this field was left
+        // empty, is how one person collected three customer records.
+        sessionParams.customer = await ensureCustomer(userId, email);
+        sessionParams.client_reference_id = userId;
 
-        let session;
-        try {
-            session = await stripe.checkout.sessions.create(sessionParams);
-        } catch (createError) {
-            // Stale/deleted customer reference — retry once with a fresh customer
-            if (sessionParams.customer) {
-                delete sessionParams.customer;
-                session = await stripe.checkout.sessions.create(sessionParams);
-            } else {
-                throw createError;
-            }
-        }
+        const session = await stripe.checkout.sessions.create(sessionParams);
 
         return NextResponse.json({ url: session.url });
     } catch (error) {

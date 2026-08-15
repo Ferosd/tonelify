@@ -23,7 +23,10 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
     // JavaScript runs. That also means no spinner on first paint when the
     // reviews are already known.
     const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
-    const [isLoading, setIsLoading] = useState(!initialReviews?.length);
+    // Keyed on whether the server answered at all, not on whether it found
+    // anything: an empty array is a complete answer, and treating it as "still
+    // loading" left a spinner up forever once the mount fetch stopped running.
+    const [isLoading, setIsLoading] = useState(!initialReviews);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form State
@@ -31,8 +34,17 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
     const [name, setName] = useState("");
     const [comment, setComment] = useState("");
 
+    // Two separate concerns that were sharing one effect keyed on `user`. Clerk
+    // hands over null before it hands over the account, so the list was being
+    // refetched on every one of those transitions, and it was refetched at all
+    // even when the server render had already supplied it.
     useEffect(() => {
+        if (initialReviews) return;
         fetchReviews();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (user) {
             setName(user.fullName || user.firstName || "Anonymous");
         }
@@ -54,8 +66,11 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // The endpoint needs an account, and an alert saying so was a dead end:
+        // it named the requirement and then left the reader to find sign-in
+        // themselves. Send them there and bring them back to this section.
         if (!isSignedIn) {
-            alert("Please sign in to leave a review.");
+            window.location.href = `/sign-in?redirect_url=${encodeURIComponent("/#reviews")}`;
             return;
         }
 

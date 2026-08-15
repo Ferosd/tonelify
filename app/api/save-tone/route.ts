@@ -86,14 +86,18 @@ export async function POST(req: NextRequest) {
         // limit can still re-save a track they already own — that adds nothing
         // to their collection.
         if (!existingMatch) {
-            const { allowed, limit, used } = await canUserSaveTone(userId);
+            const { allowed, limit, used, reason } = await canUserSaveTone(userId);
             if (!allowed) {
+                const noPlan = reason === "no-plan";
                 return NextResponse.json(
                     {
-                        error: "Saved tone limit reached",
+                        error: noPlan ? "Subscription required" : "Saved tone limit reached",
+                        locked: noPlan ? "no-plan" : "quota",
                         limit,
                         used,
-                        message: `You've saved ${used} of ${limit} tones on your plan. Upgrade to save more.`,
+                        message: noPlan
+                            ? "Saving tones to your library is part of a Tonelify plan. Pick one to keep this tone."
+                            : `You've saved ${used} of ${limit} tones on your plan. Move up a plan to save more.`,
                     },
                     { status: 403 }
                 );

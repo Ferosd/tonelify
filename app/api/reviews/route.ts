@@ -10,15 +10,18 @@ const REVIEWS_PER_DAY = 3;
 
 export async function GET() {
     try {
+        // Named columns, not "*". This response is public and unauthenticated,
+        // and the row carries user_id: every visitor was being handed the Clerk
+        // id of everyone who has ever posted a review.
         const { data: reviews, error } = await getSupabaseAdmin()
             .from("reviews")
-            .select("*")
+            .select("id, name, rating, comment, created_at")
             .order("created_at", { ascending: false })
             .limit(20);
 
         if (error) {
             console.error("Supabase Error:", error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return NextResponse.json({ error: "Could not load reviews" }, { status: 500 });
         }
 
         return NextResponse.json(reviews);
@@ -69,12 +72,14 @@ export async function POST(req: NextRequest) {
                 rating,
                 comment: comment.trim().slice(0, 1000),
             })
-            .select()
+            .select("id, name, rating, comment, created_at")
             .single();
 
         if (error) {
+            // The raw Postgres message names columns and constraints. It goes to
+            // the log, not to the browser.
             console.error("Supabase Error:", error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return NextResponse.json({ error: "Could not save your review" }, { status: 500 });
         }
 
         return NextResponse.json(data);

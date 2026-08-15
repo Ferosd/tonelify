@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap, RefreshCw, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Target, Sparkles, Lightbulb, Speaker, User, ExternalLink, PlayCircle, ArrowLeft, Copy, Check, Share2, SlidersHorizontal, AlertTriangle, Zap, RefreshCw, ThumbsUp, ThumbsDown, Lock } from "lucide-react"
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { AnalyzingTone } from "@/components/AnalyzingTone"
@@ -79,6 +79,10 @@ export default function ToneMatchPage() {
     const { user } = useUser()
     const [copied, setCopied] = useState(false)
     const [credits, setCredits] = useState<number | null>(null)
+    // null while unknown, "free" for an account holding no plan. Matching is a
+    // subscriber action, so the button has to know this before it fires a
+    // request the API is only going to answer with a 403.
+    const [plan, setPlan] = useState<string | null>(null)
 
     // Fetch remaining match credits for the signed-in user
     useEffect(() => {
@@ -87,9 +91,15 @@ export default function ToneMatchPage() {
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
                 if (d && typeof d.matchesRemaining === "number") setCredits(d.matchesRemaining)
+                if (d && typeof d.plan === "string") setPlan(d.plan)
             })
             .catch(() => { })
     }, [user])
+
+    // Signed in, no live plan. Kept separate from `credits === 0`: a metered
+    // subscriber who has spent the month needs a different sentence from
+    // somebody who has never subscribed.
+    const needsPlan = !!user && plan === "free"
 
     // Fetch the user's saved gear so presets, pedals and multi FX all reflect
     // what they actually own (added from /collection)
@@ -283,6 +293,14 @@ export default function ToneMatchPage() {
             window.location.href = `/sign-up?redirect_url=${encodeURIComponent("/tone-match")}`
             return
         }
+
+        // Signed in but holding no plan. The form stays usable so the page can
+        // be read and filled in, but matching is a subscriber action: go to the
+        // plans page rather than spend a round trip on a certain 403.
+        if (needsPlan) {
+            window.location.href = "/plans"
+            return
+        }
         setIsLoading(true)
         setError(null)
         setResult(null)
@@ -473,19 +491,25 @@ export default function ToneMatchPage() {
                         </p>
                     </div>
                     {user && credits !== null && (
-                        <div className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8 whitespace-nowrap md:hidden">
-                            <span className={credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
-                            {credits === -1 ? "Unlimited" : `${credits} left`}
-                        </div>
+                        <Link
+                            href={needsPlan ? "/plans" : "/settings"}
+                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8 whitespace-nowrap md:hidden no-underline"
+                        >
+                            <span className={needsPlan || credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
+                            {needsPlan ? "Plan needed" : credits === -1 ? "Unlimited" : `${credits} left`}
+                        </Link>
                     )}
                 </div>
 
                 {user && credits !== null && (
                     <div className="hidden md:flex justify-center">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8">
-                            <span className={credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
-                            {credits === -1 ? "Unlimited matches" : `${credits} matches left`}
-                        </div>
+                        <Link
+                            href={needsPlan ? "/plans" : "/settings"}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[#A6A29B] text-xs font-semibold border border-white/8 no-underline hover:border-[#E8712A]/40 transition-colors"
+                        >
+                            <span className={needsPlan || credits === 0 ? "text-red-400" : "text-[#FFD700]"}>●</span>
+                            {needsPlan ? "A plan is needed to match" : credits === -1 ? "Unlimited matches" : `${credits} matches left`}
+                        </Link>
                     </div>
                 )}
 
@@ -609,7 +633,7 @@ export default function ToneMatchPage() {
                                             className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED]"
                                         />
                                         <p className="text-[10px] text-[#8A8494] cursor-pointer hover:text-[#E8712A] transition-colors font-medium pl-1">
-                                            Can't find your model? Type generic type (e.g. "S-Type")
+                                            Can&apos;t find your model? Type generic type (e.g. &ldquo;S-Type&rdquo;)
                                         </p>
                                     </div>
 
@@ -773,7 +797,7 @@ export default function ToneMatchPage() {
 
                                             {user && savedMultiFx.length === 0 && (
                                                 <p className="text-xs text-[#8A8494] font-medium">
-                                                    Save your processor in <Link href="/collection" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Collection</Link> so it's one tap next time.
+                                                    Save your processor in <Link href="/collection" className="font-bold text-[#F5A623] hover:text-[#FFD700] underline underline-offset-2">Collection</Link> so it&apos;s one tap next time.
                                                 </p>
                                             )}
                                         </div>
@@ -1058,30 +1082,41 @@ export default function ToneMatchPage() {
                     </CardContent>
                 </Card>
 
-                {/* ==================== PROMO BANNER (guests only) ==================== */}
-                {!user && (
+                {/* ==================== PROMO BANNER ====================
+                    Two audiences, one banner. A visitor has to make an account
+                    before anything runs, and an account with no plan has to
+                    pick one: matching is a subscriber action either way. The
+                    form above stays filled in and readable in both cases, which
+                    is the point of gating the action rather than the page. */}
+                {(!user || needsPlan) && (
                     <div className="w-full bg-[#12121A] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left border border-white/8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                             <Sparkles className="h-24 w-24 text-[#E8712A]" />
                         </div>
 
                         <div className="space-y-2 relative z-10 max-w-xl">
-                            <span className="text-xs font-bold text-[#8A8494] uppercase tracking-widest">New here?</span>
+                            <span className="text-xs font-bold text-[#8A8494] uppercase tracking-widest">
+                                {needsPlan ? "One step left" : "New here?"}
+                            </span>
                             <h3 className="text-2xl font-bold text-[#F2F0ED] leading-tight">
-                                Try Tonelify free with 3 tone matches a month
+                                {needsPlan
+                                    ? "Pick a plan to run this match"
+                                    : "Create an account to start matching tones"}
                             </h3>
                             <p className="text-[#FFD700] font-medium text-sm">
-                                Create a free account, no credit card required. Upgrade anytime for unlimited adaptations.
+                                {needsPlan
+                                    ? "Your gear and song are saved on this page. Choose a plan and come straight back to run the research."
+                                    : "Fill the form in first if you like, it stays here. Matching runs once you have an account and a plan."}
                             </p>
                         </div>
 
                         <div className="flex flex-col items-center gap-2 relative z-10 shrink-0">
-                            <Link href={`/sign-up?redirect_url=${encodeURIComponent("/tone-match")}`}>
+                            <Link href={needsPlan ? "/plans" : `/sign-up?redirect_url=${encodeURIComponent("/tone-match")}`}>
                                 <Button className="bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold h-12 px-8 rounded-full shadow-lg shadow-[#E8712A]/20 transition-transform hover:scale-105">
-                                    Start Free
+                                    {needsPlan ? "See plans" : "Create account"}
                                 </Button>
                             </Link>
-                            <span className="text-[10px] text-[#8A8494]">No credit card · Cancel anytime</span>
+                            <span className="text-[10px] text-[#8A8494]">Cancel anytime</span>
                         </div>
                     </div>
                 )}
@@ -1091,13 +1126,22 @@ export default function ToneMatchPage() {
                     <div className="flex flex-col items-center">
                         <Button
                             onClick={runResearch}
-                            disabled={isLoading || (!!user && !canResearch)}
+                            // A missing field only blocks the button for someone
+                            // who could actually run the match. Disabling it for
+                            // an account with no plan would hide the one thing
+                            // that gets them unblocked.
+                            disabled={isLoading || (!!user && !needsPlan && !canResearch)}
                             className="h-14 px-8 text-lg bg-[#E8712A] hover:bg-[#D4621F] text-[#08080C] font-bold shadow-lg shadow-[#E8712A]/20 rounded-lg flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 w-full max-w-sm"
                         >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                     <span>Analyzing Tone...</span>
+                                </>
+                            ) : needsPlan ? (
+                                <>
+                                    <Lock className="h-5 w-5" />
+                                    <span>Pick a plan to match</span>
                                 </>
                             ) : (
                                 <>
@@ -1106,7 +1150,7 @@ export default function ToneMatchPage() {
                                 </>
                             )}
                         </Button>
-                        {!!user && !canResearch && (
+                        {!!user && !needsPlan && !canResearch && (
                             <p className="text-xs text-[#8A8494] flex items-center gap-1.5 mt-2 text-center">
                                 <span className="text-[#8A8494]">ⓘ</span>
                                 Add {missingFields.join(" and ")} above to run the research
@@ -1180,7 +1224,7 @@ export default function ToneMatchPage() {
                                         </div>
                                         <h4 className="font-bold text-[#F2F0ED] text-lg">Awaiting Input</h4>
                                         <p className="text-sm text-[#8A8494] max-w-[200px] mt-2 leading-relaxed">
-                                            Select a song and run research to analyze the original track's signal chain
+                                            Select a song and run research to analyze the original track&apos;s signal chain
                                         </p>
                                     </div>
                                 </div>
@@ -1223,7 +1267,7 @@ export default function ToneMatchPage() {
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="italic text-[#8A8494] text-lg leading-relaxed">"{result.explanation}"</p>
+                                            <p className="italic text-[#8A8494] text-lg leading-relaxed">&ldquo;{result.explanation}&rdquo;</p>
                                         </div>
                                     </div>
                                 </div>
