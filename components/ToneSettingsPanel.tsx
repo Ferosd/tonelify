@@ -136,17 +136,21 @@ export function ToneSettingsPanel({ slug, openSettings }: Props) {
                         and reverb positions, the pedal order and the one control that decides this style
                         come with a plan, along with the same settings rewritten for the amp you own.
                     </p>
+                    {/* /plans redirects anyone without an account, so a
+                        signed-out reader is sent to sign-up directly and told
+                        so. Two clicks with a surprise in the middle loses more
+                        people than one honest click. */}
                     <div className="flex flex-wrap gap-2">
                         <Link
-                            href="/plans"
+                            href={isSignedIn ? "/plans" : "/sign-up?redirect_url=%2Fplans"}
                             className="inline-flex items-center h-11 px-6 rounded-full font-bold text-sm text-[#08080C]"
                             style={{ background: "linear-gradient(135deg, #F5A623 0%, #E8712A 100%)" }}
                         >
-                            See plans
+                            {isSignedIn ? "See plans" : "Create an account to see plans"}
                         </Link>
                         {!isSignedIn && (
                             <Link
-                                href="/sign-in"
+                                href="/sign-in?redirect_url=%2Fplans"
                                 className="inline-flex items-center h-11 px-6 rounded-full font-bold text-sm text-[#A6A29B] border border-white/10 hover:text-[#F2F2F7] hover:border-[#F5A623]/40 transition-colors"
                             >
                                 I already have one

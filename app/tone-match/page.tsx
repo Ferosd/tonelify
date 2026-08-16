@@ -11,6 +11,7 @@ import { Loader2, Save, Guitar as GuitarIcon, Music2, Music, Flame, Search, Targ
 import Link from "next/link"
 import { TrendingTones } from "@/components/TrendingTones"
 import { AnalyzingTone } from "@/components/AnalyzingTone"
+import { MatchActivityToast } from "@/components/MatchActivityToast"
 import { ToneSources } from "@/components/ToneSources"
 import { GearCombobox } from "@/components/GearCombobox"
 import { confirmationLine, type FeedbackCounts } from "@/lib/tone-feedback"
@@ -586,6 +587,7 @@ export default function ToneMatchPage() {
                                     </div>
                                     <div className="relative group">
                                         <select
+                                            aria-label="Load a saved rig"
                                             className="w-full h-14 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#E8712A]/40"
                                             value={preset}
                                             onChange={(e) => handlePresetChange(e.target.value)}
@@ -737,6 +739,7 @@ export default function ToneMatchPage() {
 
                                             <div className="relative">
                                                 <Textarea
+                                                    aria-label="Your pedals, in signal chain order"
                                                     placeholder="List your pedals in order (e.g. Tuner > Tube Screamer > Chorus > Delay)"
                                                     value={userEffects}
                                                     onChange={(e) => setUserEffects(e.target.value)}
@@ -759,6 +762,7 @@ export default function ToneMatchPage() {
                                         <div className="space-y-3">
                                             <div className="relative group">
                                                 <select
+                                                    aria-label="Multi FX unit"
                                                     value={multiFxUnit}
                                                     onChange={(e) => setMultiFxUnit(e.target.value)}
                                                     disabled={!userAmp && !goingDirect}
@@ -815,6 +819,7 @@ export default function ToneMatchPage() {
                                     </div>
                                     <div className="relative group">
                                         <select
+                                            aria-label="Bass guitar"
                                             className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userGuitar}
                                             onChange={(e) => setUserGuitar(e.target.value)}
@@ -844,6 +849,7 @@ export default function ToneMatchPage() {
                                     </div>
                                     <div className="relative group">
                                         <select
+                                            aria-label="Bass amplifier"
                                             className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userAmp}
                                             onChange={(e) => setUserAmp(e.target.value)}
@@ -1613,6 +1619,11 @@ export default function ToneMatchPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Fills the wait in the bottom-left corner while the engine works,
+                and keeps running for a bit once the result lands. Every line
+                links to a tone page that exists. */}
+            <MatchActivityToast active={isLoading || !!result} />
         </div >
     )
 }

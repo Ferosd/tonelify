@@ -17,7 +17,11 @@ interface Review {
     created_at: string;
 }
 
-export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
+export function Reviews({
+    initialReviews,
+    totalCount,
+    averageRating,
+}: { initialReviews?: Review[]; totalCount?: number; averageRating?: number }) {
     const { user, isLoaded, isSignedIn } = useUser();
     // Seeded from the server render so the list is in the HTML before any
     // JavaScript runs. That also means no spinner on first paint when the
@@ -106,9 +110,16 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
         }
     };
 
-    const averageRating = reviews.length > 0
-        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-        : "0.0";
+    // The list is the newest slice, deliberately: seventy-odd near-identical
+    // cards in one scroller is not social proof, it is a wall. The score and
+    // the count still describe every row, which is also what the page markup
+    // claims, so the two cannot disagree.
+    const displayAverage = averageRating
+        ?? (reviews.length > 0
+            ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+            : 0);
+    const displayCount = totalCount ?? reviews.length;
+    const averageLabel = displayAverage.toFixed(1);
 
     return (
         <section className="py-20 md:py-24 border-t border-white/8 bg-[#0B0A09]" id="reviews">
@@ -118,7 +129,7 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                         Reviews
                     </h2>
                     <p className="text-[#A6A29B] mt-2">
-                        Written by people with a Tonelify account, posted under their own name
+                        What players said after running a match on their own rig
                     </p>
                 </div>
 
@@ -129,18 +140,19 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                         {/* No aggregate until there is something real to average */}
                         {reviews.length > 0 && (
                             <div className="flex items-center gap-4 mb-8">
-                                <span className="font-mono text-5xl font-bold text-[#FFD700]">{averageRating}</span>
+                                <span className="font-mono text-5xl font-bold text-[#FFD700]">{averageLabel}</span>
                                 <div className="space-y-1">
                                     <div className="flex text-[#E8712A]">
                                         {[1, 2, 3, 4, 5].map(i => (
                                             <Star
                                                 key={i}
-                                                className={`w-5 h-5 ${i <= Math.round(Number(averageRating)) ? "fill-current" : "opacity-25"}`}
+                                                className={`w-5 h-5 ${i <= Math.round(displayAverage) ? "fill-current" : "opacity-25"}`}
                                             />
                                         ))}
                                     </div>
                                     <p className="text-sm text-[#8A8494]">
-                                        {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                                        {displayCount} {displayCount === 1 ? "review" : "reviews"}
+                                        {displayCount > reviews.length && `, showing the latest ${reviews.length}`}
                                     </p>
                                 </div>
                             </div>
@@ -153,8 +165,8 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                                 <div className="rounded-2xl border border-white/8 bg-[#12121A] p-6">
                                     <p className="text-[#F2F0ED] font-medium mb-2">No reviews yet.</p>
                                     <p className="text-sm text-[#A6A29B] leading-relaxed">
-                                        Tonelify is new. Nothing here is seeded, so this stays empty until a
-                                        real player fills it in.
+                                        Nothing to show right now. Run a match on your own rig and tell
+                                        us whether the settings held up.
                                     </p>
                                 </div>
                             ) : (
@@ -177,10 +189,10 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                                                     {new Date(review.created_at).toLocaleDateString("en-US", { timeZone: "UTC" })}
                                                 </span>
                                             </div>
-                                            <h4 className="font-bold text-[#F2F2F7] text-sm mb-2 flex items-center gap-2">
+                                            <h3 className="font-bold text-[#F2F2F7] text-sm mb-2 flex items-center gap-2">
                                                 <User className="h-3 w-3 text-[#8A8494]" />
                                                 {review.name?.trim() || "Anonymous"}
-                                            </h4>
+                                            </h3>
                                             <p className="text-[#A6A29B] text-sm leading-relaxed">
                                                 {review.comment}
                                             </p>
@@ -221,8 +233,14 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-[#F2F0ED]">Name (optional)</label>
+                                        {/* htmlFor/id, not just a styled line of
+                                            text above the field: without the
+                                            pairing a screen reader announces
+                                            "edit text, blank" and the label is
+                                            not a tap target for the input. */}
+                                        <label htmlFor="review-name" className="text-sm font-semibold text-[#F2F0ED]">Name (optional)</label>
                                         <Input
+                                            id="review-name"
                                             placeholder="Anonymous"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
@@ -231,8 +249,9 @@ export function Reviews({ initialReviews }: { initialReviews?: Review[] }) {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-[#F2F0ED]">Your review</label>
+                                        <label htmlFor="review-comment" className="text-sm font-semibold text-[#F2F0ED]">Your review</label>
                                         <Textarea
+                                            id="review-comment"
                                             placeholder="Sultans of Swing on a Squier Strat into a Blues Junior. The neck pickup tone finally sat right."
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}

@@ -9,6 +9,35 @@ const IMMUTABLE = {
   value: "public, max-age=31536000, immutable",
 };
 
+/**
+ * Content-Security-Policy, in report-only mode to start with.
+ *
+ * The page pulls in Clerk, Stripe, Google Analytics, the TikTok pixel,
+ * Fontshare and Google Fonts, so an enforced policy with one host missing
+ * takes out sign-in or checkout. Report-Only changes nothing a visitor can
+ * see: the browser evaluates the policy and reports what would have been
+ * blocked, which is the list needed before this becomes the enforced header.
+ *
+ * 'unsafe-inline' and 'unsafe-eval' are in script-src because Next's own
+ * bootstrap, the inline GA and TikTok snippets and Clerk all need them today.
+ * They are what a hardening pass should remove next, via nonces.
+ */
+const CSP_REPORT_ONLY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.tiktok.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
+  "font-src 'self' data: https://fonts.gstatic.com https://cdn.fontshare.com",
+  "img-src 'self' data: blob: https://img.clerk.com https://images.clerk.dev https://is1-ssl.mzstatic.com https://*.mzstatic.com https://www.google-analytics.com",
+  "connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://*.supabase.co https://api.stripe.com https://www.google-analytics.com https://analytics.tiktok.com https://itunes.apple.com",
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev",
+  "worker-src 'self' blob:",
+  "media-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
+  "frame-ancestors 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
@@ -32,6 +61,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          { key: "Content-Security-Policy-Report-Only", value: CSP_REPORT_ONLY },
         ],
       },
       { source: "/frames/:path*", headers: [IMMUTABLE] },

@@ -73,9 +73,10 @@ function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: strin
 
             {/* Meta */}
             <div className="px-3 py-3 md:px-4 md:py-4 flex flex-col flex-1 min-w-0">
-                <h3 className="font-bold text-[0.875rem] md:text-[0.9375rem] text-[#F2F2F7] leading-tight truncate" title={tone.title}>
+                {/* h2: these cards are the first headings under the page h1 */}
+                <h2 className="font-bold text-[0.875rem] md:text-[0.9375rem] text-[#F2F2F7] leading-tight truncate" title={tone.title}>
                     {tone.title}
-                </h3>
+                </h2>
                 <p className="text-[0.75rem] text-[#A6A29B] font-medium truncate mt-0.5">{tone.artist}</p>
 
                 {/* The rig, one line each. Truncated rather than wrapped so the

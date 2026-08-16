@@ -8,7 +8,7 @@ import {
     gearLabel,
     type GearEntry,
 } from "@/lib/gear-catalog";
-import { leadParagraph, gearFaqs, tonesFor } from "@/lib/gear-copy";
+import { leadParagraph, panelParagraph, gearFaqs, tonesFor } from "@/lib/gear-copy";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -71,6 +71,25 @@ export default async function GearPage({ params }: Props) {
     // the opposite, that the tone gets translated onto whatever the reader owns.
     const starters = tonesFor(entry);
     const faqs = gearFaqs(entry);
+    // Written from this row's own panel, so two amps in the same family stop
+    // reading as one page with the model name swapped.
+    const panel = panelParagraph(entry);
+
+    // Stored facts, in one list, used both on the page and in the Product
+    // block. Only the fields this entry actually has: an empty row would be
+    // the same padding the near-duplicate problem was made of.
+    const specs: { name: string; value: string }[] = [
+        entry.power && { name: "Power", value: entry.power },
+        entry.speaker && { name: "Speaker", value: entry.speaker },
+        entry.scale && { name: "Scale length", value: entry.scale },
+        entry.construction && { name: "Construction", value: entry.construction },
+        entry.bridge && { name: "Bridge", value: entry.bridge },
+        entry.pickups && { name: "Pickup layout", value: entry.pickups },
+        entry.switching && { name: "Controls", value: entry.switching },
+        entry.channels?.length && { name: "Channels", value: entry.channels.join(", ") },
+        entry.voicings?.length && { name: "Voicings", value: entry.voicings.join(", ") },
+        entry.controls?.length && { name: "Front panel", value: entry.controls.join(", ") },
+    ].filter((s): s is { name: string; value: string } => Boolean(s));
 
     const related = GEAR_CATALOG.filter(
         (g) => g.id !== entry.id && g.type === entry.type && g.brand === entry.brand
@@ -146,18 +165,39 @@ export default async function GearPage({ params }: Props) {
                                 </span>
                             ))}
                         </div>
-                        {entry.channels?.length ? (
-                            <p className="text-[#A6A29B] text-sm leading-relaxed">
-                                Channels: {entry.channels.join(", ")}.
-                            </p>
-                        ) : null}
-                        {entry.voicings?.length ? (
-                            <p className="text-[#A6A29B] text-sm leading-relaxed">
-                                Voicings: {entry.voicings.join(", ")}.
-                            </p>
-                        ) : null}
+                        {/* Channels and voicings used to be repeated here as
+                            sentences. They are rows in the specifications table
+                            below now, so saying them twice was just length. */}
                     </section>
                 ) : null}
+
+                {specs.length > 0 && (
+                    <section className="space-y-4">
+                        <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                            {label} specifications
+                        </h2>
+                        {/* A table an engine can lift a single fact out of, which
+                            is what gets a page cited: "what scale length is a
+                            Player Mustang" has one answer and it is on this row. */}
+                        <dl className="grid sm:grid-cols-2 gap-px bg-white/8 border border-white/8 rounded-2xl overflow-hidden">
+                            {specs.map(({ name, value }) => (
+                                <div key={name} className="bg-[#12121A] px-5 py-4">
+                                    <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8A8494]">{name}</dt>
+                                    <dd className="text-sm text-[#F2F0ED] mt-1 leading-relaxed">{value}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </section>
+                )}
+
+                {panel && (
+                    <section className="space-y-3">
+                        <h2 className="font-display text-xl font-bold text-[#F2F2F7]">
+                            What the {label} panel means when you dial it in
+                        </h2>
+                        <p className="text-[#A6A29B] leading-relaxed">{panel}</p>
+                    </section>
+                )}
 
                 {entry.pickups && (
                     <section className="space-y-3">
@@ -253,25 +293,19 @@ export default async function GearPage({ params }: Props) {
                                 category: entry.category ?? typeLabel,
                                 ...(entry.note ? { description: entry.note } : {}),
                                 url: `${SITE_URL}/gear/${entry.id}`,
-                                // The control panel as machine-readable facts. This is
-                                // the one thing this page knows that a retailer listing
-                                // does not, and it is the reason to cite it.
-                                ...(entry.controls?.length || entry.pickups || entry.channels?.length
+                                // The stored facts as machine-readable properties.
+                                // This is the one thing this page knows that a
+                                // retailer listing does not state as data, and it is
+                                // the reason to cite it. Same list the page renders,
+                                // so the markup can never describe a table that is
+                                // not there.
+                                ...(specs.length
                                     ? {
-                                        additionalProperty: [
-                                            ...(entry.controls?.length
-                                                ? [{ "@type": "PropertyValue", name: "Controls", value: entry.controls.join(", ") }]
-                                                : []),
-                                            ...(entry.channels?.length
-                                                ? [{ "@type": "PropertyValue", name: "Channels", value: entry.channels.join(", ") }]
-                                                : []),
-                                            ...(entry.voicings?.length
-                                                ? [{ "@type": "PropertyValue", name: "Voicings", value: entry.voicings.join(", ") }]
-                                                : []),
-                                            ...(entry.pickups
-                                                ? [{ "@type": "PropertyValue", name: "Pickup layout", value: entry.pickups }]
-                                                : []),
-                                        ],
+                                        additionalProperty: specs.map((s) => ({
+                                            "@type": "PropertyValue",
+                                            name: s.name,
+                                            value: s.value,
+                                        })),
                                     }
                                     : {}),
                             },

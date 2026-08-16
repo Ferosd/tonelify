@@ -9,13 +9,27 @@ import { FeedbackInbox, type FeedbackRow } from "@/components/FeedbackInbox";
 // and stored.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-    title: "Feedback inbox",
-    // Belt and braces with the robots.txt disallow. This page is behind an
-    // admin check anyway, but a noindex costs nothing and covers the case
-    // where a URL leaks into somebody's history sync.
-    robots: { index: false, follow: false },
-};
+/**
+ * The gate has to sit here as well as in the page body.
+ *
+ * A static `metadata` export is resolved and flushed into the head before the
+ * page component has finished, so a signed-out visitor got the real title,
+ * "Feedback inbox", stapled to an otherwise empty 404 body. That is the one
+ * thing the notFound below is trying not to say. Failing the check during
+ * metadata resolution happens before the shell goes out, so the response
+ * carries a 404 status and a title that admits nothing.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+    if (!(await requireAdmin())) notFound();
+
+    return {
+        title: "Feedback inbox",
+        // Belt and braces with the robots.txt disallow. This page is behind an
+        // admin check anyway, but a noindex costs nothing and covers the case
+        // where a URL leaks into somebody's history sync.
+        robots: { index: false, follow: false },
+    };
+}
 
 const PAGE_SIZE = 100;
 

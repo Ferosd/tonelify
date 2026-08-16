@@ -13,6 +13,8 @@
 // Free text is never blocked anywhere. The catalog is a suggestion layer, and
 // gear that is missing from it still runs a match exactly as before.
 
+import { GEAR_SPECS } from "./gear-specs";
+
 export type GearType = "guitar" | "bass" | "amp" | "bass-amp" | "pedal" | "multifx";
 
 export type GearEntry = {
@@ -35,13 +37,38 @@ export type GearEntry = {
     channels?: string[];
     /** Selectable voicings or amp models, where the amp has them */
     voicings?: string[];
+    /**
+     * Specifications, filled in from the manufacturer's own page where one
+     * exists. These exist for the same two reasons as `controls`: they change
+     * the advice (a 25.5" bolt-on with single coils does not want the same
+     * settings as a 24.75" set-neck with humbuckers, and a 15W valve combo
+     * runs out of clean headroom where a 100W head does not), and they are the
+     * only thing that makes 123 gear pages 123 different pages rather than one
+     * template with the model name swapped.
+     *
+     * Every field is optional and only ever carries a figure that was read off
+     * a manufacturer or authorised-dealer spec sheet. A wrong number here is
+     * worse than a missing one: the reader is holding the instrument.
+     */
+    /** Amps: rated output as the maker states it, e.g. "40W". */
+    power?: string;
+    /** Amps: speaker complement, e.g. `1x12" Celestion V-Type`. */
+    speaker?: string;
+    /** Guitars and basses: scale length, e.g. `25.5"`. */
+    scale?: string;
+    /** Guitars and basses: body wood and neck joint, e.g. "Alder body, bolt-on maple neck". */
+    construction?: string;
+    /** Guitars and basses: bridge type, e.g. "Two-point tremolo". */
+    bridge?: string;
+    /** Guitars and basses: control and switching layout, e.g. "5-way, 1 volume, 2 tone". */
+    switching?: string;
     /** Alternative spellings players actually type */
     aliases?: string[];
     /** One line of plain description, used on the gear page */
     note?: string;
 };
 
-export const GEAR_CATALOG: GearEntry[] = [
+const BASE_CATALOG: GearEntry[] = [
     // ── ELECTRIC GUITARS ────────────────────────────────────────────────────
     { id: "fender-player-stratocaster", brand: "Fender", model: "Player Stratocaster", type: "guitar", pickups: "SSS", aliases: ["player strat", "mim strat", "fender stratocaster", "stratocaster", "strat"], note: "Three single coils and a five-way switch, the default reference for glassy clean and edge-of-breakup tones." },
     { id: "fender-american-professional-ii-stratocaster", brand: "Fender", model: "American Professional II Stratocaster", type: "guitar", pickups: "SSS", aliases: ["am pro ii strat", "american pro strat"] },
@@ -336,6 +363,21 @@ export const GEAR_CATALOG: GearEntry[] = [
     { id: "nux-mg-30", brand: "NUX", model: "MG-30", type: "multifx", category: "Floor modeller", aliases: ["mg30", "mg-30"] },
 ];
 
+/**
+ * The list above, with the researched specifications in lib/gear-specs.ts
+ * merged onto each row by id.
+ *
+ * Kept as a merge rather than typed into the list because the two are
+ * maintained differently: the list is what Tonelify recognises, the specs are
+ * reference data gathered per model from manufacturer sheets. Anything already
+ * written on an entry wins, so a hand-checked value is never overwritten by
+ * the sheet.
+ */
+export const GEAR_CATALOG: GearEntry[] = BASE_CATALOG.map((entry) => {
+    const specs = GEAR_SPECS[entry.id];
+    return specs ? { ...specs, ...entry } : entry;
+});
+
 // ── LOOKUP ──────────────────────────────────────────────────────────────────
 
 function normalize(value: string): string {
@@ -440,6 +482,12 @@ export function searchGear(query: string, types?: GearType[], limit = 8): GearEn
 export function gearPromptFacts(entry: GearEntry): string | null {
     const parts: string[] = [];
     if (entry.pickups) parts.push(`pickup layout ${entry.pickups}`);
+    // Headroom and scale length both change the numbers rather than just
+    // describing the gear: a 15W combo breaks up where a 100W head stays clean,
+    // and a short scale reaches saturation at a lower gain setting.
+    if (entry.power) parts.push(`rated output ${entry.power}`);
+    if (entry.speaker) parts.push(`speaker ${entry.speaker}`);
+    if (entry.scale) parts.push(`scale length ${entry.scale}`);
     if (entry.channels?.length) parts.push(`selectable channels: ${entry.channels.join(", ")}`);
     if (entry.voicings?.length) parts.push(`selectable voicings: ${entry.voicings.join(", ")}`);
     if (entry.controls?.length) {

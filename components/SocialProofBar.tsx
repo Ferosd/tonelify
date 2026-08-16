@@ -24,9 +24,17 @@ const STACK = [
     { name: "Guitarist four", src: "/avatars/stack-4.jpg" },
 ]
 
-export function SocialProofBar({ reviews = [] }: { reviews?: Review[] }) {
-    const count = reviews.length
-    const average = count > 0 ? reviews.reduce((a, r) => a + r.rating, 0) / count : 0
+export function SocialProofBar({
+    reviews = [],
+    totalCount,
+    averageRating,
+}: { reviews?: Review[]; totalCount?: number; averageRating?: number }) {
+    // The list handed down is only the newest few cards. The figures describe
+    // every row, so this bar agrees with the rating block in the page markup.
+    const count = totalCount ?? reviews.length
+    const average =
+        averageRating ??
+        (reviews.length > 0 ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0)
     const rounded = Math.round(average)
 
     return (

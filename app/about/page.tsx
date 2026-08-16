@@ -65,7 +65,7 @@ const SECTIONS: { heading: string; id: string; body: string[] }[] = [
         body: [
             "That the settings will make you sound exactly like the record. A record is a mix: layered takes, microphone choice and placement, studio compression and mastering all sit between the amp in the room and the released file, and no knob position reproduces any of them.",
             "That the reference starting points published on tone pages are the settings the artist used. They are positions on a generic five-knob amp, stated as a starting point, and they are labelled that way everywhere they appear.",
-            "That reviews on the site are anything other than what they are. Reviews come from signed-in accounts and are not seeded, and the aggregate rating in the page markup is generated from the same rows the page displays rather than written by hand.",
+            "That the review section is a complete record. The page shows the most recent entries rather than all of them, and the aggregate rating in the markup is generated from the stored rows rather than written by hand, so the score and the count always describe the same set.",
         ],
     },
     {

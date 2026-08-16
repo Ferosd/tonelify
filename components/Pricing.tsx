@@ -373,7 +373,10 @@ export function Pricing({
                                         push the price to the same place. */}
                                     <div className="flex items-start justify-between gap-3 min-h-[52px]">
                                         <div>
-                                            <h3 className="text-xl font-bold leading-tight text-[#F2F0ED]">{tier.name}</h3>
+                                            {/* h2, not h3: the plan names are the first headings under the
+                                                page title, and jumping h1 to h3 leaves a level
+                                                missing in the outline a screen reader reads out. */}
+                                            <h2 className="text-xl font-bold leading-tight text-[#F2F0ED]">{tier.name}</h2>
                                             <p className="text-sm text-[#8A8494] font-medium mt-1 leading-snug">{tier.tagline}</p>
                                         </div>
                                         {!isSubscribed && (

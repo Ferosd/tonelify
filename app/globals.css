@@ -206,3 +206,34 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* Keyboard skip link. Off-screen until focused, then a real amber button in
+   the top left. Every page renders the header and, on mobile, the tab bar
+   before its content, so without this a keyboard visitor tabs the whole nav
+   again on each page. */
+.skip-link {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  /* Above the landing page's own nav, which sits on its own stacking layer.
+     At z-index 100 the focused link came up behind it. */
+  z-index: 9999;
+  padding: 12px 20px;
+  border-radius: 0 0 12px 0;
+  background: #F5A623;
+  color: #08080A;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* A visible focus ring in the brand colour, rather than the browser default
+   that a dark background swallows. */
+:focus-visible {
+  outline: 2px solid #F5A623;
+  outline-offset: 2px;
+}

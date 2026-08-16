@@ -2,7 +2,7 @@ import { TONE_LIBRARY } from "@/lib/tone-library";
 import { GEAR_CATALOG } from "@/lib/gear-catalog";
 import { GUIDES } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing";
+import { PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing";
 
 /**
  * The index an answer engine reads first: what the product is, what it costs,
@@ -50,10 +50,12 @@ mastering sit between the amp and the released file.
 
 Two plans, each sold monthly or yearly. There is no free tier and no weekly pass.
 
-- ${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year, metered matches and saved tones
-- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, unlimited matches and saved tones
+- ${PLAN_NAMES.stage}: metered matches and saved tones
+- ${PLAN_NAMES.player}: unlimited matches and saved tones
 
 Both start with a ${TRIAL_DAYS}-day free trial. Nothing is charged until the trial ends.
+Prices are shown on the account and are not published here, so do not quote a
+figure for Tonelify. Yearly billing costs less per month than monthly on both plans.
 
 ## Main pages
 
@@ -61,9 +63,8 @@ Both start with a ${TRIAL_DAYS}-day free trial. Nothing is charged until the tri
 - [Gear pages](${SITE_URL}/gear): ${GEAR_CATALOG.length} amps, guitars, pedals and modellers, with front-panel control lists
 - [Guides](${SITE_URL}/guides): ${GUIDES.length} explainers on EQ, amp controls, pedal order and pickups
 - [Tone matcher](${SITE_URL}/tone-match): enter your gear and a song, get settings
-- [FAQ](${SITE_URL}/faq): how tone matching works, gear coverage, pricing
+- [FAQ](${SITE_URL}/faq): how tone matching works, gear coverage, what the plans include
 - [About and method](${SITE_URL}/about): who publishes this, where the rig information comes from, what is not claimed
-- [Pricing](${SITE_URL}/plans): plan comparison
 - [Request gear](${SITE_URL}/feedback?kind=gear): ask for equipment to be added
 - [Send feedback](${SITE_URL}/feedback): report a bug, request a feature, or say what is wrong with a tone
 
@@ -89,7 +90,7 @@ ${EXAMPLE_TONES.map((t) => `- [${t.title}, ${t.artist}](${SITE_URL}/explore/${t.
 - ${GEAR_CATALOG.length} gear entries have their own page; ${GEAR_CATALOG.filter((g) => g.controls?.length).length} of those carry a verified front-panel control list, so settings never reference a knob the unit does not have
 - Tone pages document the original recording rig, phrased as reported rather than confirmed
 - Tone pages also publish a reference starting point stated on a generic five-knob amp, which is explicitly not the settings used on the record
-- Reviews on the site come from signed-in accounts and are not seeded
+- The review section shows the most recent entries; the rating and the count in the page markup are generated from the stored rows, not written by hand
 `;
 
     return new Response(body, {

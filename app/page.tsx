@@ -13,12 +13,16 @@ export const revalidate = 3600
 export default async function Home() {
     // A failed read comes back as an empty list, and every review block already
     // has an honest empty state, so the page still renders in full.
-    const { reviews } = await getReviewSummary()
+    // `reviews` is the newest handful, `count` and `average` describe the whole
+    // table. The page shows the slice and states the total.
+    const { reviews, count, average } = await getReviewSummary()
     // Stripe price ids are server-only, so whether each tier is on sale has to
     // be resolved here and handed down.
     return (
         <LandingClient
             initialReviews={reviews}
+            reviewCount={count}
+            reviewAverage={average}
             stageAvailable={isPlanConfigured("stage")}
             playerAvailable={isPlanConfigured("player")}
         />

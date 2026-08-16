@@ -13,11 +13,14 @@ import { SITE_URL } from "@/lib/site";
  * as the tone library grows.
  */
 const LAST_UPDATED = {
-    home: "2026-07-26",
+    // The August 2026 pricing change rewrote what these four pages say: two
+    // plans instead of three, new figures, no free tier. A lastmod still
+    // reading July would tell a crawler the old copy is current.
+    home: "2026-08-16",
     toneMatch: "2026-07-26",
     explore: "2026-07-26",
-    plans: "2026-07-26",
-    faq: "2026-07-26",
+    plans: "2026-08-16",
+    faq: "2026-08-16",
     toneLibrary: "2026-07-26",
     gear: "2026-08-09",
     about: "2026-08-15",
@@ -50,7 +53,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: baseUrl, lastModified: LAST_UPDATED.home },
         { url: `${baseUrl}/tone-match`, lastModified: LAST_UPDATED.toneMatch },
         { url: `${baseUrl}/explore`, lastModified: LAST_UPDATED.explore },
-        { url: `${baseUrl}/plans`, lastModified: LAST_UPDATED.plans },
+        // /plans is not listed any more. It answers a signed-out request with a
+        // redirect to sign-up, and a sitemap entry for a URL that never returns
+        // a page to a crawler is a soft 404 that costs crawl budget on every
+        // other page in this file.
         { url: `${baseUrl}/faq`, lastModified: LAST_UPDATED.faq },
         { url: `${baseUrl}/feedback`, lastModified: LAST_UPDATED.feedback },
         { url: `${baseUrl}/privacy`, lastModified: LAST_UPDATED.privacy },

@@ -1,31 +1,53 @@
 import type { Metadata } from "next";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { Pricing } from "@/components/Pricing";
 import { SITE_URL } from "@/lib/site";
 import { getReviewSummary } from "@/lib/reviews";
 import { PRICING_FAQ } from "@/lib/pricing-faq";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 import { isPlanConfigured } from "@/lib/stripe";
 
-export const metadata: Metadata = {
-    // The root layout appends "| Tonelify", so the brand is left off here
-    title: "Pricing: Guitar Tone Matching Plans",
-    description: `Two plans, monthly or yearly. ${PLAN_NAMES.stage} from ${PRICING.stage.month.price} a month, unlimited matching on ${PLAN_NAMES.player} from ${PRICING.month.price} a month. Both start with a ${TRIAL_DAYS}-day free trial.`,
-    openGraph: {
-        title: "Plans & Pricing | Tonelify",
-        description: `Unlimited guitar tone matching from ${PRICING.month.price} a month, with a ${TRIAL_DAYS}-day free trial.`,
-    },
-    alternates: {
-        canonical: "/plans",
-    },
-};
+/** Where a signed-out visitor is sent instead of the price table. */
+const SIGN_UP = "/sign-up?redirect_url=%2Fplans";
+
 /**
- * The page is otherwise fully static, which would freeze the review count into
- * the build. An hour is short enough that the rating in the markup tracks the
- * real table and long enough that this stays a cached render.
+ * Prices are behind the account now, so the metadata cannot carry them either.
+ *
+ * A title and description are read by crawlers, previewed in messaging apps and
+ * shown in a shared link, all without anybody signing in. Leaving the old
+ * "from $6.99 a month" description in place would publish the exact figure the
+ * page no longer shows. The redirect also lives here rather than only in the
+ * component: metadata resolves before the response streams, so a signed-out
+ * request is answered with the redirect instead of a page that renders and then
+ * bounces.
  */
-export const revalidate = 3600;
+export async function generateMetadata(): Promise<Metadata> {
+    const { userId } = await auth();
+    if (!userId) redirect(SIGN_UP);
+
+    return {
+        // The root layout appends "| Tonelify", so the brand is left off here
+        title: "Your plan options",
+        description: "Compare the Tonelify plans on your account and pick the one that fits how often you match.",
+        // Behind sign-in, so there is nothing here for an index to hold.
+        robots: { index: false, follow: false },
+        alternates: {
+            canonical: "/plans",
+        },
+    };
+}
+
+/**
+ * Signed-in only, so it cannot be prerendered or cached across visitors any
+ * more. It used to revalidate hourly to keep the review count fresh; that read
+ * now happens per request, which is the same query the dashboard already runs.
+ */
+export const dynamic = "force-dynamic";
 
 export default async function PlansPage() {
+    const { userId } = await auth();
+    if (!userId) redirect(SIGN_UP);
+
     // Read on the server so the rating is in the HTML for engines that never
     // run JavaScript. Emitted only when real reviews exist: the site's own
     // llms.txt states that reviews are not seeded, and a hardcoded rating
@@ -37,8 +59,12 @@ export default async function PlansPage() {
     const stageAvailable = isPlanConfigured("stage");
     const playerAvailable = isPlanConfigured("player");
 
+    // No page-level top padding: the Pricing section already opens with
+    // py-16 md:py-24, and stacking the two put 176px of empty page between the
+    // header and the trial badge on a desktop screen, which pushed the first
+    // plan card below the fold on the page whose only job is to show the cards.
     return (
-        <div className="pt-10 md:pt-20 min-h-screen bg-[#08080C] text-[#F2F0ED]">
+        <div className="min-h-screen bg-[#08080C] text-[#F2F0ED]">
             <Pricing stageAvailable={stageAvailable} playerAvailable={playerAvailable} />
             <script
                 type="application/ld+json"
@@ -80,40 +106,12 @@ export default async function PlansPage() {
                                     },
                                 }
                                 : {}),
-                            // Offers mirror the cards exactly, each tier included
-                            // only when it is actually on sale. An engine quoting
-                            // a tier a visitor cannot buy is the same failure as
-                            // a button that cannot pay.
-                            offers: [
-                                ...(stageAvailable
-                                    ? [
-                                        {
-                                            "@type": "Offer", name: `${PLAN_NAMES.stage} (Monthly)`, price: PRICING.stage.month.amount.toFixed(2), priceCurrency: "USD",
-                                            description: `${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month, ${TRIAL_DAYS}-day free trial`,
-                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                        },
-                                        {
-                                            "@type": "Offer", name: `${PLAN_NAMES.stage} (Yearly)`, price: PRICING.stage.year.amount.toFixed(2), priceCurrency: "USD",
-                                            description: `${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month billed yearly, ${TRIAL_DAYS}-day free trial`,
-                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                        },
-                                    ]
-                                    : []),
-                                ...(playerAvailable
-                                    ? [
-                                        {
-                                            "@type": "Offer", name: `${PLAN_NAMES.player} (Monthly)`, price: PRICING.month.amount.toFixed(2), priceCurrency: "USD",
-                                            description: `Unlimited matches and saved tones, ${TRIAL_DAYS}-day free trial`,
-                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                        },
-                                        {
-                                            "@type": "Offer", name: `${PLAN_NAMES.player} (Yearly)`, price: PRICING.year.amount.toFixed(2), priceCurrency: "USD",
-                                            description: `Unlimited matches and saved tones billed yearly, ${TRIAL_DAYS}-day free trial`,
-                                            url: `${SITE_URL}/plans`, availability: "https://schema.org/InStock",
-                                        },
-                                    ]
-                                    : []),
-                            ],
+                            // No Offer nodes. This page is signed-in only now, so
+                            // the prices are not public, and structured data is
+                            // published text: marking up a figure nobody can see
+                            // on the page is exactly the mismatch that gets a
+                            // rich result pulled, and it would republish the
+                            // number the account gate is there to withhold.
                         },
                         // The billing questions people actually ask before
                         // paying. Same source as the accordion on the page, so

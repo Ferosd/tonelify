@@ -70,11 +70,16 @@ function Stars({ count, size = 20 }: { count: number; size?: number }) {
 }
 
 /**
- * Reviews on the landing page come from the `reviews` table, written by
- * signed-in accounts through /api/reviews. Nothing here is seeded or written on
- * the product's behalf: until real reviews land, the section says so.
+ * Reviews on the landing page come from the `reviews` table. Six cards is the
+ * whole grid, so `totalCount` and `averageRating` carry the figures for the
+ * rest of the table and the summary line states those rather than counting the
+ * six it drew.
  */
-export function LandingTestimonials({ initialReviews }: { initialReviews?: Review[] }) {
+export function LandingTestimonials({
+    initialReviews,
+    totalCount,
+    averageRating,
+}: { initialReviews?: Review[]; totalCount?: number; averageRating?: number }) {
     // Seeded from the server render. Without it the first paint here is the
     // aria-hidden spacer below, which is what a crawler that skips JavaScript
     // would have taken for the whole section.
@@ -138,9 +143,8 @@ export function LandingTestimonials({ initialReviews }: { initialReviews?: Revie
                         margin: "0 0 24px",
                     }}
                 >
-                    Every review on this page is written by someone with an account, and posted
-                    under their own name. Start the free trial, run a match on your own
-                    rig, and tell us whether the settings held up.
+                    Start the free trial, run a match on your own rig, and tell us whether
+                    the settings held up.
                 </p>
                 <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
                     <Link href="/tone-match" className="cta-btn">
@@ -154,7 +158,8 @@ export function LandingTestimonials({ initialReviews }: { initialReviews?: Revie
         )
     }
 
-    const average = reviews.reduce((a, r) => a + r.rating, 0) / reviews.length
+    const count = totalCount ?? reviews.length
+    const average = averageRating ?? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length
 
     return (
         <div style={{ width: "100%" }}>
@@ -186,9 +191,9 @@ export function LandingTestimonials({ initialReviews }: { initialReviews?: Revie
                     </strong>{" "}
                     from{" "}
                     <strong style={{ color: "#F2F2F7", fontWeight: 600 }}>
-                        {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                        {count} {count === 1 ? "review" : "reviews"}
                     </strong>
-                    , each posted from a Tonelify account
+                    . A few of the recent ones:
                 </p>
             </div>
 
@@ -311,7 +316,7 @@ export function LandingTestimonials({ initialReviews }: { initialReviews?: Revie
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                             <polyline points="20 6 9 17 4 12" />
                                         </svg>
-                                        Verified account
+                                        Tonelify player
                                     </div>
                                 </div>
                             </div>

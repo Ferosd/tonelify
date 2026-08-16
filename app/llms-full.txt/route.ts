@@ -3,7 +3,7 @@ import { GEAR_CATALOG, GEAR_TYPE_LABELS, gearLabel, type GearEntry } from "@/lib
 import { GUIDES, GUIDES_UPDATED } from "@/lib/guides";
 import { startingPoint, openSettingsSentence, REFERENCE_CAVEAT } from "@/lib/tone-settings";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
+import { PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 
 /**
  * The companion to /llms.txt. Where that file is an index, this one is the
@@ -122,8 +122,12 @@ pick attack, string gauge and technique rather than by knob positions.
 Two plans, each sold monthly or yearly. There is no free tier and no weekly
 pass; both were withdrawn in August 2026.
 
-- ${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year (${PRICING.stage.year.perMonth} a month), ${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month, ${TRIAL_DAYS}-day free trial
-- ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year (${PRICING.year.perMonth} a month), unlimited matches and saved tones, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+- ${PLAN_NAMES.stage}: ${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month, ${TRIAL_DAYS}-day free trial
+- ${PLAN_NAMES.player}: unlimited matches and saved tones, gear presets, effects chain and tone tips, ${TRIAL_DAYS}-day free trial
+
+Prices are not published. They are shown on the account, so there is no figure
+on this site to quote; yearly billing costs less per month than monthly on both
+plans. Anything stating a dollar amount for Tonelify did not come from here.
 
 What separates the two is how many matches a month they allow, not what a match
 returns. A match itself is identical on both: the same settings, the same
@@ -141,8 +145,7 @@ Cancelling stops the next renewal and access runs to the end of the paid period.
 - ${SITE_URL}/gear : ${GEAR_CATALOG.length} amps, guitars, pedals and modellers with front-panel data
 - ${SITE_URL}/guides : ${GUIDES.length} general guitar tone explainers
 - ${SITE_URL}/tone-match : enter your gear and a song, get settings
-- ${SITE_URL}/faq : how tone matching works, gear coverage, pricing
-- ${SITE_URL}/plans : plan comparison
+- ${SITE_URL}/faq : how tone matching works, gear coverage, what the plans include
 - ${SITE_URL}/feedback?kind=gear : ask for equipment to be added
 - ${SITE_URL}/feedback : report a bug, request a feature, or correct a tone
 

@@ -80,6 +80,145 @@ export function leadParagraph(entry: GearEntry): string {
     }
 }
 
+const has = (entry: GearEntry, needle: string) =>
+    (entry.controls ?? []).some((c) => c.toLowerCase().includes(needle));
+
+const lowerFirst = (s: string): string => (s ? s[0].toLowerCase() + s.slice(1) : s);
+
+const list = (items: string[]): string =>
+    items.length <= 1
+        ? items.join("")
+        : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+
+/**
+ * What this one unit's own panel means for dialling it in.
+ *
+ * `leadParagraph` varies by family, which is enough to keep a fuzz pedal page
+ * away from a valve head page, but it left two Marshall heads reading as the
+ * same page with the model name swapped: measured at 75% identical five-word
+ * sequences, which is the near-duplicate band. This paragraph is generated from
+ * the row's own controls, channels, voicings and pickups, so two units only
+ * read alike when their front panels genuinely are alike.
+ *
+ * Every sentence is derived from stored facts. Nothing here is invented, and an
+ * entry with no panel on file gets no paragraph rather than a padded one.
+ */
+export function panelParagraph(entry: GearEntry): string | null {
+    const label = gearLabel(entry);
+    const family = familyOf(entry);
+    const parts: string[] = [];
+
+    if (family === "guitar" || family === "bass") {
+        if (!entry.pickups && !entry.scale) return null;
+
+        if (entry.scale) {
+            // Scale length is the one number on a guitar that changes the
+            // settings: it sets string tension at pitch, which is why the same
+            // gain lands tighter on a 25.5" and thicker on a 24.75".
+            const short = parseFloat(entry.scale) < 25;
+            parts.push(
+                `A ${entry.scale} scale${entry.construction ? `, ${lowerFirst(entry.construction)}` : ""}. ${short
+                    ? "Shorter scales hold less string tension at pitch, so the low end arrives softer and the front of the amp saturates sooner. That usually means a shade less gain than a longer-scale guitar wants for the same part."
+                    : "That is the longer of the two common scales, so the strings sit tighter at pitch and the low end stays defined under gain."
+                }`
+            );
+        }
+
+        if (entry.pickups) {
+            const p = entry.pickups.toUpperCase();
+            parts.push(pickupNote(p));
+        }
+
+        if (entry.switching) {
+            parts.push(`Controls: ${lowerFirst(entry.switching)}.`);
+        }
+
+        if (entry.bridge) {
+            parts.push(
+                `${entry.bridge}${/trem|floyd|vibrato|bigsby/i.test(entry.bridge)
+                    ? ", so anything in the original that moves the pitch by hand can be played rather than approximated with an effect."
+                    : ", a fixed anchor, so pitch effects in the original have to come from a pedal or the picking hand."
+                }`
+            );
+        }
+
+        parts.push(
+            `Every setting Tonelify writes for this instrument names the pickup position it was dialled in on, because moving the selector changes both the level hitting the amp and the frequency balance it arrives with.`
+        );
+        return parts.join(" ");
+    }
+
+    if (!entry.controls?.length && !entry.power) return null;
+
+    const notable: string[] = [];
+
+    if (entry.power) {
+        // Watts are the headroom figure, and headroom is what decides whether a
+        // clean setting stays clean at the volume it will be played at.
+        const watts = parseInt(entry.power, 10);
+        notable.push(
+            `${entry.power}${entry.speaker ? ` through a ${entry.speaker}` : ""}. ${Number.isFinite(watts) && watts <= 20
+                ? "At that rating the power section starts working early, so the loudness knob is part of the tone setting rather than separate from it."
+                : "There is enough headroom to hold a clean setting at band volume, so the gain control does the driving rather than the master."
+            }`
+        );
+    }
+
+    if (!entry.controls?.length) {
+        return notable.length ? notable.join(" ") : null;
+    }
+
+    if (family === "tube-amp" || family === "solid-state-amp" || family === "modelling-amp" || family === "bass-amp") {
+        notable.push(
+            has(entry, "presence")
+                ? `It has a presence control, so the top end above the treble band is set separately from the tone stack. That is the control to reach for when a setting sounds close but harsh.`
+                : `There is no presence control on this panel, so everything above the treble band has to come from the treble control and the guitar's own tone knob. A setting copied from an amp with presence has to be rebalanced here.`
+        );
+
+        if (has(entry, "resonance") || has(entry, "deep")) {
+            notable.push(`A ${has(entry, "resonance") ? "resonance" : "deep"} control sets the low end at the power stage rather than in the preamp, which is a different kind of bass to the one the bass knob makes.`);
+        }
+
+        if (!has(entry, "middle") && !has(entry, "mid")) {
+            notable.push(`The EQ has no middle control, so the midrange is fixed by the amp's own voicing and can only be shaped around with bass and treble, or in front of the amp with a pedal.`);
+        }
+
+        notable.push(
+            has(entry, "master")
+                ? `Gain and master volume are separate, so the preamp can be driven hard at a volume that is liveable. Where a tone sits between the two is part of the answer, not a detail.`
+                : `There is no master volume: how loud the amp is and how driven it sounds move together, which is the main thing to plan around when a setting written for a master-volume amp is carried over.`
+        );
+
+        if (has(entry, "reverb")) {
+            notable.push(`Reverb is onboard, so a tone that needs it does not need a pedal in the chain.`);
+        }
+    }
+
+    if (family === "drive-pedal" || family === "time-pedal" || family === "multifx") {
+        notable.push(
+            `Its controls are ${list(entry.controls)}, and settings for this ${GEAR_TYPE_LABELS[entry.type].toLowerCase()} are written against those names rather than a generic level, tone and gain.`
+        );
+    }
+
+    if (entry.channels?.length) {
+        notable.push(
+            entry.channels.length === 1
+                ? `One channel, ${entry.channels[0]}, so the clean sound and the driven sound are the same circuit at two different settings.`
+                : `${entry.channels.length} channels, ${list(entry.channels)}, and a setting only means something once the channel it belongs to is named.`
+        );
+    }
+
+    if (entry.voicings?.length) {
+        notable.push(
+            `The selectable voicings are ${list(entry.voicings)}. Picking the voicing comes before the knob positions, because the same numbers land somewhere else on each one.`
+        );
+    }
+
+    if (notable.length === 0) return null;
+
+    return notable.join(" ");
+}
+
 /**
  * Family-specific questions with answers that are true of this row only. These
  * feed both the visible FAQ section and the FAQPage block, which the gear pages

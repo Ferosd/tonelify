@@ -1,4 +1,17 @@
+import type { Metadata } from "next"
 import Link from "next/link"
+
+/**
+ * A 404 that says so in its own title, and does not inherit the root layout's
+ * canonical. That canonical pointed every missing URL at the homepage, which
+ * is the shape of a soft 404: a page that answers "not found" while telling an
+ * engine it is really the front page.
+ */
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: { index: false, follow: true },
+  alternates: { canonical: null },
+}
 
 export default function NotFound() {
   return (

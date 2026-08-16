@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         const burst = await checkRateLimit("tone-match", userId, MATCHES_PER_MINUTE, 60);
         if (!burst.allowed) {
             return NextResponse.json(
-                { error: "Too fast", message: "That's a lot of matches at once — give it a minute and try again." },
+                { error: "Too fast", message: "That's a lot of matches at once. Give it a minute and try again." },
                 { status: 429, headers: { "Retry-After": String(burst.retryAfter) } }
             );
         }
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 {
                     error: "Tone engine unavailable",
-                    message: "The tone engine took too long to answer. Nothing was counted against your matches — hit Run Research again.",
+                    message: "The tone engine took too long to answer. Nothing was counted against your matches, so hit Run Research again.",
                 },
                 { status: 503 }
             );
@@ -350,7 +350,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 {
                     error: "Tone engine unavailable",
-                    message: "The tone engine returned an incomplete answer. Nothing was counted — please try again.",
+                    message: "The tone engine returned an incomplete answer. Nothing was counted, please try again.",
                 },
                 { status: 502 }
             );

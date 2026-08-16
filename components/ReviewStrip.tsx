@@ -19,7 +19,11 @@ type Review = {
  * already carries an honest empty state, and an empty strip up here would only
  * imply an audience that is not there yet.
  */
-export function ReviewStrip({ initialReviews }: { initialReviews?: Review[] }) {
+export function ReviewStrip({
+    initialReviews,
+    totalCount,
+    averageRating,
+}: { initialReviews?: Review[]; totalCount?: number; averageRating?: number }) {
     // Seeded from the server render, so the quotes are in the HTML an engine
     // reads.
     const [reviews, setReviews] = useState<Review[] | null>(initialReviews ?? null)
@@ -42,7 +46,9 @@ export function ReviewStrip({ initialReviews }: { initialReviews?: Review[] }) {
 
     if (!reviews || reviews.length === 0) return null
 
-    const average = reviews.reduce((a, r) => a + r.rating, 0) / reviews.length
+    // Totals cover the table, quotes cover what fits in the strip
+    const count = totalCount ?? reviews.length
+    const average = averageRating ?? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length
     // Short entries read as quotes at a glance; long ones belong in the full list
     const quotes = [...reviews]
         .filter((r) => r.comment && r.comment.trim().length > 20)
@@ -77,7 +83,7 @@ export function ReviewStrip({ initialReviews }: { initialReviews?: Review[] }) {
                     <span style={{
                         fontFamily: "'Satoshi', sans-serif", fontSize: "0.95rem", color: "#A6A6AF",
                     }}>
-                        {reviews.length} {reviews.length === 1 ? "review" : "reviews"}, each one posted from a Tonelify account
+                        {count} {count === 1 ? "review" : "reviews"} from players running their own rigs
                     </span>
                     <Link
                         href="/#reviews"

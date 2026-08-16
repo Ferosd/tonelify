@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Guitar, Bookmark, Settings, Sparkles, MessageSquare, LogOut, Compass, HelpCircle, Sliders, BookOpen } from "lucide-react";
 import { useState } from "react";
@@ -19,6 +19,15 @@ import { useState } from "react";
  * stay one tap from every page. An orphaned section gets crawled rarely and
  * ranks poorly no matter what is on it.
  */
+/**
+ * Routes that only exist once there is an account behind them.
+ *
+ * Plans is here because the prices sit behind sign-up now: linking to a page
+ * that answers a signed-out visitor with a redirect is a dead link with a label
+ * on it, and the label is the very word the gate is meant to hold back.
+ */
+const SIGNED_IN_ONLY = new Set(["/plans"]);
+
 const groups: { label: string; routes: { href: string; label: string; icon: typeof Compass }[] }[] = [
   {
     label: "Tones",
@@ -60,6 +69,16 @@ const primary = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { isSignedIn } = useUser();
+
+  // While Clerk is still loading, isSignedIn is undefined and the gated links
+  // stay hidden. Hidden then shown is a link appearing; shown then hidden is a
+  // link vanishing under the cursor, which is the worse of the two.
+  const allowed = (href: string) => !SIGNED_IN_ONLY.has(href) || Boolean(isSignedIn);
+  const visibleGroups = groups
+    .map((g) => ({ ...g, routes: g.routes.filter((r) => allowed(r.href)) }))
+    .filter((g) => g.routes.length > 0);
+  const visiblePrimary = primary.filter((r) => allowed(r.href));
 
   return (
     <header
@@ -108,7 +127,7 @@ export function SiteHeader() {
             {/* Grouped, because nine flat rows in a drawer is the same problem
                 as nine links in a bar, just rotated ninety degrees */}
             <div style={{ padding: "0 16px 96px", display: "flex", flexDirection: "column", gap: "18px", overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}>
-              {groups.map(group => (
+              {visibleGroups.map(group => (
                 <div key={group.label} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                   <span style={{
                     fontFamily: "var(--font-prose)", fontWeight: 700,
@@ -188,7 +207,7 @@ export function SiteHeader() {
           className="hidden md:flex"
           style={{ flex: 1, justifyContent: "center", gap: "8px" }}
         >
-          {primary.map(route => (
+          {visiblePrimary.map(route => (
             <Link
               key={route.href}
               href={route.href}

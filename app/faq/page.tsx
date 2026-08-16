@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TONE_LIBRARY } from "@/lib/tone-library";
 import { SITE_URL } from "@/lib/site";
-import { PRICING, PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
+import { PLAN_NAMES, TRIAL_DAYS, STAGE_MATCHES, STAGE_SAVED_TONES } from "@/lib/pricing";
 
 export const metadata: Metadata = {
     title: "Guitar Tone Matching FAQ: How Tonelify Works",
@@ -116,10 +116,15 @@ const GROUPS: Group[] = [
                 ],
             },
             {
-                q: "How much does Tonelify cost?",
+                // The figures used to be spelled out here. Prices now live
+                // behind the account, so this answer describes the shape of the
+                // plans without quoting a number: an FAQ that states a price the
+                // site will not show is both a leak and, the day pricing moves,
+                // a wrong answer sitting in a search result.
+                q: "What do the plans include?",
                 a: [
-                    `${PLAN_NAMES.stage}: ${PRICING.stage.month.price} a month or ${PRICING.stage.year.price} a year, which is ${PRICING.stage.year.perMonth} a month, for ${STAGE_MATCHES} matches and ${STAGE_SAVED_TONES} saved tones a month. ${PLAN_NAMES.player}: ${PRICING.month.price} a month or ${PRICING.year.price} a year, which is ${PRICING.year.perMonth} a month, for unlimited matches and saved tones.`,
-                    `Both come with the same ${TRIAL_DAYS}-day free trial. A match is identical on either plan: nothing about the answer is held back on the cheaper one.`,
+                    `There are two, billed monthly or yearly, and the yearly option costs less per month. ${PLAN_NAMES.stage} covers ${STAGE_MATCHES} tone matches and ${STAGE_SAVED_TONES} saved tones a month. ${PLAN_NAMES.player} is unlimited on both.`,
+                    `Both come with the same ${TRIAL_DAYS}-day free trial, and nothing is charged until it ends. A match is identical on either plan: nothing about the answer is held back on the cheaper one. Create an account to see the current prices.`,
                 ],
             },
             {
@@ -244,11 +249,15 @@ export default function FaqPage() {
                         >
                             Match a tone free
                         </Link>
+                        {/* "Compare plans" pointed at /plans, which now answers
+                            a signed-out reader with a redirect. The page is
+                            static and has no session to read, so the honest
+                            label is the one that describes what the click does. */}
                         <Link
-                            href="/plans"
+                            href="/sign-up?redirect_url=%2Fplans"
                             className="inline-flex items-center h-12 px-8 rounded-full border border-white/10 text-[#F2F2F7] font-bold text-sm hover:border-[#F5A623]/40 transition-colors"
                         >
-                            Compare plans
+                            Create an account to see plans
                         </Link>
                     </div>
                 </section>

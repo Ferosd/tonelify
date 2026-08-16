@@ -3,6 +3,7 @@ import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalSiteHeader } from "@/components/ConditionalSiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import Script from 'next/script';
 import { SITE_URL } from "@/lib/site";
@@ -215,8 +216,16 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            {/* First thing in the tab order, visible only once focused. Every
+                page puts the same header and, on mobile, the same tab bar in
+                front of its content, so a keyboard or screen-reader visitor was
+                tabbing through the whole nav on every single page. */}
+            <a href="#main" className="skip-link">Skip to content</a>
             <ConditionalSiteHeader />
-            {children}
+            {/* The one main landmark. Only the landing page had one, so every
+                other page offered nothing to jump to. */}
+            <main id="main">{children}</main>
+            <SiteFooter />
             <MobileTabBar />
           </ThemeProvider>
         </body>

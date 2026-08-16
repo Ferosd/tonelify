@@ -14,7 +14,7 @@ import { ToneProof, TONE_COUNT } from "@/components/ToneProof"
 import { AmpKnob } from "@/components/AmpKnob"
 import { TONE_LIBRARY } from "@/lib/tone-library"
 import type { StoredReview } from "@/lib/reviews"
-import { PRICING, PLAN_NAMES, TRIAL_DAYS } from "@/lib/pricing"
+import { TRIAL_DAYS } from "@/lib/pricing"
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -214,8 +214,12 @@ const gearBrands = ["Fender", "Marshall", "Gibson", "Vox", "Mesa Boogie", "PRS",
  * JavaScript saw a spinner and an empty placeholder where the social proof was.
  * The components still refetch on mount, so a freshly posted review shows up
  * without waiting for the hourly revalidate.
+ *
+ * `initialReviews` is only the newest handful. `reviewCount` and
+ * `reviewAverage` cover the whole table, so every block on the page states the
+ * same total instead of counting the cards it happens to render.
  */
-export function LandingClient({ initialReviews, stageAvailable = false, playerAvailable = true }: { initialReviews: StoredReview[]; stageAvailable?: boolean; playerAvailable?: boolean }) {
+export function LandingClient({ initialReviews, reviewCount, reviewAverage, stageAvailable = false, playerAvailable = true }: { initialReviews: StoredReview[]; reviewCount?: number; reviewAverage?: number; stageAvailable?: boolean; playerAvailable?: boolean }) {
   const navRef            = useRef<HTMLElement>(null)
   const wrapperRef        = useRef<HTMLDivElement>(null)
   const canvasRef         = useRef<HTMLCanvasElement>(null)
@@ -295,16 +299,37 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
     const loadBatch = (start: number) => {
       for (let i = start; i < Math.min(start + BATCH, TOTAL); i++) {
         if (i % FRAME_STEP !== 0 && i !== TOTAL - 1) continue
+        if (heroFramesRef.current[i]) continue
         const img = new Image()
         img.src = `/frames/frame_${String(i + 1).padStart(4, "0")}.jpg`
         heroFramesRef.current[i] = img
       }
       if (start + BATCH < TOTAL) setTimeout(() => loadBatch(start + BATCH), 16)
     }
-    loadBatch(0)
-    const firstFrame = heroFramesRef.current[0]
+
+    // Frame one on its own, straight away: it is the picture the hero is
+    // painted with before anybody scrolls, so it is the LCP candidate.
+    const firstFrame = new Image()
+    firstFrame.src = "/frames/frame_0001.jpg"
+    heroFramesRef.current[0] = firstFrame
     if (firstFrame.complete) drawCoverFrame(firstFrame)
     else firstFrame.onload = () => drawCoverFrame(firstFrame)
+
+    // The other 240 are 9.5MB on a desktop connection. Queued during load they
+    // competed with the fonts, the scripts and frame one itself for bandwidth,
+    // which is what put the desktop LCP over three seconds while the page had
+    // nothing left to paint. Nothing needs them until the first scroll, so they
+    // wait for the load event.
+    let framesQueued = false
+    const queueFrames = () => {
+      if (framesQueued) return
+      framesQueued = true
+      loadBatch(0)
+    }
+    if (document.readyState === "complete") queueFrames()
+    else window.addEventListener("load", queueFrames, { once: true })
+    // A visitor who scrolls before the load event still gets them
+    window.addEventListener("scroll", queueFrames, { once: true, passive: true })
 
     // Latest wrapper progress, readable from a video's own load handler
     let scrollProgress = 0
@@ -482,11 +507,18 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
   }, [])
 
   return (
-    <main style={{
+    // A div, not a main: the root layout wraps every page in the one <main>
+    // landmark now, and two nested mains is invalid and confuses the landmark
+    // list a screen reader offers.
+    <div style={{
       background: "#08080A", color: "#F2F2F7",
       opacity: mounted ? 1 : 0,
       transition: "opacity 0.5s ease-out",
     }}>
+      {/* The hero's first frame is the largest thing painted above the fold, and
+          until this it was only discovered once the effect ran after hydration.
+          React hoists this into <head>, so the fetch starts with the document. */}
+      <link rel="preload" as="image" href="/frames/frame_0001.jpg" fetchPriority="high" />
 
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap');
@@ -702,7 +734,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
           .tn-nav-links   { display: none !important; }
           .tn-hamburger   { display: inline-flex !important; }
           .tn-step-grid   { grid-template-columns: 1fr !important; }
-          /* Six knob cards do not fit a phone viewport at desktop scale —
+          /* Six knob cards do not fit a phone viewport at desktop scale,
              the heading was being pushed off the top of the sticky frame */
           .tn-amp-grid       { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
           .tn-amp-grid > div { padding: 14px 10px !important; }
@@ -746,7 +778,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
           .tn-hero-badges { display: none !important; }
 
           /* A half-width clip is unreadable in a 9:16 crop, and the two
-             scrubbed files are 6 MB — phones skip them entirely. */
+             scrubbed files are 6 MB, so phones skip them entirely. */
           .tn-sec-media { display: none !important; }
 
           /* Every footer link was a 19px line box, which is a hard target to
@@ -805,7 +837,10 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
           <Link href="/explore"    className="tn-nav-link">Explore Tones</Link>
           <Link href="/tone-match" className="tn-nav-link">Match Tones</Link>
           <Link href="/faq"        className="tn-nav-link">FAQ</Link>
-          <Link href="/plans"      className="tn-nav-link">Plans</Link>
+          {/* Prices sit behind an account, so this link is only worth showing to
+              someone who has one. A signed-out visitor clicking it would be
+              redirected straight back out to sign-up. */}
+          {isSignedIn && <Link href="/plans" className="tn-nav-link">Plans</Link>}
         </div>
         {/* The landing nav used to hard-code "Sign In", so a signed-in visitor who
             clicked the wordmark landed back here and read it as being logged out.
@@ -839,7 +874,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
         <Link href="/explore"    onClick={() => setMobileMenuOpen(false)}>Explore Tones</Link>
         <Link href="/tone-match" onClick={() => setMobileMenuOpen(false)}>Match Tones</Link>
         <Link href="/faq"        onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
-        <Link href="/plans"      onClick={() => setMobileMenuOpen(false)}>Plans</Link>
+        {isSignedIn && <Link href="/plans" onClick={() => setMobileMenuOpen(false)}>Plans</Link>}
         {!isSignedIn && (
           <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "1.25rem", color: "#F5A623" }}>Sign In</Link>
         )}
@@ -956,9 +991,16 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
             </p>
             <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap", pointerEvents: "auto" }}>
               <Link href="/tone-match" className="cta-btn">Start Matching Tones</Link>
-              <Link href="/plans"      className="ghost-btn">See plans</Link>
+              {/* The second button used to be "See plans" for everyone. Prices
+                  are behind an account now, so a signed-out reader gets the
+                  library instead: it is the part of the site they can actually
+                  use without one, and it is the strongest thing we have to show
+                  before asking for a sign-up. */}
+              {isSignedIn
+                ? <Link href="/plans" className="ghost-btn">See plans</Link>
+                : <Link href="/explore" className="ghost-btn">Explore the library</Link>}
             </div>
-            <SocialProofBar reviews={initialReviews} />
+            <SocialProofBar reviews={initialReviews} totalCount={reviewCount} averageRating={reviewAverage} />
             <div className="tn-hero-badges" style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginTop: "28px", pointerEvents: "auto" }}>
               {badges.map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
@@ -1284,7 +1326,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
       }} />
 
       {/* ── REVIEW STRIP — real reviews, ahead of the pricing table ── */}
-      <ReviewStrip initialReviews={initialReviews} />
+      <ReviewStrip initialReviews={initialReviews} totalCount={reviewCount} averageRating={reviewAverage} />
 
       {/* ── S7 PRICING — signed-in only ──
           Visitors who are not signed in do not see plans on the landing page.
@@ -1365,7 +1407,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
           <div style={{ marginTop: 56 }}>
             <span style={sectionLabel}>What Guitarists Say</span>
             <div className="tn-testimonials" style={{ marginTop: "28px" }}>
-              <LandingTestimonials initialReviews={initialReviews} />
+              <LandingTestimonials initialReviews={initialReviews} totalCount={reviewCount} averageRating={reviewAverage} />
             </div>
           </div>
         </div>
@@ -1373,7 +1415,7 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
 
       {/* ── S8b REVIEWS — read the full list and post one ── */}
       <div style={{ position: "relative", zIndex: 20 }}>
-        <Reviews initialReviews={initialReviews} />
+        <Reviews initialReviews={initialReviews} totalCount={reviewCount} averageRating={reviewAverage} />
       </div>
 
       {/* Divider: before Gear strip */}
@@ -1453,14 +1495,14 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
+              <h3 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Quick Links
-              </h4>
+              </h3>
               {/* Collection, Dashboard and Settings used to sit here. They are
                   noindex and blocked in robots.txt, so every one of those links
                   spent a footer slot on a page no visitor could open without an
                   account and no crawler was allowed to fetch. */}
-              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Settings by Gear", "/gear"], ["Tone Guides", "/guides"], ["Plans", "/plans"], ["FAQ", "/faq"], ["Send Feedback", "/feedback"]] as const).map(([text, href]) => (
+              {([["Home", "/"], ["Explore Tones", "/explore"], ["Match Tones", "/tone-match"], ["Settings by Gear", "/gear"], ["Tone Guides", "/guides"], ...(isSignedIn ? [["Plans", "/plans"] as const] : []), ["FAQ", "/faq"], ["Send Feedback", "/feedback"]] as const).map(([text, href]) => (
                 <div key={href} style={{ marginBottom: "12px" }}>
                   <Link href={href} style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                     {text}
@@ -1470,9 +1512,9 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
+              <h3 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Support
-              </h4>
+              </h3>
               <div style={{ marginBottom: "12px" }}>
                 <Link href="/about" style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
                   About & Method
@@ -1486,9 +1528,9 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
             </div>
 
             <div>
-              <h4 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
+              <h3 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 20px" }}>
                 Legal
-              </h4>
+              </h3>
               {([["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]] as const).map(([text, href]) => (
                 <div key={href} style={{ marginBottom: "12px" }}>
                   <Link href={href} style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.9375rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.65 }}>
@@ -1504,9 +1546,9 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
               until now the only route to any of them was the /explore grid. A flat
               link row gives each one a path from the highest-authority page. */}
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "28px" }}>
-            <h4 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 16px" }}>
+            <h3 style={{ fontFamily: "'Satoshi', sans-serif", fontWeight: 500, fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#A6A6AF", margin: "0 0 16px" }}>
               Popular tone settings
-            </h4>
+            </h3>
             <div className="tn-foot-tones" style={{ display: "flex", flexWrap: "wrap", gap: "10px 20px" }}>
               {FOOTER_TONES.map(([text, href]) => (
                 <Link key={href} href={href} style={{ fontFamily: "'Satoshi', sans-serif", fontSize: "0.8125rem", color: "#F2F2F7", textDecoration: "none", opacity: 0.55 }}>
@@ -1534,20 +1576,23 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
             "url": "https://tonelify.com",
             "publisher": { "@id": "https://tonelify.com/#organization" },
             // Built from the same server-read rows the review sections render,
-            // so the rating in the markup is the rating on the page. Omitted
-            // entirely when the table is empty: llms.txt says reviews are not
-            // seeded, and a rating with nothing behind it would contradict it.
+            // so the rating in the markup is the rating on the page. The
+            // aggregate counts the whole table rather than the rendered slice,
+            // which is also the figure the visible summary line states.
+            // Omitted entirely when the table is empty: a rating with nothing
+            // behind it is a structured-data penalty waiting to happen.
             ...(initialReviews.length > 0
               ? {
                 "aggregateRating": {
                   "@type": "AggregateRating",
                   "ratingValue": (
+                    reviewAverage ??
                     Math.round(
                       (initialReviews.reduce((sum, r) => sum + r.rating, 0) /
                         initialReviews.length) * 10
                     ) / 10
                   ).toFixed(1),
-                  "reviewCount": initialReviews.length,
+                  "reviewCount": reviewCount ?? initialReviews.length,
                   "bestRating": "5",
                   "worstRating": "1",
                 },
@@ -1560,16 +1605,14 @@ export function LandingClient({ initialReviews, stageAvailable = false, playerAv
                 })),
               }
               : {}),
-            "offers": [
-              { "@type": "Offer", "name": `${PLAN_NAMES.stage} (Monthly)`, "price": PRICING.stage.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": `${PLAN_NAMES.stage} (Yearly)`, "price": PRICING.stage.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": `${PLAN_NAMES.player} (Monthly)`, "price": PRICING.month.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-              { "@type": "Offer", "name": `${PLAN_NAMES.player} (Yearly)`, "price": PRICING.year.amount.toFixed(2), "priceCurrency": "USD", "url": "https://tonelify.com/plans", "availability": "https://schema.org/InStock" },
-            ],
+            // No Offer nodes and no price. This markup is in the HTML of a page
+            // anyone can load, and the price table above it is signed-in only,
+            // so an Offer here would publish to every crawler the exact figure
+            // the account gate withholds from every reader.
           }),
         }}
       />
 
-    </main>
+    </div>
   )
 }
