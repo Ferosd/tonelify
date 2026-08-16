@@ -632,7 +632,7 @@ export default function ToneMatchPage() {
                                             value={userGuitar}
                                             onChange={setUserGuitar}
                                             types={["guitar", "bass"]}
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED]"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED]"
                                         />
                                         <p className="text-[10px] text-[#8A8494] cursor-pointer hover:text-[#E8712A] transition-colors font-medium pl-1">
                                             Can&apos;t find your model? Type generic type (e.g. &ldquo;S-Type&rdquo;)
@@ -666,7 +666,7 @@ export default function ToneMatchPage() {
                                             value={userAmp}
                                             onChange={setUserAmp}
                                             types={["amp", "bass-amp"]}
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm disabled:opacity-40 disabled:bg-[#0E0E14] text-[#F2F0ED]"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm disabled:opacity-40 disabled:bg-[#0E0E14] text-[#F2F0ED]"
                                             disabled={goingDirect}
                                         />
                                     </div>
@@ -743,7 +743,10 @@ export default function ToneMatchPage() {
                                                     placeholder="List your pedals in order (e.g. Tuner > Tube Screamer > Chorus > Delay)"
                                                     value={userEffects}
                                                     onChange={(e) => setUserEffects(e.target.value)}
-                                                    className="resize-none min-h-[120px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
+                                                    // text-sm on its own overrode the text-base that ui/textarea
+                                                    // sets below md, which put this field back under 16px and
+                                                    // back to zooming iOS in on focus.
+                                                    className="resize-none min-h-[120px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-base md:text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
                                                     disabled={!userAmp && !goingDirect}
                                                 />
                                                 <div className="absolute bottom-3 right-3 text-[#8A8494]">
@@ -766,7 +769,7 @@ export default function ToneMatchPage() {
                                                     value={multiFxUnit}
                                                     onChange={(e) => setMultiFxUnit(e.target.value)}
                                                     disabled={!userAmp && !goingDirect}
-                                                    className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#E8712A]/40 disabled:opacity-40"
+                                                    className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#E8712A]/40 disabled:opacity-40"
                                                 >
                                                     <option value="">
                                                         {savedMultiFx.length > 0 ? "Select your unit..." : "Type your unit below..."}
@@ -788,7 +791,7 @@ export default function ToneMatchPage() {
                                                 types={["multifx"]}
                                                 ariaLabel="Multi FX unit"
                                                 disabled={!userAmp && !goingDirect}
-                                                className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED] disabled:opacity-40"
+                                                className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors shadow-sm text-[#F2F0ED] disabled:opacity-40"
                                             />
 
                                             <Textarea
@@ -796,7 +799,7 @@ export default function ToneMatchPage() {
                                                 value={userEffects}
                                                 onChange={(e) => setUserEffects(e.target.value)}
                                                 disabled={!userAmp && !goingDirect}
-                                                className="resize-none min-h-[90px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
+                                                className="resize-none min-h-[90px] bg-[#12121A] border-white/8 focus:border-[#E8712A]/60 focus:ring-2 focus:ring-[#E8712A]/20 rounded-xl p-4 text-base md:text-sm leading-relaxed shadow-sm transition-colors text-[#F2F0ED] placeholder:text-[#8A8494]"
                                             />
 
                                             {user && savedMultiFx.length === 0 && (
@@ -820,7 +823,7 @@ export default function ToneMatchPage() {
                                     <div className="relative group">
                                         <select
                                             aria-label="Bass guitar"
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userGuitar}
                                             onChange={(e) => setUserGuitar(e.target.value)}
                                         >
@@ -850,7 +853,7 @@ export default function ToneMatchPage() {
                                     <div className="relative group">
                                         <select
                                             aria-label="Bass amplifier"
-                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
+                                            className="w-full h-12 px-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20 focus:border-[#F5A623]/60 transition-colors text-[#F2F0ED] appearance-none cursor-pointer hover:border-[#F5A623]/40"
                                             value={userAmp}
                                             onChange={(e) => setUserAmp(e.target.value)}
                                         >

@@ -162,7 +162,7 @@ export function FeedbackForm() {
                         value={gearName}
                         onChange={(e) => setGearName(e.target.value.slice(0, 160))}
                         placeholder="Boss Katana 50 MkII"
-                        className="w-full h-12 rounded-xl bg-[#12121A] border border-white/8 px-4 text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors"
+                        className="w-full h-12 rounded-xl bg-[#12121A] border border-white/8 px-4 text-base md:text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors"
                     />
                     <p className="text-[11px] text-[#8A8494]">
                         Make and model. The more exact it is, the sooner it can be added.
@@ -183,7 +183,7 @@ export function FeedbackForm() {
                     onChange={(e) => setMessage(e.target.value.slice(0, FEEDBACK_MAX))}
                     rows={7}
                     placeholder="The more specific the better. Which page, which amp, what you expected, what you got."
-                    className="w-full rounded-xl bg-[#12121A] border border-white/8 p-4 text-sm text-[#F2F0ED] leading-relaxed placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors resize-y"
+                    className="w-full rounded-xl bg-[#12121A] border border-white/8 p-4 text-base md:text-sm text-[#F2F0ED] leading-relaxed placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors resize-y"
                 />
                 <div className="flex items-center justify-between text-[11px] font-medium">
                     <span className="text-[#8A8494]">
@@ -211,7 +211,7 @@ export function FeedbackForm() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full h-12 rounded-xl bg-[#12121A] border border-white/8 px-4 text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors"
+                        className="w-full h-12 rounded-xl bg-[#12121A] border border-white/8 px-4 text-base md:text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 transition-colors"
                     />
                     <p className="text-[11px] text-[#8A8494]">
                         Optional. Leave it blank and the message still arrives, we just cannot answer it.

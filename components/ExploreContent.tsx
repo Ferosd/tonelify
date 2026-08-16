@@ -95,8 +95,8 @@ function ToneCard({ tone, cover, likes = 0 }: { tone: LibraryTone; cover?: strin
                 {/* mt-auto pins the footer to the bottom, which is what actually
                     lines the buttons up across a row of uneven titles */}
                 <div className="flex items-center gap-2 mt-auto pt-3">
-                    <span className="text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.genre}</span>
-                    <span className="hidden sm:inline text-[9px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.era}</span>
+                    <span className="text-[10px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.genre}</span>
+                    <span className="hidden sm:inline text-[10px] font-bold text-[#8A8494] bg-white/5 border border-white/8 px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">{tone.era}</span>
                     {likeCount && (
                         <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-[#8A8494] shrink-0">
                             <Heart className="h-3 w-3" fill="currentColor" />
@@ -148,7 +148,7 @@ export function ExploreContent({
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search songs, artists, genres"
                         aria-label="Search tones"
-                        className="w-full h-11 pl-11 pr-4 bg-[#12121A] border border-white/8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors text-[#F2F0ED]"
+                        className="w-full h-11 pl-11 pr-4 bg-[#12121A] border border-white/8 rounded-xl text-base md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E8712A]/20 focus:border-[#E8712A]/60 placeholder:text-[#8A8494] transition-colors text-[#F2F0ED]"
                     />
                 </div>
 

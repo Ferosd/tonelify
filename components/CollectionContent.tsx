@@ -399,7 +399,10 @@ export function CollectionContent({ savedTones, equipment = [] }: { savedTones: 
 
     return (
         <div className="min-h-screen bg-[#08080C]">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-8 py-10 md:py-12">
+            {/* pb-28 on phones clears the fixed tab bar. This page hides the site
+                footer, so nothing else is holding the last row above it and the
+                bottom card was sitting under the bar. */}
+            <div className="mx-auto max-w-[1400px] px-4 sm:px-8 pt-10 pb-28 md:py-12">
 
                 {/* Page Header */}
                 <div className="mb-8">

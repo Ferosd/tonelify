@@ -253,6 +253,29 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
 
   useEffect(() => { setMounted(true) }, [])
 
+  /**
+   * Freeze the page behind the phone menu while it is open.
+   *
+   * The overlay is fixed and covers everything, but it is not itself
+   * scrollable, so a drag on it scrolled the document underneath. On this page
+   * that is worse than the usual version of the bug: the hero is scrubbed by
+   * scroll position, so the guitar behind the menu was animating while a
+   * visitor dragged, and closing the menu left them somewhere down the page
+   * they never chose to go.
+   */
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    // The overlay claims role="dialog" and aria-modal, so Escape has to close it
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileMenuOpen(false) }
+    window.addEventListener("keydown", onKey)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener("keydown", onKey)
+    }
+  }, [mobileMenuOpen])
+
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
 
@@ -287,9 +310,11 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
     const handleNavScroll = () => {
       const nav = navRef.current
       if (!nav) return
+      // Keep the safe-area term, or the bar jumps under the notch on the first
+      // scroll of an iPhone and never comes back out.
       nav.style.padding = window.scrollY > 40
-        ? "12px clamp(24px, 5vw, 80px)"
-        : "20px clamp(24px, 5vw, 80px)"
+        ? "calc(12px + env(safe-area-inset-top)) clamp(24px, 5vw, 80px) 12px"
+        : "calc(20px + env(safe-area-inset-top)) clamp(24px, 5vw, 80px) 20px"
     }
     window.addEventListener("scroll", handleNavScroll)
 
@@ -699,7 +724,12 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
           background: rgba(8,8,10,0.97);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          z-index: 199;
+          /* Above the nav, which is 200. At 199 the nav covered the top 89px of
+             the overlay, so the close button in that strip was not the element
+             under the thumb: the tap went to the hamburger behind it. With the
+             hamburger opening rather than toggling, that left the phone menu
+             with no way out except following one of its links. */
+          z-index: 210;
           flex-direction: column;
           align-items: center;
           justify-content: center;
@@ -717,7 +747,9 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
         .tn-mobile-menu a:hover { color: #F5A623; }
         .tn-mobile-menu-close {
           position: absolute;
-          top: 24px; right: clamp(24px, 5vw, 80px);
+          /* Same reason as the nav: viewportFit is cover, so 24px from the top
+             of the viewport is behind the status bar on a notched phone. */
+          top: calc(24px + env(safe-area-inset-top)); right: clamp(24px, 5vw, 80px);
           background: transparent;
           border: none;
           color: #F2F2F7;
@@ -815,7 +847,11 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
       <nav ref={navRef} style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "20px clamp(24px, 5vw, 80px)",
+        // The safe-area inset is in the top padding because the layout sets
+        // viewportFit: "cover": without it the logo and the hamburger sit under
+        // the status bar and the notch on an iPhone. The scroll handler that
+        // shrinks this padding has to keep the same term, see handleNavScroll.
+        padding: "calc(20px + env(safe-area-inset-top)) clamp(24px, 5vw, 80px) 20px",
         background: "rgba(8,8,10,0.8)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
@@ -854,9 +890,11 @@ export function LandingClient({ initialReviews, reviewCount, reviewAverage, stag
         )}
         <button
           className="tn-hamburger"
-          aria-label="Open navigation menu"
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={mobileMenuOpen}
-          onClick={() => setMobileMenuOpen(true)}
+          // A toggle, not an opener: it is the control a visitor goes back to
+          // when they want the menu gone.
+          onClick={() => setMobileMenuOpen((open) => !open)}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

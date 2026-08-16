@@ -72,7 +72,12 @@ export default async function Dashboard() {
             {/* Dashboard Header */}
             {/* Dashboard Header Removed - using global SiteHeader */}
 
-            <main className="container p-4 md:p-8 space-y-6 md:space-y-8">
+            {/* A div, not a main: the root layout already wraps every page in the
+                one <main id="main">, and a second landmark inside it gives a
+                screen reader two "main" targets on this page alone. The extra
+                bottom padding is for the fixed mobile tab bar, which has no
+                footer to hide behind on the signed-in pages. */}
+            <div className="container p-4 pb-28 md:p-8 space-y-6 md:space-y-8">
                 <Suspense fallback={null}>
                     <CheckoutSuccessBanner />
                 </Suspense>
@@ -132,7 +137,7 @@ export default async function Dashboard() {
                         cancelAtPeriodEnd={subscription.cancelAtPeriodEnd}
                     />
                 </div>
-            </main>
+            </div>
         </div>
     )
 }

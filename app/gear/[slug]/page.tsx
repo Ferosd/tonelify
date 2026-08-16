@@ -219,7 +219,9 @@ export default async function GearPage({ params }: Props) {
                     </h2>
                     <ul className="grid sm:grid-cols-2 gap-3">
                         {starters.map((tone) => (
-                            <li key={tone.id}>
+                            // min-w-0: same grid-item default as the list on /gear,
+                            // where a long title sized the column instead of the page.
+                            <li key={tone.id} className="min-w-0">
                                 {/* Points at the tone page rather than straight into
                                     the matcher: /explore is indexable and the gear
                                     pages were previously a dead end for crawlers. */}

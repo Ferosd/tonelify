@@ -59,7 +59,12 @@ export default function GearIndexPage() {
                             </h2>
                             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {items.map((entry) => (
-                                    <li key={entry.id}>
+                                    // min-w-0 because a grid item defaults to
+                                    // min-width:auto, so the single column on a phone
+                                    // sized itself to the longest amp name rather than
+                                    // to the page. That pushed the document to 325px
+                                    // and made a 320px screen shrink to fit.
+                                    <li key={entry.id} className="min-w-0">
                                         <Link
                                             href={`/gear/${entry.id}`}
                                             className="flex items-center justify-between gap-3 min-h-14 px-4 rounded-xl bg-[#12121A] border border-white/8 hover:border-[#F5A623]/40 transition-colors"

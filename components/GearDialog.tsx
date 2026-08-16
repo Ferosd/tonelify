@@ -75,8 +75,12 @@ const inputClass =
 
 // The combobox renders a bare input rather than the ui/input component, so the
 // base styling that Input would have contributed has to be spelled out here.
+// text-base below md is not a taste call: iOS Safari zooms the whole page in
+// when a field under 16px takes focus, and it never zooms back out, so the
+// visitor finishes the form on a viewport that no longer fits. ui/input does the
+// same thing with the same pair of classes.
 const comboClass =
-    "w-full h-11 px-3 rounded-md border bg-[#0E0E14] border-white/8 text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/30"
+    "w-full h-11 px-3 rounded-md border bg-[#0E0E14] border-white/8 text-base md:text-sm text-[#F2F0ED] placeholder:text-[#8A8494] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/30"
 
 interface GearDialogProps {
     type: GearType
@@ -217,7 +221,7 @@ export function GearDialog({ type, open, onOpenChange, onSaved }: GearDialogProp
                                 id="gear-category"
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="h-11 px-3 rounded-md bg-[#0E0E14] border border-white/8 text-sm text-[#F2F0ED] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/30"
+                                className="h-11 px-3 rounded-md bg-[#0E0E14] border border-white/8 text-base md:text-sm text-[#F2F0ED] focus:outline-none focus:ring-2 focus:ring-[#E8712A]/30"
                             >
                                 {PEDAL_CATEGORIES.map((c) => (
                                     <option key={c} value={c}>{c}</option>

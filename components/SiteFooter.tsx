@@ -77,7 +77,7 @@ export function SiteFooter() {
                     <div className="col-span-2 md:col-span-1">
                         <Link
                             href="/"
-                            className="font-display text-2xl font-bold text-[#F5A623]"
+                            className="inline-flex items-center min-h-11 font-display text-2xl font-bold text-[#F5A623]"
                             style={{ letterSpacing: '-0.01em' }}
                         >
                             Tonelify

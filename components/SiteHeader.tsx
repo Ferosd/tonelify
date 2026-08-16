@@ -182,7 +182,10 @@ export function SiteHeader() {
         </Sheet>
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0 no-underline">
+        {/* min-h-11 rather than letting the 28px logo set the height: this is the
+            way back to the homepage from every page on the site and it was the
+            smallest target in the bar. */}
+        <Link href="/" className="flex items-center gap-2 shrink-0 no-underline min-h-11">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"

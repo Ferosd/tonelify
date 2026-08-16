@@ -231,6 +231,31 @@
   left: 0;
 }
 
+/* Clerk draws the sign-in and sign-up screens itself, and its fields come out
+   at 13px in a 30px-tall control. Under 16px, iOS Safari zooms the whole page
+   in the moment a field takes focus and never zooms back out, so the visitor
+   finishes signing in on a viewport that no longer fits. This is presentation
+   only: the Clerk components and the auth wiring are untouched. */
+@media (max-width: 767px) {
+  .cl-formFieldInput,
+  .cl-otpCodeFieldInput {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .cl-socialButtonsBlockButton,
+  .cl-formButtonPrimary {
+    min-height: 44px;
+  }
+
+  /* The only way across to sign-up, and Clerk gives it an 18px line box. */
+  .cl-footerActionLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
 /* A visible focus ring in the brand colour, rather than the browser default
    that a dark background swallows. */
 :focus-visible {

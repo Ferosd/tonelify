@@ -65,7 +65,9 @@ export function SettingsContent({ subscription, planName, counts }: SettingsCont
             </div>
 
             {/* Main Content */}
-            <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-12 space-y-8 pb-12">
+            {/* pb-28 on phones clears the fixed tab bar; this page has no footer
+                to hide behind, so the Delete Account row sat under it. */}
+            <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-12 space-y-8 pb-28 md:pb-12">
 
                 {/* Tabs */}
                 <div className="flex items-center gap-2 md:gap-4">
